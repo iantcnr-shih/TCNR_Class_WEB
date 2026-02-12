@@ -1,8 +1,8 @@
 import { Routes, Route } from "react-router-dom";
-import FrontLayout from "./layouts/FrontLayout";
+import FrontLayout from "@/layouts/FrontLayout";
 // import AdminLayout from "./layouts/AdminLayout";
-
-import Home from "./pages/front/Home";
+import Home from "@/pages/front/Home";
+import Lunch from "@/pages/front/Lunch";
 // import Dashboard from "./pages/admin/Dashboard";
 
 function App() {
@@ -12,7 +12,9 @@ function App() {
       <Route path="/" element={<FrontLayout />}>
         <Route index element={<Home />} />
       </Route>
-
+      <Route path="/lunch" element={<FrontLayout />}>
+        <Route index element={<Lunch />} />
+      </Route>
       {/* 後台 */}
       {/* <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Dashboard />} />

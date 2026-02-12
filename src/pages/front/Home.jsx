@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 function Home() {
   return (
     <div style={{ padding: "40px" }}>
-      <h1>前台首頁</h1>
+      <h1 className="ian">前台首頁</h1>
       <p>歡迎來到 TCNR 系統</p>
 
       <div style={{ marginTop: "20px" }}>
