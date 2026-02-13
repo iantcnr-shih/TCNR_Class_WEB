@@ -1,10 +1,13 @@
 // export default Navbar;
-import React, { useState } from 'react';
-import { Menu, X, Users, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart3, Brain, ChevronDown } from 'lucide-react';
-
+import React, { useState, useEffect, useRef } from 'react';
+import { Menu, X, Users, LogIn, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart3, Brain, ChevronDown } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 // Navbar Component
 const Navbar = () => {
+    const dropdownRef = useRef(null);
+    const navigate = useNavigate();
+
     const [isOpen, setIsOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
 
@@ -12,21 +15,37 @@ const Navbar = () => {
         {
             name: '最新資訊',
             icon: Briefcase,
-            href: '#news',
+            url: '#news',
             dropdown: [
-                { name: '職涯發展', href: '#job-info' },
-                { name: '課程公告', href: '#campus-news' },
+                { name: '職涯發展', url: '#job-info' },
+                { name: '課程公告', url: '#campus-news' },
             ]
         },
-        { name: '餐飲管理', icon: Utensils, href: '#meal-order' },
-        { name: '環境管理', icon: Sparkles, href: '#cleaning' },
-        { name: '班務會議', icon: Calendar, href: '#class-meeting' },
-        { name: '知識論壇', icon: MessageSquare, href: '#tech-forum' },
+        { name: '餐飲管理', icon: Utensils, url: '#meal-order' },
+        { name: '環境管理', icon: Sparkles, url: '#cleaning' },
+        { name: '班務會議', icon: Calendar, url: '#class-meeting' },
+        { name: '知識論壇', icon: MessageSquare, url: '#tech-forum' },
 
-        { name: '數據分析', icon: BarChart3, href: '#data-analysis' },
-        { name: 'AI 應用', icon: Brain, href: '#ml-zone' },
-        { name: '團隊開發', icon: Users, href: '#team' },
+        { name: '數據分析', icon: BarChart3, url: '#data-analysis' },
+        { name: 'AI 應用', icon: Brain, url: '#ml-zone' },
+        { name: '團隊開發', icon: Users, url: '#team' },
+        { name: '登入', icon: LogIn, url: '/login' },
     ];
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setTimeout(() => {
+                    setActiveDropdown(null);
+                }, 0);
+            }
+        }
+        document.addEventListener("click", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("click", handleClickOutside);
+        };
+    }, []);
 
     return (
         <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-200">
@@ -57,49 +76,75 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                         </div>
                     </div>
+
+
+                    {/* Mobile menu button */}
+                    <div className="flex ml-auto items-center hidden lg:block text-[rgb(247,237,230)] p-3">
+                        <span className='mx-1 px-2 py-1 hover:text-[rgb(124,44,58)] hover:bg-[rgb(247,237,230)] rounded-md'
+                            onClick={() => navigate("/register")}
+                        >註冊</span>
+                        |
+                        <span className='mx-1 px-2 py-1 hover:text-[rgb(124,44,58)] hover:bg-[rgb(247,237,230)] rounded-md'
+                            onClick={() => navigate("/login")}
+                        >登入</span>
+                        {/* <div
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="inline-flex items-center justify-center p-2 text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md focus:outline-none"
+                        >
+                            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                        </div> */}
+                    </div>
                 </div>
                 <div className="flex justify-between">
                     {/* Desktop Menu */}
                     <div className="hidden lg:flex lg:items-center lg:space-x-1">
-                        {navItems.map((item) => (
-                            <div key={item.name} className="relative group">
-                                {item.dropdown ? (
-                                    <>
+                        {navItems.filter(item => item.name !== '登入')
+                            .map((item) => (
+                                <div key={item.name} className="relative group"
+                                    onClick={() => navigate(item.url)}
+                                >
+                                    {item.dropdown ? (
+                                        <>
+                                            <div
+                                                className="flex items-center px-4 py-2 text-sm font-medium text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md"
+                                                onMouseEnter={() => setActiveDropdown(item.name)}
+                                                ref={dropdownRef}
+                                            >
+                                                <item.icon className="w-4 h-4 mr-2" />
+                                                {item.name}
+                                                <ChevronDown className="w-3 h-3 ml-1" />
+                                            </div>
+                                            {activeDropdown === item.name && (
+                                                <div
+                                                    className="absolute top-full left-0 mt-2 px-2 w-48 bg-gradient-to-br from-[#9f3a4b] to-[#5e1f2b] rounded-lg shadow-lg py-2 z-50 border border-slate-200"
+                                                >
+                                                    {item.dropdown.map((subItem) => (
+                                                        <div
+                                                            key={subItem.name}
+                                                            className="block px-4 py-2.5 text-sm text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                navigate(subItem.url);
+                                                                setActiveDropdown(null);
+                                                            }}
+
+                                                        >
+                                                            {subItem.name}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
                                         <div
-                                            className="flex items-center px-4 py-2 text-sm font-medium text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md"
-                                            onMouseEnter={() => setActiveDropdown(item.name)}
+                                            className="flex items-center px-3 py-2 text-sm font-medium text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md"
                                         >
                                             <item.icon className="w-4 h-4 mr-2" />
                                             {item.name}
-                                            <ChevronDown className="w-3 h-3 ml-1" />
                                         </div>
-                                        {activeDropdown === item.name && (
-                                            <div
-                                                className="absolute top-full left-0 mt-2 px-2 w-48 bg-gradient-to-br from-[#9f3a4b] to-[#5e1f2b] rounded-lg shadow-lg py-2 z-50 border border-slate-200"
-                                                onMouseLeave={() => setActiveDropdown(null)}
-                                            >
-                                                {item.dropdown.map((subItem) => (
-                                                    <div
-                                                        key={subItem.name}
-                                                        href={subItem.href}
-                                                        className="block px-4 py-2.5 text-sm text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md"
-                                                    >
-                                                        {subItem.name}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </>
-                                ) : (
-                                    <div
-                                        className="flex items-center px-3 py-2 text-sm font-medium text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md"
-                                    >
-                                        <item.icon className="w-4 h-4 mr-2" />
-                                        {item.name}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                                    )}
+                                </div>
+                            ))}
                     </div>
                 </div>
             </div>
@@ -113,8 +158,8 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                         {navItems.map((item) => (
                             <div key={item.name}>
                                 <div
-                                    href={item.href}
                                     className="flex items-center px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-md"
+                                    onClick={() => navigate(item.url)}
                                 >
                                     <item.icon className="w-5 h-5 mr-3" />
                                     {item.name}
@@ -124,8 +169,8 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                         {item.dropdown.map((subItem) => (
                                             <div
                                                 key={subItem.name}
-                                                href={subItem.href}
                                                 className="block px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md"
+                                                onClick={() => navigate(subItem.url)}
                                             >
                                                 {subItem.name}
                                             </div>

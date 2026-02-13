@@ -36,12 +36,12 @@ const Footer = () => {
               </div>
               <span className="ml-3 text-lg font-bold text-white">智慧管理平台</span>
             </div>
-            <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+            <div className="text-sm text-slate-500 lg:mb-6 leading-relaxed">
               專業、高效、智能的 網頁軟體工程師 整合式工程管理
-            </p>
+            </div>
             <div className="text-xs text-slate-600 space-y-1">
               <div>Engineering Management Platform</div>
-              <div>© 2026 All Rights Reserved</div>
+              <div className="hidden lg:block">© 2026 All Rights Reserved</div>
             </div>
           </div>
           <div>
@@ -105,6 +105,9 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
             <div className="mb-4 md:mb-0">
               Professional Engineering Management Platform
+              <div className="mt-3 w-full flex lg:hidden">
+                <div className="mx-auto text-slate-500">© 2026 All Rights Reserved</div>
+              </div>
             </div>
             <div className="flex items-center space-x-6 md:mr-16">
               <div href="#" className="hover:text-[#FFBDB0] transition-colors">隱私政策</div>
