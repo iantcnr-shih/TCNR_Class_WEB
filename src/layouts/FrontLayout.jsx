@@ -6,7 +6,7 @@ function FrontLayout() {
     <>
       <h1>前台 Navbar</h1>
       <Outlet />
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 }
