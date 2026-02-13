@@ -49,7 +49,7 @@ const Navbar = () => {
 
     return (
         <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 lg:py-0 lg:px-8 
+            <div className="mx-auto px-4 sm:px-6 py-3 lg:py-0 lg:px-8 
 bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                 <div className='flex'>
                     {/* Logo */}

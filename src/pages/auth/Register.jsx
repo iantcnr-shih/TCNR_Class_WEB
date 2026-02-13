@@ -52,14 +52,14 @@ function Register() {
         {/* Header */}
         <div className="bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b] px-8 py-10 text-center text-white relative">
           {/* Home Button */}
-          <div
+          {/* <div
             onClick={() => navigate('/')}
             className="absolute top-3 left-3 px-4 py-1 bg-white/20 hover:bg-white/30 
                      rounded-lg text-white text-sm font-medium transition-all duration-300
                      backdrop-blur-sm border border-white/30"
           >
             <ArrowLeft className="w-5 h-5" />
-          </div>
+          </div> */}
           <h1 className="text-3xl font-semibold mb-2">建立帳號</h1>
           <p className="text-sm opacity-90">加入 TCNR Class，開始您的學習之旅</p>
         </div>

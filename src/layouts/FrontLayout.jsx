@@ -3,13 +3,15 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 // Layout Component
-const FrontLayout = ({ children }) => {
+const FrontLayout = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navbar />
-      <Outlet />
-      <Footer />
-    </div>
+    <>
+      <div className="w-screen ">
+        <Navbar />
+        <Outlet />
+        <Footer />
+      </div>
+    </>
   );
 };
 
