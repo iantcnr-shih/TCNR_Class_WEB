@@ -23,5 +23,6 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
-  }
+  },
+  base: "/TCNR_Class_WEB/",
 })
