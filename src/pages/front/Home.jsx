@@ -3,8 +3,8 @@ import { Users, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart
 // Banner Component
 const Banner = () => {
   return (
-    <div className='w-full bg-white p-10'>
-      <div className="relative bg-gradient-to-br from-[#311418] via-[#BB496B] to-[#FC801C] overflow-hidden rounded-2xl">
+    <div className='w-full bg-white py-10 md:px-10'>
+      <div className="relative bg-gradient-to-br from-[#311418] via-[#BB496B] to-[#FC801C] overflow-hidden md:rounded-2xl">
         {/* Subtle Grid Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{
@@ -55,10 +55,10 @@ const Banner = () => {
             {/* Right Stats */}
             <div className="grid grid-cols-2 gap-6">
               {[
-                { value: '150+', label: '活躍學員', sublabel: 'Active Members' },
-                { value: '500+', label: '協作互動', sublabel: 'Collaborations' },
-                { value: '80+', label: '知識分享', sublabel: 'Knowledge Shares' },
-                { value: '30+', label: '職涯機會', sublabel: 'Career Opportunities' },
+                { value: '', label: '活躍學員', sublabel: 'Active Members' },
+                { value: '', label: '協作互動', sublabel: 'Collaborations' },
+                { value: '', label: '知識分享', sublabel: 'Knowledge Shares' },
+                { value: '', label: '職涯機會', sublabel: 'Career Opportunities' },
               ].map((stat, index) => (
                 <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:border-[#FFBDB0]/50 transition-all duration-300">
                   <div className="text-4xl font-bold text-white mb-2">{stat.value}</div>
@@ -159,7 +159,7 @@ const Features = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group relative bg-white rounded-xl p-8 border border-slate-200 hover:border-[#FC801C]/30 hover:shadow-xl transition-all duration-300"
+              className="group relative bg-white rounded-xl p-8 border-2 border-slate-200 hover:border-[#FC801C]/30 hover:shadow-xl transition-all duration-300"
             >
               {/* Hover Accent */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FC801C] to-[#BB496B] opacity-0 group-hover:opacity-100 transition-opacity rounded-t-xl"></div>

@@ -41,10 +41,20 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                     <span className="text-white font-bold text-2xl">AI</span>
                                 </div>
                                 <div>
-                                    <div className="text-xl font-bold text-[rgb(247,237,230)] tracking-tight">生成式AI與全端程式設計 專業培訓管理平台</div>
-                                    <div className="text-xs text-[rgb(242,182,168)] tracking-wide">Generative AI & Full-Stack Engineering Management Platform</div>
+                                    <div className="text-xl font-bold text-[rgb(247,237,230)] tracking-tight">生成式AI與全端程式設計 <span className='hidden md:inline'>專業培訓管理平台</span></div>
+                                    <div className="text-xs text-[rgb(242,182,168)] tracking-wide">Generative AI & Full-Stack Engineering <span className='hidden md:inline'>Management Platform</span></div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Mobile menu button */}
+                    <div className="flex ml-auto items-center lg:hidden">
+                        <div
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="inline-flex items-center justify-center p-2 text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md focus:outline-none"
+                        >
+                            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                         </div>
                     </div>
                 </div>
@@ -91,22 +101,14 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                             </div>
                         ))}
                     </div>
-
-                    {/* Mobile menu button */}
-                    <div className="flex ml-auto items-center lg:hidden">
-                        <div
-                            onClick={() => setIsOpen(!isOpen)}
-                            className="inline-flex items-center justify-center p-2 text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md focus:outline-none"
-                        >
-                            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                        </div>
-                    </div>
                 </div>
             </div>
 
             {/* Mobile Menu */}
             {isOpen && (
                 <div className="lg:hidden bg-white border-t border-slate-200">
+
+                    <div className="h-1 mt-[-1px] bg-gradient-to-r from-[#FC801C] via-[#FFBDB0] to-[#FC801C]"></div>
                     <div className="px-4 pt-2 pb-3 space-y-1">
                         {navItems.map((item) => (
                             <div key={item.name}>
