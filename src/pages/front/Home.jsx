@@ -16,11 +16,11 @@ const Banner = () => {
         {/* Accent Line */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FC801C] via-[#FFBDB0] to-[#FC801C]"></div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div>
-              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/10 border border-white/20 mb-6">
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/10 border border-white/20 mb-10">
                 <span className="w-2 h-2 bg-[#FFBDB0] rounded-full mr-2"></span>
                 <span className="text-sm font-medium text-slate-200">Executive Engineering Management Platform</span>
               </div>
@@ -39,9 +39,13 @@ const Banner = () => {
                 <div
                   className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#FC801C] to-[#BB496B] text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
                   onClick={() => {
-                    document.getElementById("features")?.scrollIntoView({
-                      behavior: "smooth",
-                    });
+                    const element = document.getElementById("features");
+                    const offset = 80; // navbar 高度
+                    const y =
+                      element.getBoundingClientRect().top +
+                      window.pageYOffset -
+                      offset;
+                    window.scrollTo({ top: y, behavior: "smooth" });
                   }}
                 >
                   探索平台功能
@@ -62,7 +66,7 @@ const Banner = () => {
               ].map((stat, index) => (
                 <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:border-[#FFBDB0]/50 transition-all duration-300">
                   <div className="text-4xl font-bold text-white mb-2">{stat.value}</div>
-                  <div className="text-sm font-medium text-slate-200">{stat.label}</div>
+                  <div className="text-md font-medium text-slate-200">{stat.label}</div>
                   <div className="text-xs text-slate-400 mt-1 uppercase tracking-wider">{stat.sublabel}</div>
                 </div>
               ))}
@@ -140,10 +144,10 @@ const Features = () => {
   ];
 
   return (
-    <div id="features" className="py-10 bg-white">
+    <div id="features" className="py-5 lg:py-10 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-6 lg:mb-16">
           <div className="inline-block mb-4">
             <span className="text-sm font-semibold text-[#FC801C] tracking-wider uppercase">Core Functions</span>
           </div>
@@ -159,7 +163,7 @@ const Features = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group relative bg-white rounded-xl p-8 border-2 border-slate-200 hover:border-[#FC801C]/30 hover:shadow-xl transition-all duration-300"
+              className="group relative bg-white rounded-xl p-4 md:p-8 border-2 border-slate-200 hover:border-[#FC801C]/30 hover:shadow-xl transition-all duration-300"
             >
               {/* Hover Accent */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FC801C] to-[#BB496B] opacity-0 group-hover:opacity-100 transition-opacity rounded-t-xl"></div>
