@@ -93,13 +93,13 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                     </div>
 
                     {/* Mobile menu button */}
-                    <div className="flex items-center lg:hidden">
-                        <button
+                    <div className="flex ml-auto items-center lg:hidden">
+                        <div
                             onClick={() => setIsOpen(!isOpen)}
                             className="inline-flex items-center justify-center p-2 text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md focus:outline-none"
                         >
                             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                        </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -110,23 +110,23 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                     <div className="px-4 pt-2 pb-3 space-y-1">
                         {navItems.map((item) => (
                             <div key={item.name}>
-                                <a
+                                <div
                                     href={item.href}
                                     className="flex items-center px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-md"
                                 >
                                     <item.icon className="w-5 h-5 mr-3" />
                                     {item.name}
-                                </a>
+                                </div>
                                 {item.dropdown && (
                                     <div className="ml-8 space-y-1">
                                         {item.dropdown.map((subItem) => (
-                                            <a
+                                            <div
                                                 key={subItem.name}
                                                 href={subItem.href}
-                                                className="block px-3 py-2 text-sm text-slate-600 hover:text-slate-900 rounded-md"
+                                                className="block px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md"
                                             >
                                                 {subItem.name}
-                                            </a>
+                                            </div>
                                         ))}
                                     </div>
                                 )}
