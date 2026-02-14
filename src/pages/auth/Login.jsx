@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from 'lucide-react';
+import api from "@/api/axios";
 
 function Login() {
   const navigate = useNavigate();
@@ -8,8 +9,30 @@ function Login() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    remember: false
+    remember: false,
+    captcha: ''
   })
+
+  const [captchaUrl, setCaptchaUrl] = useState('');
+  const [error, setError] = useState('');
+  // const [captchaKey, setCaptchaKey] = useState(Date.now());
+
+  // 取得 captcha 圖片
+  const loadCaptcha = async () => {
+    setCaptchaUrl(
+      "http://127.0.0.1:8000/captcha/default?" + Date.now()
+    );
+    // try {
+    //   const res = await api.get('/api/captcha');
+    //   setCaptchaUrl(res.url + '&t=' + Date.now());
+    // } catch (err) {
+    //   console.error('載入 captcha 失敗', err);
+    // }
+  };
+
+  useEffect(() => {
+    loadCaptcha();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -19,11 +42,37 @@ function Login() {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('登入嘗試:', formData)
-    alert('登入功能尚未實作，這是展示頁面')
+    try {
+      // 🔥 ① 先拿 CSRF Cookie（超重要）
+      await api.get('/sanctum/csrf-cookie');
+      await api.post('/api/login', formData);
+      alert('登入成功！')
+      setError('')
+      // 登入成功可以導向首頁
+      navigate('/')
+    } catch (err) {
+      const data = err.response?.data;
+      console.log(9999, err)
+      if (data?.errors) {
+        const firstError = Object.values(data.errors)[0][0];
+        setError(firstError);
+      } else if (data?.message) {
+        setError(data.message);
+      } else {
+        setError('登入失敗');
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        password: '',
+        captcha: ''
+      }));
+      loadCaptcha();
+    }
   }
+
 
   const handleForgotPassword = (e) => {
     e.preventDefault()
@@ -97,6 +146,43 @@ function Login() {
             />
           </div>
 
+          {/* Captcha */}
+          <div className="mb-6">
+            <label htmlFor="captcha" className="block mb-2 text-sm font-medium text-gray-700">
+              驗證碼
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                id="captcha"
+                name="captcha"
+                placeholder="請輸入驗證碼"
+                value={formData.captcha}
+                onChange={handleChange}
+                required
+                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg text-sm
+                         focus:border-[#9f3a4b] focus:ring-4 focus:ring-[#9f3a4b]/10 
+                         outline-none transition-all duration-300 placeholder-gray-400"
+              />
+
+              {captchaUrl && (
+                <div>
+                  {/* <img
+                    src={captchaUrl}
+                    alt="captcha"
+                    onClick={loadCaptcha}
+                    className="cursor-pointer select-none h-12 w-auto"
+                  /> */}
+                  <img
+                    src={captchaUrl}
+                    onClick={loadCaptcha}
+                    className="cursor-pointer select-none h-12 w-auto"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Remember Me */}
           <div className="flex items-center mb-5">
             <input
@@ -122,6 +208,9 @@ function Login() {
             </div>
           </div>
 
+          {/* Error Message */}
+          {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
+
           {/* Login Button */}
           <button
             type="submit"
@@ -132,8 +221,6 @@ function Login() {
           >
             登入
           </button>
-
-          {/* Divider */}
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200"></div>

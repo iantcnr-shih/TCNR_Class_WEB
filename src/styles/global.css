@@ -70,3 +70,12 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+@font-face {
+  font-family: 'MyArial';
+  src: url('@/assets/fonts/arial.ttf') format('truetype');
+}
+
+body {
+  font-family: 'MyArial';
+}

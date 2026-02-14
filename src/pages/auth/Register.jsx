@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from 'lucide-react';
+// import axios from "axios";
+import api from "@/api/axios";
 
 function Register() {
   const navigate = useNavigate();
@@ -11,6 +13,9 @@ function Register() {
     confirmPassword: '',
     verificationCode: ''
   })
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -19,8 +24,30 @@ function Register() {
       [name]: value
     }))
   }
+  // 🔥 發送驗證碼
+  const handleSendCode = async () => {
+    if (!formData.email) {
+      alert("請先輸入電子郵件");
+      return;
+    }
 
-  const handleSubmit = (e) => {
+    try {
+      // 🔥 先取得 csrf-cookie
+      await api.get('/sanctum/csrf-cookie');
+
+      // 🔥 再送 POST
+      await api.post("/api/send-code", {
+        email: formData.email
+      });
+
+      alert("驗證碼已寄出");
+    } catch (err) {
+      console.log(err);
+      alert("發送失敗");
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     // 檢查密碼是否一致
@@ -29,22 +56,43 @@ function Register() {
       return
     }
 
-    console.log('註冊嘗試:', formData)
-    alert('註冊功能尚未實作，這是展示頁面')
-  }
+    setLoading(true);
 
-  const handleSendCode = () => {
-    if (!formData.email) {
-      alert('請先輸入電子郵件')
-      return
+    try {
+      // 🔥 先取得 csrf-cookie
+      await api.get("/sanctum/csrf-cookie");
+
+      await api.post("/api/register", {
+        email: formData.email,
+        password: formData.password,
+        code: formData.verificationCode,
+      });
+
+      alert("註冊成功");
+      navigate("/login");
+    } catch (error) {
+      if (error.response) {
+        const { status, data } = error.response;
+        let message = data.errors
+          ? Object.values(data.errors)[0][0]
+          : data.message || "發生未知錯誤";
+        setErrorMessage(message);
+        if (status === 400 && message === "驗證碼錯誤") {
+          setFormData(prev => ({
+            ...prev,
+            verificationCode: ""
+          }));
+        }
+      }
     }
-    alert(`驗證碼已發送至 ${formData.email}`)
-  }
+    setLoading(false);
+  };
 
-  const handleLogin = (e) => {
-    e.preventDefault()
-    alert('返回登入功能尚未實作')
-  }
+
+  // const handleLogin = (e) => {
+  //   e.preventDefault()
+  //   alert('返回登入功能尚未實作')
+  // }
 
   return (
     <div className="w-screen min-h-screen bg-gradient-to-b from-[rgb(255,255,255)] to-[#5e1f2b] flex justify-center items-center p-5">
@@ -83,8 +131,12 @@ function Register() {
                        focus:border-[#9f3a4b] focus:ring-4 focus:ring-[#9f3a4b]/10 
                        outline-none transition-all duration-300 placeholder-gray-400"
             />
+            {errorMessage && (
+              <p style={{ color: "red" }}>
+                {errorMessage}
+              </p>
+            )}
           </div>
-
           {/* Password */}
           <div className="mb-6">
             <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-700">
