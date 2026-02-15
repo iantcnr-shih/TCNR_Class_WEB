@@ -10,14 +10,14 @@ const AdminNavbar = () => {
     const [user, setUser] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const menuItems = [
-        { id: 'latest-news', name: '最新資訊', icon: Newspaper, url: '#latest-news', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' },
-        { id: 'meal-order', name: '餐飲管理', icon: Utensils, url: '#meal-order', color: 'orange', bgColor: 'bg-orange-500', lightBg: 'bg-orange-50', textColor: 'text-orange-600' },
-        { id: 'cleaning', name: '環境管理', icon: Sparkles, url: '#cleaning', color: 'emerald', bgColor: 'bg-emerald-500', lightBg: 'bg-emerald-50', textColor: 'text-emerald-600' },
-        { id: 'class-meeting', name: '班務會議', icon: Calendar, url: '#class-meeting', color: 'purple', bgColor: 'bg-purple-500', lightBg: 'bg-purple-50', textColor: 'text-purple-600' },
-        { id: 'tech-forum', name: '知識論壇', icon: MessageSquare, url: '#tech-forum', color: 'cyan', bgColor: 'bg-cyan-500', lightBg: 'bg-cyan-50', textColor: 'text-cyan-600' },
-        { id: 'data-analysis', name: '數據分析', icon: BarChart3, url: '#data-analysis', color: 'indigo', bgColor: 'bg-indigo-500', lightBg: 'bg-indigo-50', textColor: 'text-indigo-600' },
-        { id: 'ml-zone', name: 'AI 應用', icon: Brain, url: '#ml-zone', color: 'pink', bgColor: 'bg-pink-500', lightBg: 'bg-pink-50', textColor: 'text-pink-600' },
-        { id: 'team', name: '團隊開發', icon: Users, url: '#team', color: 'teal', bgColor: 'bg-teal-500', lightBg: 'bg-teal-50', textColor: 'text-teal-600' },
+        { id: 'latest-news', name: '最新資訊', icon: Newspaper, url: '/admin/news', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' },
+        { id: 'meal-order', name: '餐飲管理', icon: Utensils, url: '/admin/meal-order', color: 'orange', bgColor: 'bg-orange-500', lightBg: 'bg-orange-50', textColor: 'text-orange-600' },
+        { id: 'environment', name: '環境管理', icon: Sparkles, url: '/admin/environment', color: 'emerald', bgColor: 'bg-emerald-500', lightBg: 'bg-emerald-50', textColor: 'text-emerald-600' },
+        { id: 'class-meeting', name: '班務會議', icon: Calendar, url: '/admin/class-meeting', color: 'purple', bgColor: 'bg-purple-500', lightBg: 'bg-purple-50', textColor: 'text-purple-600' },
+        { id: 'tech-forum', name: '知識論壇', icon: MessageSquare, url: '/admin/tech-forum', color: 'cyan', bgColor: 'bg-cyan-500', lightBg: 'bg-cyan-50', textColor: 'text-cyan-600' },
+        { id: 'data-analysis', name: '數據分析', icon: BarChart3, url: '/admin/data-analysis', color: 'indigo', bgColor: 'bg-indigo-500', lightBg: 'bg-indigo-50', textColor: 'text-indigo-600' },
+        { id: 'ai', name: 'AI 應用', icon: Brain, url: '/admin/ai', color: 'pink', bgColor: 'bg-pink-500', lightBg: 'bg-pink-50', textColor: 'text-pink-600' },
+        { id: 'team', name: '團隊開發', icon: Users, url: '/admin/team', color: 'teal', bgColor: 'bg-teal-500', lightBg: 'bg-teal-50', textColor: 'text-teal-600' },
         { id: 'go-user', name: '前往使用者頁面', icon: ArrowRightCircle, url: '/', color: 'bg-yellow-500', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-yellow-500' },
         { id: 'logout', name: '登出', icon: LogOut, url: 'logout', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' }
     ];
@@ -49,7 +49,7 @@ const AdminNavbar = () => {
                     { name: '費用統計', status: 'normal', date: '2024-02-11' }
                 ]
             },
-            'cleaning': {
+            'environment': {
                 title: '環境管理',
                 description: '環境清潔與維護',
                 items: [
@@ -97,7 +97,7 @@ const AdminNavbar = () => {
                     { name: '數據匯出', status: 'normal', date: '2024-02-10' }
                 ]
             },
-            'ml-zone': {
+            'ai': {
                 title: 'AI 應用',
                 description: '人工智慧與機器學習',
                 items: [
@@ -153,27 +153,6 @@ const AdminNavbar = () => {
                         <div className="mb-6">
                             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3">主要功能</h3>
                             <div className="space-y-1">
-                                {/* {menuItems.map((item) => {
-                                    const Icon = item.icon;
-                                    const isActive = activeMenu === item.id;
-
-                                    return (
-                                        <button
-                                            key={item.id}
-                                            onClick={() => setActiveMenu(item.id)}
-                                            className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${isActive
-                                                ? `${item.bgColor} text-white shadow-sm`
-                                                : 'text-gray-700 hover:bg-slate-50'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <Icon className={`h-5 w-5 ${isActive ? 'text-white' : item.textColor}`} />
-                                                <span className="font-medium text-sm">{item.name}</span>
-                                            </div>
-                                            {isActive && <ChevronRight className="h-4 w-4" />}
-                                        </button>
-                                    );
-                                })} */}
                                 {menuItems.map((item) => {
                                     const Icon = item.icon;
                                     const isActive = activeMenu === item.id;
@@ -188,6 +167,7 @@ const AdminNavbar = () => {
                                                     logout();
                                                 } else if (isRoute) {
                                                     navigate(item.url);
+                                                    setSidebarOpen(false);
                                                 }
                                             }}
                                             className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${isActive
@@ -240,23 +220,23 @@ const AdminNavbar = () => {
                                 />
                             </div>
 
-                            <button className="p-2 rounded-lg hover:bg-slate-50 relative transition-colors">
+                            <div className="p-2 rounded-lg hover:bg-slate-50 relative transition-colors">
                                 <Bell className="h-5 w-5 text-gray-600" />
                                 <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-                            </button>
+                            </div>
 
-                            <button className="p-2 rounded-lg hover:bg-slate-50 transition-colors">
+                            <div className="p-2 rounded-lg hover:bg-slate-50 transition-colors">
                                 <Settings className="h-5 w-5 text-gray-600" />
-                            </button>
+                            </div>
 
-                            <div className="h-8 w-px bg-gray-200"></div>
+                            <div className="h-8 w-px bg-gray-200 hidden sm:block"></div>
 
-                            <button className="flex items-center gap-2 hover:bg-slate-50 rounded-lg px-3 py-2 transition-colors">
+                            <div className="flex items-center gap-2 hover:bg-slate-50 rounded-lg px-3 py-2 transition-colors hidden sm:block">
                                 <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
                                     <User className="h-4 w-4 text-slate-700" />
                                 </div>
                                 <span className="text-sm font-medium text-gray-700 hidden lg:block">Admin</span>
-                            </button>
+                            </div>
                         </div>
                     </div>
                 </div>

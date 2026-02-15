@@ -3,7 +3,7 @@ const AdminFooter = () => {
   const footerLinks = {
     platform: [
       { name: '餐飲管理', href: '#meal-order' },
-      { name: '環境管理', href: '#cleaning' },
+      { name: '環境管理', href: '#environment' },
       { name: '班務會議', href: '#class-meeting' },
       { name: '知識論壇', href: '#tech-forum' },
     ],
@@ -11,7 +11,7 @@ const AdminFooter = () => {
       { name: '職涯發展', href: '#job-info' },
       { name: '課程公告', href: '#job-info' },
       { name: '數據分析', href: '#data-analysis' },
-      { name: 'AI 應用', href: '#ml-zone' },
+      { name: 'AI 應用', href: '#ai' },
     ],
     about: [
       { name: '開發團隊', href: '#team' },

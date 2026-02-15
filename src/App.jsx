@@ -1,6 +1,14 @@
 import { Routes, Route } from "react-router-dom";
 import AdminLayout from "@/layouts/AdminLayout";
 import AdminHome from "@/pages/admin/AdminHome";
+import AdminNews from "@/pages/admin/AdminNews";
+import AdminMealOrder from "@/pages/admin/AdminMealOrder";
+import AdminEnvironment from "@/pages/admin/AdminEnvironment";
+import AdminClassMeeting from "@/pages/admin/AdminClassMeeting";
+import AdminTechForum from "@/pages/admin/AdminTechForum";
+import AdminDataAnalysis from "@/pages/admin/AdminDataAnalysis";
+import AdminAi from "@/pages/admin/AdminAi";
+import AdminTeam from "@/pages/admin/AdminTeam";
 import FrontLayout from "@/layouts/FrontLayout";
 import Home from "@/pages/front/Home";
 import Lunch from "@/pages/front/Lunch";
@@ -41,8 +49,32 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         {/* 後台 */}
-        <Route path="/admin/home" element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminHome />} />
+        </Route>
+        <Route path="/admin/news" element={<AdminLayout />}>
+          <Route index element={<AdminNews />} />
+        </Route>
+        <Route path="/admin/meal-order" element={<AdminLayout />}>
+          <Route index element={<AdminMealOrder />} />
+        </Route>
+        <Route path="/admin/environment" element={<AdminLayout />}>
+          <Route index element={<AdminEnvironment />} />
+        </Route>
+        <Route path="/admin/class-meeting" element={<AdminLayout />}>
+          <Route index element={<AdminClassMeeting />} />
+        </Route>
+        <Route path="/admin/tech-forum" element={<AdminLayout />}>
+          <Route index element={<AdminTechForum />} />
+        </Route>
+        <Route path="/admin/data-analysis" element={<AdminLayout />}>
+          <Route index element={<AdminDataAnalysis />} />
+        </Route>
+        <Route path="/admin/ai" element={<AdminLayout />}>
+          <Route index element={<AdminAi />} />
+        </Route>
+        <Route path="/admin/team" element={<AdminLayout />}>
+          <Route index element={<AdminTeam />} />
         </Route>
       </Routes>
     </>

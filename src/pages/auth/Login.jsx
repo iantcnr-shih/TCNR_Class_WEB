@@ -94,7 +94,7 @@ function Login() {
           >
             <ArrowLeft className="w-5 h-5" />
           </div> */}
-          <h1 className="text-3xl font-semibold mb-2">TCNR Class</h1>
+          <div className="text-4xl lg:text-7xl font-semibold mb-2">TCNR Class</div>
           <p className="text-sm opacity-90">歡迎回來，請登入您的帳號</p>
         </div>
 
@@ -218,22 +218,21 @@ function Login() {
 
           {/* Social Login */}
           <div className="flex gap-4 mb-6">
-            <button
-              type="button"
+            <div
               onClick={() => handleSocialLogin('Google')}
-              className="flex-1 py-3 border-2 border-gray-200 rounded-lg font-medium text-sm
-                       hover:border-[#9f3a4b] hover:bg-gray-50 transition-all duration-300"
+              className="flex-1 text-center text-xl py-3 border-2 border-gray-200 rounded-lg font-medium text-sm
+                       hover:border-[#9f3a4b] hover:bg-gray-50 transition-all duration-300 bg-[rgb(225,231,236)]"
             >
               Google
-            </button>
-            <button
+            </div>
+            <div
               type="button"
               onClick={() => handleSocialLogin('GitHub')}
-              className="flex-1 py-3 border-2 border-gray-200 rounded-lg font-medium text-sm
-                       hover:border-[#9f3a4b] hover:bg-gray-50 transition-all duration-300"
+              className="flex-1 text-center text-xl py-3 border-2 border-gray-200 rounded-lg font-medium text-sm
+                       hover:border-[#9f3a4b] hover:bg-gray-50 transition-all duration-300 bg-[rgb(225,231,236)]"
             >
               GitHub
-            </button>
+            </div>
           </div>
 
           {/* Signup Link */}

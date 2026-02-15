@@ -101,7 +101,7 @@ function Register() {
           >
             <ArrowLeft className="w-5 h-5" />
           </div> */}
-          <h1 className="text-3xl font-semibold mb-2">建立帳號</h1>
+          <h1 className="text-4xl lg:text-7xl font-semibold mb-2">建立帳號</h1>
           <p className="text-sm opacity-90">加入 TCNR Class，開始您的學習之旅</p>
         </div>
 
@@ -188,15 +188,15 @@ function Register() {
                          focus:border-[#9f3a4b] focus:ring-4 focus:ring-[#9f3a4b]/10 
                          outline-none transition-all duration-300 placeholder-gray-400"
               />
-              <button
+              <div
                 type="button"
                 onClick={handleSendCode}
-                className="px-5 py-3 border-2 border-[#9f3a4b] text-[#9f3a4b] rounded-lg 
+                className="px-3 sm:px-5 py-3 border-2 border-[#9f3a4b] text-[#9f3a4b] rounded-lg 
                          font-medium text-sm hover:bg-[#9f3a4b] hover:text-white 
                          transition-all duration-300 whitespace-nowrap"
               >
                 發送驗證碼
-              </button>
+              </div>
             </div>
           </div>
 

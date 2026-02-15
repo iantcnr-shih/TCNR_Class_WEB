@@ -86,7 +86,7 @@ const Features = () => {
   const features = [
     {
       icon: Utensils,
-      title: '餐飲管理',
+      title: '訂餐管理',
       description: '智能訂餐系統，優化用餐體驗，提升行政效率',
       iconColor: 'text-[#FC801C]',
       iconBg: 'bg-orange-50'

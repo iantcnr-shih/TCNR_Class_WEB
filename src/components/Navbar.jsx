@@ -26,13 +26,13 @@ const Navbar = () => {
                 { name: '課程公告', url: '#campus-news' },
             ]
         },
-        { name: '餐飲管理', icon: Utensils, url: '#meal-order' },
-        { name: '環境管理', icon: Sparkles, url: '#cleaning' },
+        { name: '訂餐管理', icon: Utensils, url: '#meal-order' },
+        { name: '環境管理', icon: Sparkles, url: '#environment' },
         { name: '班務會議', icon: Calendar, url: '#class-meeting' },
         { name: '知識論壇', icon: MessageSquare, url: '#tech-forum' },
 
         { name: '數據分析', icon: BarChart3, url: '#data-analysis' },
-        { name: 'AI 應用', icon: Brain, url: '#ml-zone' },
+        { name: 'AI 應用', icon: Brain, url: '#ai' },
         { name: '團隊開發', icon: Users, url: '#team' },
         { name: '登入', icon: LogIn, url: '/login' },
         { name: '登出', icon: LogIn, url: 'logout' },
@@ -55,8 +55,8 @@ const Navbar = () => {
             url: '#features',
             color: 'text-purple-600',
             dropdown: [
-                { name: '餐飲管理', icon: Utensils, color: 'text-cyan-600', url: '#meal-order' },
-                { name: '環境管理', icon: Sparkles, color: 'text-indigo-600', url: '#cleaning' },
+                { name: '訂餐管理', icon: Utensils, color: 'text-cyan-600', url: '#meal-order' },
+                { name: '環境管理', icon: Sparkles, color: 'text-indigo-600', url: '#environment' },
                 { name: '班務會議', icon: Calendar, color: 'text-pink-600', url: '#class-meeting' },
                 { name: '知識論壇', icon: MessageSquare, color: 'text-blue-600', url: '#tech-forum' },
             ]
@@ -68,7 +68,7 @@ const Navbar = () => {
             color: 'text-teal-600',
             dropdown: [
                 { name: '數據分析', icon: BarChart3, color: 'text-blue-600', url: '#data-analysis' },
-                { name: 'AI 應用', icon: Brain, color: 'text-orange-600', url: '#ml-zone' },
+                { name: 'AI 應用', icon: Brain, color: 'text-orange-600', url: '#ai' },
             ]
         },
         {
@@ -83,7 +83,7 @@ const Navbar = () => {
         {
             name: '前往管理專區',
             icon: ShieldCheck,
-            url: '/admin/home',
+            url: '/admin',
             color: 'text-yellow-600'
         },
         {
@@ -102,7 +102,7 @@ const Navbar = () => {
 
     const menuItems = [
         { name: "個人資料", path: "/profile", roles: ["admin", "student"] },
-        { name: "管理專區", path: "/admin/home", roles: ["admin"] },
+        { name: "管理專區", path: "/admin", roles: ["admin"] },
         { name: "登出", action: "logout", roles: ["admin", "student"] },
     ];
 
@@ -190,7 +190,7 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                         {!user ? (
                             <>
                                 <span className='mx-1 px-2 py-1 hover:text-[rgb(124,44,58)] hover:bg-[rgb(247,237,230)] rounded-md'
-                                    onClick={() => navigate("/admin/home")}
+                                    onClick={() => navigate("/admin")}
                                 >管理專區</span>
                                 |
                                 <span className='mx-1 px-2 py-1 hover:text-[rgb(124,44,58)] hover:bg-[rgb(247,237,230)] rounded-md'
@@ -308,30 +308,7 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
 
                     <div className="h-1 mt-[-1px] bg-gradient-to-r from-[#FC801C] via-[#FFBDB0] to-[#FC801C]"></div>
                     <div className="px-4 pt-2 pb-3 space-y-1">
-                        {/* {MobileMenuItems.map((item) => (
-                            <div key={item.name}>
-                                <div
-                                    className="flex items-center px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-md"
-                                    onClick={() => navigate(item.url)}
-                                >
-                                    <item.icon className="w-5 h-5 mr-3" />
-                                    {item.name}
-                                </div>
-                                {item.dropdown && (
-                                    <div className="ml-8 space-y-1">
-                                        {item.dropdown.map((subItem) => (
-                                            <div
-                                                key={subItem.name}
-                                                className="block px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md"
-                                                onClick={() => navigate(subItem.url)}
-                                            >
-                                                {subItem.name}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))} */}
+                        
                         {MobileMenuItems
                             .filter((item) => {
                                 if (item.name === "登入" && user) return false;
@@ -366,7 +343,7 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                     <div key={index} className="">
 
                                         {/* 大標題 */}
-                                        <button
+                                        <div
                                             onClick={() =>
                                                 setOpenMenu(isOpen ? null : index)
                                             }
@@ -382,7 +359,7 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                                 className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
                                                     }`}
                                             />
-                                        </button>
+                                        </div>
 
                                         {/* 子選單 */}
                                         {isOpen && (
