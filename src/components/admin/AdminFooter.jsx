@@ -1,5 +1,5 @@
 // Footer Component
-const Footer = () => {
+const AdminFooter = () => {
   const footerLinks = {
     platform: [
       { name: '餐飲管理', href: '#meal-order' },
@@ -22,25 +22,26 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-[#311418] text-slate-400 border-t border-slate-800">
+    <footer className="bg-[rgb(0,61,96)] text-slate-400 border-t border-slate-800">
       {/* Top Accent */}
-      <div className="h-1 bg-gradient-to-r from-[#FC801C] via-[#BB496B] to-[#FC801C]"></div>
+      <div className="h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600"></div>
 
       <div className="flex flex-col lg:flex-row max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pm-5 pt-12 gap-8">
-        {/* Brand */}
-
+        {/* 左欄 / Brand */}
         <div className="flex w-full lg:w-1/4 xl:w-1/5 mb-2">
           <div className="mx-auto">
             <div className="flex">
               <div className="flex mx-auto lg:mx-0 items-center mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#FC801C] to-[#BB496B] rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">AI</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-xl">TC</span>
                 </div>
                 <div className="ml-3">
-                  <span className="ml-3 text-lg font-bold text-white">智慧管理平台</span>
+                  <span className="text-lg font-bold text-white block">TCNR Class</span>
+                  <span className="text-md font-bold text-white block">智慧管理平台</span>
                 </div>
               </div>
             </div>
+
             <div className="text-center lg:text-left text-sm text-slate-500 mb-2 leading-relaxed">
               專業、高效、智能的 網頁軟體工程師 整合式工程管理
             </div>
@@ -57,12 +58,12 @@ const Footer = () => {
             <div className="mx-auto">
               <div>
                 <div className="text-center">
-                  <h3 className="text-white font-semibold mb-4 text-base md:text-lg uppercase tracking-wider">平台功能</h3>
+                  <h3 className="text-white font-semibold mb-4 text-base md:text-lg uppercase tracking-wider">主要功能</h3>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-1 gap-x-12 gap-y-4 md:gap-x-6 md:gap-y-1 ">
                   {footerLinks.platform.map((link) => (
                     <div key={link.name}>
-                      <div href={link.href} className="text-base md:text-lg text-[rgb(202,87,98)] hover:text-[rgb(233,197,192)] transition-colors duration-200">
+                      <div href={link.href} className="text-base md:text-lg text-[rgb(87,114,202)] hover:text-[rgb(192,208,233)] transition-colors duration-200">
                         {link.name}
                       </div>
                     </div>
@@ -70,6 +71,7 @@ const Footer = () => {
                 </div>
               </div>
             </div>
+
             <div className="mx-auto mt-6 sm:mt-0">
               <div>
                 <div className="text-center">
@@ -77,7 +79,7 @@ const Footer = () => {
                   <div className="grid grid-cols-2 md:grid-cols-1 gap-x-12 gap-y-4 md:gap-x-6 md:gap-y-1 ">
                     {footerLinks.resources.map((link) => (
                       <div key={link.name}>
-                        <div href={link.href} className="text-base md:text-lg text-[rgb(202,87,98)] hover:text-[rgb(233,197,192)]  transition-colors duration-200">
+                        <div href={link.href} className="text-base md:text-lg text-[rgb(87,114,202)] hover:text-[rgb(192,208,233)]  transition-colors duration-200">
                           {link.name}
                         </div>
                       </div>
@@ -86,6 +88,7 @@ const Footer = () => {
                 </div>
               </div>
             </div>
+
             <div className="mx-auto mt-6 md:mt-0">
               <div>
                 <div className="text-center">
@@ -93,7 +96,7 @@ const Footer = () => {
                   <div className="grid grid-cols-2 md:grid-cols-1 gap-x-12 gap-y-4 md:gap-x-6 md:gap-y-1 ">
                     {footerLinks.about.map((link) => (
                       <div key={link.name}>
-                        <div href={link.href} className="text-base md:text-lg  text-[rgb(202,87,98)] hover:text-[rgb(233,197,192)] transition-colors duration-200">
+                        <div href={link.href} className="text-base md:text-lg text-[rgb(87,114,202)] hover:text-[rgb(192,208,233)] transition-colors duration-200">
                           {link.name}
                         </div>
                       </div>
@@ -124,4 +127,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export default AdminFooter;

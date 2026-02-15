@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from 'lucide-react';
-// import axios from "axios";
 import api from "@/api/axios";
 
 function Register() {
@@ -87,12 +86,6 @@ function Register() {
     }
     setLoading(false);
   };
-
-
-  // const handleLogin = (e) => {
-  //   e.preventDefault()
-  //   alert('返回登入功能尚未實作')
-  // }
 
   return (
     <div className="w-screen min-h-screen bg-gradient-to-b from-[rgb(255,255,255)] to-[#5e1f2b] flex justify-center items-center p-5">

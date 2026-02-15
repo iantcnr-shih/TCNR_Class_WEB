@@ -1,9 +1,12 @@
 import { Routes, Route } from "react-router-dom";
+import AdminLayout from "@/layouts/AdminLayout";
+import AdminHome from "@/pages/admin/AdminHome";
 import FrontLayout from "@/layouts/FrontLayout";
 import Home from "@/pages/front/Home";
 import Lunch from "@/pages/front/Lunch";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
+
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -38,9 +41,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         {/* 後台 */}
-        {/* <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<Dashboard />} />
-      </Route> */}
+        <Route path="/admin/home" element={<AdminLayout />}>
+          <Route index element={<AdminHome />} />
+        </Route>
       </Routes>
     </>
   );

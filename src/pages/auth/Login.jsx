@@ -15,19 +15,12 @@ function Login() {
 
   const [captchaUrl, setCaptchaUrl] = useState('');
   const [error, setError] = useState('');
-  // const [captchaKey, setCaptchaKey] = useState(Date.now());
 
   // 取得 captcha 圖片
   const loadCaptcha = async () => {
     setCaptchaUrl(
       "http://127.0.0.1:8000/captcha/default?" + Date.now()
     );
-    // try {
-    //   const res = await api.get('/api/captcha');
-    //   setCaptchaUrl(res.url + '&t=' + Date.now());
-    // } catch (err) {
-    //   console.error('載入 captcha 失敗', err);
-    // }
   };
 
   useEffect(() => {
@@ -54,7 +47,6 @@ function Login() {
       navigate('/')
     } catch (err) {
       const data = err.response?.data;
-      console.log(9999, err)
       if (data?.errors) {
         const firstError = Object.values(data.errors)[0][0];
         setError(firstError);
@@ -167,12 +159,6 @@ function Login() {
 
               {captchaUrl && (
                 <div>
-                  {/* <img
-                    src={captchaUrl}
-                    alt="captcha"
-                    onClick={loadCaptcha}
-                    className="cursor-pointer select-none h-12 w-auto"
-                  /> */}
                   <img
                     src={captchaUrl}
                     onClick={loadCaptcha}

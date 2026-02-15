@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, Users, LogIn, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart3, Brain, ChevronDown } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import api from "@/api/axios";
 
 // Navbar Component
 const Navbar = () => {
@@ -10,6 +11,9 @@ const Navbar = () => {
 
     const [isOpen, setIsOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
+
+    const [user, setUser] = useState(null);
+    const [showMenu, setShowMenu] = useState(false);
 
     const navItems = [
         {
@@ -32,6 +36,44 @@ const Navbar = () => {
         { name: '登入', icon: LogIn, url: '/login' },
     ];
 
+    const menuItems = [
+        { name: "個人資料", path: "/profile", roles: ["admin", "student"] },
+        { name: "管理專區", path: "/admin/home", roles: ["admin"] },
+        { name: "登出", action: "logout", roles: ["admin", "student"] },
+    ];
+
+    const logout = async () => {
+        try {
+            await api.post("/api/logout");   // 如果後端有做 token 作廢
+
+        } catch (err) {
+            console.error(err);
+        } finally {
+            // 不管 API 成功或失敗，都清除前端登入狀態
+            localStorage.removeItem("token");
+            setUser(null);
+            delete api.defaults.headers.common["Authorization"];
+
+            navigate("/login");   // 🔥 導回登入頁
+        }
+    };
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await api.get('/api/user');
+                let user = res.data;
+                user.role = "admin";
+                setUser(user);
+            } catch (error) {
+                console.log("user error:", error);
+                setUser(null);
+            }
+        };
+        fetchUser();
+    }, []);
+
+
     useEffect(() => {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -46,6 +88,7 @@ const Navbar = () => {
             document.removeEventListener("click", handleClickOutside);
         };
     }, []);
+
 
     return (
         <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-200">
@@ -80,19 +123,64 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
 
                     {/* Mobile menu button */}
                     <div className="flex ml-auto items-center hidden lg:block text-[rgb(247,237,230)] p-3">
-                        <span className='mx-1 px-2 py-1 hover:text-[rgb(124,44,58)] hover:bg-[rgb(247,237,230)] rounded-md'
-                            onClick={() => navigate("/register")}
-                        >註冊</span>
-                        |
-                        <span className='mx-1 px-2 py-1 hover:text-[rgb(124,44,58)] hover:bg-[rgb(247,237,230)] rounded-md'
-                            onClick={() => navigate("/login")}
-                        >登入</span>
-                        {/* <div
-                            onClick={() => setIsOpen(!isOpen)}
-                            className="inline-flex items-center justify-center p-2 text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md focus:outline-none"
-                        >
-                            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                        </div> */}
+                        {!user ? (
+                            <>
+                                <span className='mx-1 px-2 py-1 hover:text-[rgb(124,44,58)] hover:bg-[rgb(247,237,230)] rounded-md'
+                                    onClick={() => navigate("/admin/home")}
+                                >管理專區</span>
+                                |
+                                <span className='mx-1 px-2 py-1 hover:text-[rgb(124,44,58)] hover:bg-[rgb(247,237,230)] rounded-md'
+                                    onClick={() => navigate("/register")}
+                                >註冊</span>
+                                |
+                                <span className='mx-1 px-2 py-1 hover:text-[rgb(124,44,58)] hover:bg-[rgb(247,237,230)] rounded-md'
+                                    onClick={() => navigate("/login")}
+                                >登入</span>
+                            </>
+                        ) : (
+                            <div className="relative">
+                                <div
+                                    onClick={() => setShowMenu(!showMenu)}
+                                    className="flex items-center gap-2 cursor-pointer"
+                                >
+                                    <div className="w-15 h-9 rounded-full bg-gradient-to-br from-[rgb(206,21,104)] to-[rgb(186,62,0)] text-white flex items-center justify-center font-bold">
+                                        {user.user_name?.charAt(0).toUpperCase()}
+                                    </div>
+
+                                    <span className="hidden md:block">
+                                        {user.user_name}
+                                    </span>
+                                </div>
+
+                                {/* Dropdown with animation */}
+                                <div className={`
+                                        absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50 border
+                                        transition-all duration-300 ease-out transform origin-top-right
+                                        ${showMenu ? "opacity-100 scale-100 translate-y-0"
+                                        : "opacity-0 scale-95 -translate-y-2 pointer-events-none"}
+                                    `}
+                                >
+                                    {menuItems
+                                        .filter(item => item.roles.includes(user.role))
+                                        .map(item => (
+                                            <div
+                                                key={item.name}
+                                                className="px-4 py-2 text-[rgb(124,44,58)] hover:bg-gray-200 hover:text-[rgb(222,96,117)] cursor-pointer transition-colors"
+                                                onClick={() => {
+                                                    if (item.action === "logout") {
+                                                        logout();
+                                                    } else {
+                                                        navigate(item.path);
+                                                    }
+                                                    setShowMenu(false);
+                                                }}
+                                            >
+                                                {item.name}
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="flex justify-between">
