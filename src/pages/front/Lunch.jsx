@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import ReviewSection from "../../components/reviews/ReviewSection";
 
 function Lunch() {
   return (
@@ -12,6 +13,10 @@ function Lunch() {
           <button style={buttonStyle}>前往後台</button>
         </Link>
       </div>
+      {/* Reviews 區塊 */}
+      <div style={{ marginTop: "40px" }}>
+        <ReviewSection shopId={1} />
+      </div>
     </div>
   );
 }
@@ -23,3 +28,6 @@ const buttonStyle = {
 };
 
 export default Lunch;
+
+
+
