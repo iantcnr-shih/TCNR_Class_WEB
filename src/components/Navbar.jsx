@@ -1,6 +1,6 @@
 // export default Navbar;
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Users, LogIn, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart3, Brain, ChevronDown } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart3, Brain, ChevronDown, User, Users, ArrowRightCircle, Newspaper, LayoutDashboard, BookOpen, Code2, ShieldCheck, TrendingUp, Megaphone, GitBranch } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import api from "@/api/axios";
 
@@ -14,6 +14,7 @@ const Navbar = () => {
 
     const [user, setUser] = useState(null);
     const [showMenu, setShowMenu] = useState(false);
+    const [openMenu, setOpenMenu] = useState(null);
 
     const navItems = [
         {
@@ -34,6 +35,69 @@ const Navbar = () => {
         { name: 'AI 應用', icon: Brain, url: '#ml-zone' },
         { name: '團隊開發', icon: Users, url: '#team' },
         { name: '登入', icon: LogIn, url: '/login' },
+        { name: '登出', icon: LogIn, url: 'logout' },
+    ];
+
+    const MobileMenuItems = [
+        {
+            name: '最新資訊',
+            icon: Newspaper,
+            url: '#news',
+            color: 'text-[rgb(194,37,37)]',
+            dropdown: [
+                { name: '職涯發展', icon: TrendingUp, color: 'text-orange-600', url: '#job-info' },
+                { name: '課程公告', icon: Megaphone, color: 'text-emerald-600', url: '#campus-news' },
+            ]
+        },
+        {
+            name: '平台功能',
+            icon: LayoutDashboard,
+            url: '#features',
+            color: 'text-purple-600',
+            dropdown: [
+                { name: '餐飲管理', icon: Utensils, color: 'text-cyan-600', url: '#meal-order' },
+                { name: '環境管理', icon: Sparkles, color: 'text-indigo-600', url: '#cleaning' },
+                { name: '班務會議', icon: Calendar, color: 'text-pink-600', url: '#class-meeting' },
+                { name: '知識論壇', icon: MessageSquare, color: 'text-blue-600', url: '#tech-forum' },
+            ]
+        },
+        {
+            name: '學習資源',
+            icon: BookOpen,
+            url: '#resources',
+            color: 'text-teal-600',
+            dropdown: [
+                { name: '數據分析', icon: BarChart3, color: 'text-blue-600', url: '#data-analysis' },
+                { name: 'AI 應用', icon: Brain, color: 'text-orange-600', url: '#ml-zone' },
+            ]
+        },
+        {
+            name: '關於我們',
+            icon: Users,
+            url: '#about',
+            color: 'text-pink-600',
+            dropdown: [
+                { name: '團隊開發', icon: GitBranch, color: 'text-cyan-600', url: '#team' },
+            ]
+        },
+        {
+            name: '前往管理專區',
+            icon: ShieldCheck,
+            url: '/admin/home',
+            color: 'text-yellow-600'
+        },
+        {
+            name: '登入',
+            icon: LogIn,
+            url: '/login',
+            color: 'text-green-600'
+        },
+        {
+            name: '登出',
+            icon: LogOut,
+            url: 'logout',
+            color: 'text-blue-900'
+        },
     ];
 
     const menuItems = [
@@ -144,7 +208,8 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                     className="flex items-center gap-2 cursor-pointer"
                                 >
                                     <div className="w-15 h-9 rounded-full bg-gradient-to-br from-[rgb(206,21,104)] to-[rgb(186,62,0)] text-white flex items-center justify-center font-bold">
-                                        {user.user_name?.charAt(0).toUpperCase()}
+                                        {/* {user.user_name?.charAt(0).toUpperCase()} */}
+                                        <User className="h-6 w-8 text-white" />
                                     </div>
 
                                     <span className="hidden md:block">
@@ -186,7 +251,7 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                 <div className="flex justify-between">
                     {/* Desktop Menu */}
                     <div className="hidden lg:flex lg:items-center lg:space-x-1">
-                        {navItems.filter(item => item.name !== '登入')
+                        {navItems.filter(item => item.name !== '登入' && item.name !== '登出')
                             .map((item) => (
                                 <div key={item.name} className="relative group"
                                     onClick={() => navigate(item.url)}
@@ -243,7 +308,7 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
 
                     <div className="h-1 mt-[-1px] bg-gradient-to-r from-[#FC801C] via-[#FFBDB0] to-[#FC801C]"></div>
                     <div className="px-4 pt-2 pb-3 space-y-1">
-                        {navItems.map((item) => (
+                        {/* {MobileMenuItems.map((item) => (
                             <div key={item.name}>
                                 <div
                                     className="flex items-center px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-md"
@@ -266,7 +331,80 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                     </div>
                                 )}
                             </div>
-                        ))}
+                        ))} */}
+                        {MobileMenuItems
+                            .filter((item) => {
+                                if (item.name === "登入" && user) return false;
+                                if (item.name === "登出" && !user) return false;
+                                return true;
+                            }).map((item, index) => {
+                                const Icon = item.icon;
+                                const isOpen = openMenu === index;
+
+                                // 沒有 dropdown 的（例如登入 / 前往管理專區）
+                                if (!item.dropdown) {
+                                    return (
+                                        <div
+                                            key={index}
+                                            className={`flex items-center gap-3 px-4 py-3`}
+                                            onClick={() => {
+                                                if (item.url === "logout") {
+                                                    logout();
+                                                } else {
+                                                    navigate(item.url);
+                                                }
+                                            }}
+                                        >
+                                            <Icon className={`w-5 h-5 ${item.color}`} />
+                                            <span>{item.name}</span>
+                                        </div>
+                                    );
+                                }
+
+                                // 有 dropdown 的（大標題）
+                                return (
+                                    <div key={index} className="">
+
+                                        {/* 大標題 */}
+                                        <button
+                                            onClick={() =>
+                                                setOpenMenu(isOpen ? null : index)
+                                            }
+                                            className="w-full flex items-center justify-between px-4 py-3"
+                                        >
+                                            <div className="flex items-center gap-3">
+
+                                                <Icon className={`w-5 h-5 text-[rgb(194,37,37)]`} />
+                                                <span className="font-medium">{item.name}</span>
+                                            </div>
+
+                                            <ChevronDown
+                                                className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+                                                    }`}
+                                            />
+                                        </button>
+
+                                        {/* 子選單 */}
+                                        {isOpen && (
+                                            <div className="bg-gray-50">
+                                                {item.dropdown.map((subItem, subIndex) => {
+                                                    const SubIcon = subItem.icon;
+
+                                                    return (
+                                                        <div
+                                                            key={subIndex}
+                                                            className="flex items-center gap-3 px-8 py-2 text-sm hover:bg-gray-100"
+                                                        >
+                                                            {SubIcon && <SubIcon className={`w-4 h-4 text-yellow-500`} />}
+                                                            <span>{subItem.name}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                     </div>
                 </div>
             )}

@@ -1,10 +1,13 @@
 // export default Navbar;
 import React, { useState } from 'react';
-import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, TrendingUp, Clock, CheckCircle, ArrowRightCircle } from 'lucide-react';
+import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, TrendingUp, Clock, CheckCircle, ArrowRightCircle, LogOut } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import api from "@/api/axios";
+
 // Navbar Component
 const AdminNavbar = () => {
     const navigate = useNavigate();
+    const [user, setUser] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const menuItems = [
         { id: 'latest-news', name: '最新資訊', icon: Newspaper, url: '#latest-news', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' },
@@ -15,7 +18,8 @@ const AdminNavbar = () => {
         { id: 'data-analysis', name: '數據分析', icon: BarChart3, url: '#data-analysis', color: 'indigo', bgColor: 'bg-indigo-500', lightBg: 'bg-indigo-50', textColor: 'text-indigo-600' },
         { id: 'ml-zone', name: 'AI 應用', icon: Brain, url: '#ml-zone', color: 'pink', bgColor: 'bg-pink-500', lightBg: 'bg-pink-50', textColor: 'text-pink-600' },
         { id: 'team', name: '團隊開發', icon: Users, url: '#team', color: 'teal', bgColor: 'bg-teal-500', lightBg: 'bg-teal-50', textColor: 'text-teal-600' },
-        { id: 'go-user', name: '前往使用者頁面', icon: ArrowRightCircle, url: '/', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' }
+        { id: 'go-user', name: '前往使用者頁面', icon: ArrowRightCircle, url: '/', color: 'bg-yellow-500', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-yellow-500' },
+        { id: 'logout', name: '登出', icon: LogOut, url: 'logout', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' }
     ];
 
     const [activeMenu, setActiveMenu] = useState('latest-news');
@@ -124,6 +128,20 @@ const AdminNavbar = () => {
     const currentContent = getContentForMenu(activeMenu);
     const activeMenuItem = menuItems.find(item => item.id === activeMenu);
 
+    const logout = async () => {
+        try {
+            await api.post("/api/logout");   // 如果後端有做 token 作廢
+        } catch (err) {
+            console.error(err);
+        } finally {
+            // 不管 API 成功或失敗，都清除前端登入狀態
+            localStorage.removeItem("token");
+            setUser(null);
+            delete api.defaults.headers.common["Authorization"];
+            navigate("/");
+        }
+    };
+
     return (
         <>
             <div className="flex">
@@ -162,13 +180,14 @@ const AdminNavbar = () => {
                                     const isRoute = item.url && item.url !== '#';
 
                                     return (
-                                        <button
+                                        <div
                                             key={item.id}
                                             onClick={() => {
-                                                if (isRoute) {
+                                                setActiveMenu(item.id);
+                                                if (item.id === "logout") {
+                                                    logout();
+                                                } else if (isRoute) {
                                                     navigate(item.url);
-                                                } else {
-                                                    setActiveMenu(item.id);
                                                 }
                                             }}
                                             className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${isActive
@@ -181,7 +200,7 @@ const AdminNavbar = () => {
                                                 <span className="font-medium text-sm">{item.name}</span>
                                             </div>
                                             {isActive && <ChevronRight className="h-4 w-4" />}
-                                        </button>
+                                        </div>
                                     );
                                 })}
                             </div>

@@ -164,10 +164,10 @@ const AdminHome = () => {
                   <p className="text-sm text-gray-600 mt-0.5">{currentContent?.description}</p>
                 </div>
               </div>
-              <button className={`px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm`}>
+              <div className={`px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm`}>
                 <span>新增項目</span>
                 <ChevronRight className="h-4 w-4" />
-              </button>
+              </div>
             </div>
           </div>
 
