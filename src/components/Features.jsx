@@ -59,7 +59,7 @@ const Features = () => {
       description: '人工智慧賦能，探索前沿技術應用場景',
       iconColor: 'text-[#FC801C]',
       iconBg: 'bg-orange-50',
-      url: '#ai',
+      url: '/ai',
     },
     {
       icon: Users,

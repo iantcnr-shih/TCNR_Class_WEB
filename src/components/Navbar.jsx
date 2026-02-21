@@ -1,6 +1,6 @@
 // export default Navbar;
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, LogIn, LogOut, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart3, Brain, ChevronDown, User, Users, ArrowRightCircle, Newspaper, LayoutDashboard, BookOpen, Code2, ShieldCheck, TrendingUp, Megaphone, GitBranch } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart3, Brain, ChevronDown, User, Users, ArrowRightCircle, Newspaper, LayoutDashboard, BookOpen, Code2, ShieldCheck, TrendingUp, Megaphone, GitBranch, Mail, UserCircle } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import api from "@/api/axios";
 
@@ -34,7 +34,7 @@ const Navbar = () => {
         { name: '知識論壇', icon: MessageSquare, url: '/tech-forum' },
 
         { name: '數據分析', icon: BarChart3, url: '/data-analysis' },
-        { name: 'AI 應用', icon: Brain, url: '#ai' },
+        { name: 'AI 應用', icon: Brain, url: '/ai' },
         { name: '團隊開發', icon: Users, url: '/dev-team' },
         { name: '登入', icon: LogIn, url: '/login' },
         { name: '登出', icon: LogIn, url: 'logout' },
@@ -70,7 +70,7 @@ const Navbar = () => {
             color: 'text-teal-600',
             dropdown: [
                 { name: '數據分析', icon: BarChart3, color: 'text-blue-600', url: '/data-analysis' },
-                { name: 'AI 應用', icon: Brain, color: 'text-orange-600', url: '#ai' },
+                { name: 'AI 應用', icon: Brain, color: 'text-orange-600', url: '/ai' },
             ]
         },
         {
@@ -80,7 +80,14 @@ const Navbar = () => {
             color: 'text-pink-600',
             dropdown: [
                 { name: '團隊開發', icon: GitBranch, color: 'text-cyan-600', url: '/dev-team' },
+                { name: '聯繫我們', icon: Mail, color: 'text-cyan-600', url: '/contact' },
             ]
+        },
+        {
+            name: '個人資料',
+            icon: UserCircle,
+            url: '/profile',
+            color: 'text-yellow-600'
         },
         {
             name: '前往管理專區',

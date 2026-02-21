@@ -11,6 +11,7 @@ import AdminAi from "@/pages/admin/AdminAi";
 import AdminDevTeam from "@/pages/admin/AdminDevTeam";
 import FrontLayout from "@/layouts/FrontLayout";
 import Home from "@/pages/front/Home";
+import Profile from "@/pages/front/Profile/Profile";
 import JobInfo from "@/pages/front/JobInfo/JobInfo";
 import CampusNews from "@/pages/front/CampusNews/CampusNews";
 import MealOrder from "@/pages/front/MealOrder/MealOrder";
@@ -18,7 +19,11 @@ import Environment from "@/pages/front/Environment/Environment";
 import ClassMeeting from "@/pages/front/ClassMeeting/ClassMeeting";
 import TechForum from "@/pages/front/TechForum/TechForum";
 import DataAnalysis from "@/pages/front/DataAnalysis/DataAnalysis";
+import Ai from "@/pages/front/Ai/Ai";
 import DevTeam from "@/pages/front/DevTeam/DevTeam";
+import Contact from "@/pages/front/Contact/Contact";
+import Terms from "@/pages/front/Terms/Terms";
+import Privacy from "@/pages/front/Privacy/Privacy";
 import Lunch from "@/pages/front/Lunch";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
@@ -50,6 +55,9 @@ function App() {
         <Route path="/" element={<FrontLayout />}>
           <Route index element={<Home />} />
         </Route>
+        <Route path="/profile" element={<FrontLayout />}>
+          <Route index element={<Profile />} />
+        </Route>
         <Route path="/job-info" element={<FrontLayout />}>
           <Route index element={<JobInfo />} />
         </Route>
@@ -71,8 +79,20 @@ function App() {
         <Route path="/data-analysis" element={<FrontLayout />}>
           <Route index element={<DataAnalysis />} />
         </Route>
+        <Route path="/ai" element={<FrontLayout />}>
+          <Route index element={<Ai />} />
+        </Route>
         <Route path="/dev-team" element={<FrontLayout />}>
           <Route index element={<DevTeam />} />
+        </Route>
+        <Route path="/contact" element={<FrontLayout />}>
+          <Route index element={<Contact />} />
+        </Route>
+        <Route path="/terms" element={<FrontLayout />}>
+          <Route index element={<Terms />} />
+        </Route>
+        <Route path="/privacy" element={<FrontLayout />}>
+          <Route index element={<Privacy />} />
         </Route>
         <Route path="/lunch" element={<FrontLayout />}>
           <Route index element={<Lunch />} />

@@ -13,13 +13,13 @@ const Footer = () => {
       { name: '職涯發展', url: '/job-info' },
       { name: '課程公告', url: '/campus-news' },
       { name: '數據分析', url: '/data-analysis' },
-      { name: 'AI 應用', url: '#ai' },
+      { name: 'AI 應用', url: '/ai' },
     ],
     about: [
       { name: '開發團隊', url: '/dev-team' },
-      { name: '聯繫我們', url: '#contact' },
-      { name: '使用條款', url: '#terms' },
-      { name: '隱私政策', url: '#privacy' },
+      { name: '聯繫我們', url: '/contact' },
+      { name: '使用條款', url: '/terms' },
+      { name: '隱私政策', url: '/privacy' },
     ],
   };
 

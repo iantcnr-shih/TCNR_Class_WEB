@@ -77,7 +77,7 @@ export default function Environment() {
       {/* 1 col → 2 col → 3 col */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
         {cleanPeriods.map((p, i) => (
-          <div key={i} className={`bg-white rounded-2xl p-5 md:p-6 shadow-sm ${periodTopBorder[p.color]}`}>
+          <div key={i} className={`bg-white rounded-2xl p-5 md:p-6 shadow-sm border ${periodTopBorder[p.color]}`}>
             <div className="flex justify-between items-start mb-3">
               <span className="text-xl font-black text-red-900">{p.label}</span>
               <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusBadge[p.status]}`}>{p.status}</span>
