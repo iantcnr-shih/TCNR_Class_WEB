@@ -1,12 +1,18 @@
 import { Outlet } from "react-router-dom";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
-function FrontLayout() {
+// Layout Component
+const FrontLayout = () => {
   return (
     <>
-      <h1>前台 Navbar</h1>
-      <Outlet />
+      <div className="w-screen ">
+        <Navbar />
+        <Outlet />
+        <Footer />
+      </div>
     </>
   );
-}
+};
 
 export default FrontLayout;
