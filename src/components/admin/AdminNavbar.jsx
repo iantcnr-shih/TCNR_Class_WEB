@@ -131,6 +131,7 @@ const AdminNavbar = () => {
     const logout = async () => {
         try {
             await api.post("/api/logout");   // 如果後端有做 token 作廢
+
         } catch (err) {
             console.error(err);
         } finally {
@@ -138,7 +139,8 @@ const AdminNavbar = () => {
             localStorage.removeItem("token");
             setUser(null);
             delete api.defaults.headers.common["Authorization"];
-            navigate("/");
+
+            navigate("/");   // 🔥 導回首頁
         }
     };
 

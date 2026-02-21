@@ -8,9 +8,13 @@ import AdminClassMeeting from "@/pages/admin/AdminClassMeeting";
 import AdminTechForum from "@/pages/admin/AdminTechForum";
 import AdminDataAnalysis from "@/pages/admin/AdminDataAnalysis";
 import AdminAi from "@/pages/admin/AdminAi";
-import AdminTeam from "@/pages/admin/AdminTeam";
+import AdminDevTeam from "@/pages/admin/AdminDevTeam";
 import FrontLayout from "@/layouts/FrontLayout";
 import Home from "@/pages/front/Home";
+import MealOrder from "@/pages/front/MealOrder/MealOrder";
+import Environment from "@/pages/front/Environment/Environment";
+import ClassMeeting from "@/pages/front/ClassMeeting/ClassMeeting";
+import DevTeam from "@/pages/front/DevTeam/DevTeam";
 import Lunch from "@/pages/front/Lunch";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
@@ -42,12 +46,25 @@ function App() {
         <Route path="/" element={<FrontLayout />}>
           <Route index element={<Home />} />
         </Route>
+        <Route path="/meal-order" element={<FrontLayout />}>
+          <Route index element={<MealOrder />} />
+        </Route>
+        <Route path="/environment" element={<FrontLayout />}>
+          <Route index element={<Environment />} />
+        </Route>
+        <Route path="/class-meeting" element={<FrontLayout />}>
+          <Route index element={<ClassMeeting />} />
+        </Route>
+        <Route path="/dev-team" element={<FrontLayout />}>
+          <Route index element={<DevTeam />} />
+        </Route>
         <Route path="/lunch" element={<FrontLayout />}>
           <Route index element={<Lunch />} />
         </Route>
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
         {/* 後台 */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminHome />} />
@@ -73,8 +90,8 @@ function App() {
         <Route path="/admin/ai" element={<AdminLayout />}>
           <Route index element={<AdminAi />} />
         </Route>
-        <Route path="/admin/team" element={<AdminLayout />}>
-          <Route index element={<AdminTeam />} />
+        <Route path="/admin/dev-team" element={<AdminLayout />}>
+          <Route index element={<AdminDevTeam />} />
         </Route>
       </Routes>
     </>

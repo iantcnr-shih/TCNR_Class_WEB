@@ -1,23 +1,25 @@
+import { useNavigate } from "react-router-dom";
 // Footer Component
 const Footer = () => {
+  const navigate = useNavigate();
   const footerLinks = {
     platform: [
-      { name: '訂餐管理', href: '#meal-order' },
-      { name: '環境管理', href: '#environment' },
-      { name: '班務會議', href: '#class-meeting' },
-      { name: '知識論壇', href: '#tech-forum' },
+      { name: '訂餐管理', url: '/meal-order' },
+      { name: '環境管理', url: '/environment' },
+      { name: '班務會議', url: '/class-meeting' },
+      { name: '知識論壇', url: '#tech-forum' },
     ],
     resources: [
-      { name: '職涯發展', href: '#job-info' },
-      { name: '課程公告', href: '#job-info' },
-      { name: '數據分析', href: '#data-analysis' },
-      { name: 'AI 應用', href: '#ai' },
+      { name: '職涯發展', url: '#job-info' },
+      { name: '課程公告', url: '#campus-news' },
+      { name: '數據分析', url: '#data-analysis' },
+      { name: 'AI 應用', url: '#ai' },
     ],
     about: [
-      { name: '開發團隊', href: '#team' },
-      { name: '聯繫我們', href: '#contact' },
-      { name: '使用條款', href: '#terms' },
-      { name: '隱私政策', href: '#privacy' },
+      { name: '開發團隊', url: '/dev-team' },
+      { name: '聯繫我們', url: '#contact' },
+      { name: '使用條款', url: '#terms' },
+      { name: '隱私政策', url: '#privacy' },
     ],
   };
 
@@ -61,7 +63,19 @@ const Footer = () => {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-1 gap-x-12 gap-y-4 md:gap-x-6 md:gap-y-1 ">
                   {footerLinks.platform.map((link) => (
-                    <div key={link.name}>
+                    <div key={link.name}
+                      onClick={() => {
+                        if (link.url && link.url.startsWith("#")) {
+                          alert("功能尚未實裝, 敬請期待");
+                        } else {
+                          navigate(link.url);
+                          window.scrollTo({
+                            top: 0,
+                            behavior: "smooth"
+                          });
+                        }
+                      }}
+                    >
                       <div href={link.href} className="text-base md:text-lg text-[rgb(202,87,98)] hover:text-[rgb(233,197,192)] transition-colors duration-200">
                         {link.name}
                       </div>
@@ -76,7 +90,19 @@ const Footer = () => {
                   <h3 className="text-white font-semibold mb-4 text-base md:text-lg uppercase tracking-wider">學習資源</h3>
                   <div className="grid grid-cols-2 md:grid-cols-1 gap-x-12 gap-y-4 md:gap-x-6 md:gap-y-1 ">
                     {footerLinks.resources.map((link) => (
-                      <div key={link.name}>
+                      <div key={link.name}
+                        onClick={() => {
+                          if (link.url && link.url.startsWith("#")) {
+                            alert("功能尚未實裝, 敬請期待");
+                          } else {
+                            navigate(link.url);
+                            window.scrollTo({
+                              top: 0,
+                              behavior: "smooth"
+                            });
+                          }
+                        }}
+                      >
                         <div href={link.href} className="text-base md:text-lg text-[rgb(202,87,98)] hover:text-[rgb(233,197,192)]  transition-colors duration-200">
                           {link.name}
                         </div>
@@ -92,7 +118,19 @@ const Footer = () => {
                   <h3 className="text-white font-semibold mb-4 text-base md:text-lg uppercase tracking-wider">關於我們</h3>
                   <div className="grid grid-cols-2 md:grid-cols-1 gap-x-12 gap-y-4 md:gap-x-6 md:gap-y-1 ">
                     {footerLinks.about.map((link) => (
-                      <div key={link.name}>
+                      <div key={link.name}
+                        onClick={() => {
+                          if (link.url && link.url.startsWith("#")) {
+                            alert("功能尚未實裝, 敬請期待");
+                          } else {
+                            navigate(link.url);
+                            window.scrollTo({
+                              top: 0,
+                              behavior: "smooth"
+                            });
+                          }
+                        }}
+                      >
                         <div href={link.href} className="text-base md:text-lg  text-[rgb(202,87,98)] hover:text-[rgb(233,197,192)] transition-colors duration-200">
                           {link.name}
                         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, TrendingUp, Clock, CheckCircle } from 'lucide-react';
 
-const AdminTeam = () => {
+const AdminDevTeam = () => {
 
   const menuItems = [
     { id: 'latest-news', name: '最新資訊', icon: Newspaper, url: '#latest-news', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' },
@@ -269,4 +269,4 @@ const AdminTeam = () => {
   );
 };
 
-export default AdminTeam;
+export default AdminDevTeam;

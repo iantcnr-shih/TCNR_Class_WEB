@@ -6,7 +6,9 @@ import api from "@/api/axios";
 
 // Navbar Component
 const Navbar = () => {
+    const userdropdownRef = useRef(null);
     const dropdownRef = useRef(null);
+    const IsOpendropdownRef = useRef(null);
     const navigate = useNavigate();
 
     const [isOpen, setIsOpen] = useState(false);
@@ -26,14 +28,14 @@ const Navbar = () => {
                 { name: '課程公告', url: '#campus-news' },
             ]
         },
-        { name: '訂餐管理', icon: Utensils, url: '#meal-order' },
-        { name: '環境管理', icon: Sparkles, url: '#environment' },
-        { name: '班務會議', icon: Calendar, url: '#class-meeting' },
+        { name: '訂餐管理', icon: Utensils, url: '/meal-order' },
+        { name: '環境管理', icon: Sparkles, url: '/environment' },
+        { name: '班務會議', icon: Calendar, url: '/class-meeting' },
         { name: '知識論壇', icon: MessageSquare, url: '#tech-forum' },
 
         { name: '數據分析', icon: BarChart3, url: '#data-analysis' },
         { name: 'AI 應用', icon: Brain, url: '#ai' },
-        { name: '團隊開發', icon: Users, url: '#team' },
+        { name: '團隊開發', icon: Users, url: '/dev-team' },
         { name: '登入', icon: LogIn, url: '/login' },
         { name: '登出', icon: LogIn, url: 'logout' },
     ];
@@ -55,9 +57,9 @@ const Navbar = () => {
             url: '#features',
             color: 'text-purple-600',
             dropdown: [
-                { name: '訂餐管理', icon: Utensils, color: 'text-cyan-600', url: '#meal-order' },
-                { name: '環境管理', icon: Sparkles, color: 'text-indigo-600', url: '#environment' },
-                { name: '班務會議', icon: Calendar, color: 'text-pink-600', url: '#class-meeting' },
+                { name: '訂餐管理', icon: Utensils, color: 'text-cyan-600', url: '/meal-order' },
+                { name: '環境管理', icon: Sparkles, color: 'text-indigo-600', url: '/environment' },
+                { name: '班務會議', icon: Calendar, color: 'text-pink-600', url: '/class-meeting' },
                 { name: '知識論壇', icon: MessageSquare, color: 'text-blue-600', url: '#tech-forum' },
             ]
         },
@@ -77,7 +79,7 @@ const Navbar = () => {
             url: '#about',
             color: 'text-pink-600',
             dropdown: [
-                { name: '團隊開發', icon: GitBranch, color: 'text-cyan-600', url: '#team' },
+                { name: '團隊開發', icon: GitBranch, color: 'text-cyan-600', url: '/dev-team' },
             ]
         },
         {
@@ -101,7 +103,7 @@ const Navbar = () => {
     ];
 
     const menuItems = [
-        { name: "個人資料", path: "/profile", roles: ["admin", "student"] },
+        { name: "個人資料", path: "#profile", roles: ["admin", "student"] },
         { name: "管理專區", path: "/admin", roles: ["admin"] },
         { name: "登出", action: "logout", roles: ["admin", "student"] },
     ];
@@ -145,6 +147,11 @@ const Navbar = () => {
                     setActiveDropdown(null);
                 }, 0);
             }
+            if (userdropdownRef.current && !userdropdownRef.current.contains(event.target)) {
+                setTimeout(() => {
+                    setShowMenu(false);
+                }, 0);
+            }
         }
         document.addEventListener("click", handleClickOutside);
 
@@ -152,6 +159,24 @@ const Navbar = () => {
             document.removeEventListener("click", handleClickOutside);
         };
     }, []);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (IsOpendropdownRef.current && !IsOpendropdownRef.current.contains(event.target)) {
+                setTimeout(() => {
+                    setIsOpen(false);
+                }, 0);
+            }
+        }
+
+        if (isOpen) {
+            document.addEventListener("click", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("click", handleClickOutside);
+        };
+    }, [isOpen]);
 
 
     return (
@@ -163,7 +188,19 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                     <div className="flex items-center p-1">
                         <div className="flex-shrink-0 flex items-center">
                             <div className="flex items-center space-x-3">
-                                <div className="w-12 h-12 bg-gradient-to-br from-[#FC801C] to-[#BB496B] rounded-lg flex items-center justify-center">
+                                <div
+                                    className="
+                                      w-12 h-12 
+                                      bg-gradient-to-br from-[#FC801C] to-[#BB496B] 
+                                      rounded-lg 
+                                      flex items-center justify-center
+                                      transition-transform duration-300 ease-in-out
+                                      hover:scale-110
+                                      hover:shadow-lg
+                                      hover:brightness-110
+                                    "
+                                    onClick={() => navigate("/")}
+                                >
                                     <span className="text-white font-bold text-2xl">AI</span>
                                 </div>
                                 <div>
@@ -177,7 +214,10 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                     {/* Mobile menu button */}
                     <div className="flex ml-auto items-center lg:hidden">
                         <div
-                            onClick={() => setIsOpen(!isOpen)}
+                            onClick={(e) => {
+                                e.stopPropagation(); // 阻止冒泡到 document
+                                setIsOpen(!isOpen);  // 切換開關
+                            }}
                             className="inline-flex items-center justify-center p-2 text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md focus:outline-none"
                         >
                             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -204,6 +244,7 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                         ) : (
                             <div className="relative">
                                 <div
+                                    ref={userdropdownRef}
                                     onClick={() => setShowMenu(!showMenu)}
                                     className="flex items-center gap-2 cursor-pointer"
                                 >
@@ -235,7 +276,11 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                                     if (item.action === "logout") {
                                                         logout();
                                                     } else {
-                                                        navigate(item.path);
+                                                        if (item.path && item.path.startsWith("#")) {
+                                                            alert("功能尚未實裝, 敬請期待");
+                                                        } else {
+                                                            navigate(item.path);
+                                                        }
                                                     }
                                                     setShowMenu(false);
                                                 }}
@@ -254,7 +299,13 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                         {navItems.filter(item => item.name !== '登入' && item.name !== '登出')
                             .map((item) => (
                                 <div key={item.name} className="relative group"
-                                    onClick={() => navigate(item.url)}
+                                    onClick={() => {
+                                        if (item.url && item.url.startsWith("#") && !item.dropdown) {
+                                            alert("功能尚未實裝, 敬請期待");
+                                        } else {
+                                            navigate(item.url);
+                                        }
+                                    }}
                                 >
                                     {item.dropdown ? (
                                         <>
@@ -277,7 +328,11 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                                             className="block px-4 py-2.5 text-sm text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                navigate(subItem.url);
+                                                                if (subItem.url && subItem.url.startsWith("#")) {
+                                                                    alert("功能尚未實裝, 敬請期待");
+                                                                } else {
+                                                                    navigate(subItem.url);
+                                                                }
                                                                 setActiveDropdown(null);
                                                             }}
 
@@ -304,11 +359,11 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
 
             {/* Mobile Menu */}
             {isOpen && (
-                <div className="lg:hidden bg-white border-t border-slate-200">
+                <div ref={IsOpendropdownRef} className="lg:hidden bg-white border-t border-slate-200">
 
                     <div className="h-1 mt-[-1px] bg-gradient-to-r from-[#FC801C] via-[#FFBDB0] to-[#FC801C]"></div>
                     <div className="px-4 pt-2 pb-3 space-y-1">
-                        
+
                         {MobileMenuItems
                             .filter((item) => {
                                 if (item.name === "登入" && user) return false;
@@ -329,6 +384,7 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                                     logout();
                                                 } else {
                                                     navigate(item.url);
+                                                    setIsOpen(false);
                                                 }
                                             }}
                                         >
@@ -371,6 +427,16 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                                         <div
                                                             key={subIndex}
                                                             className="flex items-center gap-3 px-8 py-2 text-sm hover:bg-gray-100"
+                                                            onClick={() => {
+                                                                if (subItem.url && subItem.url.startsWith("#")) {
+                                                                    alert("功能尚未實裝, 敬請期待");
+                                                                } else {
+                                                                    navigate(subItem.url);
+                                                                    setTimeout(() => {
+                                                                        setIsOpen(false);
+                                                                    }, 100);
+                                                                }
+                                                            }}
                                                         >
                                                             {SubIcon && <SubIcon className={`w-4 h-4 text-yellow-500`} />}
                                                             <span>{subItem.name}</span>
