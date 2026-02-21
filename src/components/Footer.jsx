@@ -35,7 +35,15 @@ const Footer = () => {
           <div className="mx-auto">
             <div className="flex">
               <div className="flex mx-auto lg:mx-0 items-center mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#FC801C] to-[#BB496B] rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#FC801C] to-[#BB496B] rounded-lg flex items-center justify-center hover:scale-110 hover:shadow-lg hover:brightness-110"
+                  onClick={() => {
+                    navigate("/");
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth"
+                    });
+                  }}
+                >
                   <span className="text-white font-bold text-xl">AI</span>
                 </div>
                 <div className="ml-3">

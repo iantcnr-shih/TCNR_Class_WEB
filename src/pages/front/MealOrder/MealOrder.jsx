@@ -256,7 +256,7 @@ export default function MealOrder() {
             {orderSections.map((sec, i) => (
               <div
                 key={i}
-                className={`bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all
+                className={`max-w-3xl rounded-2xl border border-gray-100 overflow-hidden transition-all
         ${orderexpanded === i ? "shadow-lg" : "shadow-sm"}`}
               >
                 {/* Header */}
@@ -324,7 +324,7 @@ export default function MealOrder() {
           {reviewSections.map((sec, i) => (
             <div
               key={i}
-              className={`bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all
+              className={`max-w-3xl bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all
       ${expanded === i ? "shadow-lg" : "shadow-sm"}
     `}
             >
@@ -368,7 +368,7 @@ export default function MealOrder() {
 
       {/* 歷史紀錄 — card list on mobile, table on md+ */}
       {tab === "history" && (
-        <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
+        <div className="max-w-3xl bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
           <h3 className="font-bold text-gray-800 mb-5 flex items-center gap-2">
             <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">📋</span>
             訂餐紀錄

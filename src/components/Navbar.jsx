@@ -199,7 +199,14 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                       hover:shadow-lg
                                       hover:brightness-110
                                     "
-                                    onClick={() => navigate("/")}
+                                    onClick={() => {
+                                        navigate("/");
+                                        window.scrollTo({
+                                            top: 0,
+                                            behavior: "smooth"
+                                        });
+                                    }}
+
                                 >
                                     <span className="text-white font-bold text-2xl">AI</span>
                                 </div>
