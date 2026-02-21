@@ -18,9 +18,11 @@ function Login() {
 
   // 取得 captcha 圖片
   const loadCaptcha = async () => {
-    setCaptchaUrl(
-      "http://127.0.0.1:8000/captcha/default?" + Date.now()
-    );
+    const res = await api.get(`/my-captcha/default?ts=${Date.now()}`, {
+      responseType: 'blob',
+    });
+    const blob = new Blob([res.data], { type: 'image/jpeg' });
+    setCaptchaUrl(URL.createObjectURL(blob));
   };
 
   useEffect(() => {
@@ -163,6 +165,7 @@ function Login() {
                     src={captchaUrl}
                     onClick={loadCaptcha}
                     className="cursor-pointer select-none h-12 w-auto"
+                    alt="captcha"
                   />
                 </div>
               )}
