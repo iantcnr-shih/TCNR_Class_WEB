@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -96,10 +96,16 @@ const PageHeader = ({ title, subtitle, updated }) => (
     </div>
 );
 
-const Card = ({ children, className = "" }) => (
-    <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 ${className}`}>{children}</div>
-);
+const Card = forwardRef(({ children, className = "" }, ref) => (
+    <div
+        ref={ref}
+        className={`bg-white rounded-2xl shadow-sm border border-gray-100 ${className}`}
+    >
+        {children}
+    </div>
+));
 
+Card.displayName = "Card";
 /* ═══════════════════════════════════════════════════════════════════════
    DOCUMENT VIEWER (reused for both pages)
 ═══════════════════════════════════════════════════════════════════════ */
@@ -176,8 +182,8 @@ function DocumentViewer({ sections, accentColor = "red" }) {
                 {sections.map((s, i) => (
                     <Card
                         key={s.id}
-                        ref={el => sectionRefs.current[s.id] = el}
-                        className="p-5 md:p-6 scroll-mt-4"
+                        ref={(el) => (sectionRefs.current[s.id] = el)}
+                        className="p-5 md:p-6 scroll-mt-24"
                     >
                         {/* Section header */}
                         <div className="flex items-start gap-3 mb-4 pb-4 border-b border-gray-100">
@@ -248,15 +254,24 @@ export default function TermsOfService() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div className="flex-1">
                         <p className="font-bold text-red-900 text-sm mb-1">繼續使用本平台即表示您同意上述所有條款</p>
-                        <p className="text-xs text-red-600">如有任何疑問，請於使用前聯繫我們</p>
+                        <p className="text-xs text-red-600">如有任何疑問，請於使用前<span className="underline font-bold cursor-pointer"
+                            onClick={() => {
+                                navigate("/contact");
+                                window.scrollTo({
+                                    top: 0,
+                                    behavior: "smooth"
+                                });
+                            }}
+
+                        >聯繫我們</span>。</p>
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
-                        <button className="bg-red-800 hover:bg-red-900 text-white text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors whitespace-nowrap">
+                        <div className="bg-red-800 hover:bg-red-900 text-white text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors whitespace-nowrap">
                             我已閱讀並同意
-                        </button>
-                        <button className="bg-white hover:bg-gray-50 border border-red-200 text-red-700 text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors whitespace-nowrap">
+                        </div>
+                        <div className="bg-white hover:bg-gray-50 border border-red-200 text-red-700 text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors whitespace-nowrap">
                             下載 PDF
-                        </button>
+                        </div>
                     </div>
                 </div>
             </Card>

@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, forwardRef } from "react";
 
 /* ═══════════════════════════════════════════════════════════════════════
    DATA — 隱私政策
@@ -79,8 +79,8 @@ const privacySections = [
     title: "隱私相關聯繫方式",
     content: [
       "若您對本隱私政策有任何疑問，或欲行使上述隱私權利，請透過以下方式聯繫我們的資料保護負責人：",
-      "電子郵件：privacy@aiplatform.tw",
-      "郵寄地址：台北市信義區松仁路 100 號 8F，AI Platform Co. 資料保護負責人 收",
+      "電子郵件：ian.service.tcnr@gmail.com",
+      "郵寄地址：台中市南區國光路250號，AI Platform Co. 資料保護負責人 收",
       "本公司承諾在收到您的請求後 15 個工作天內回覆。本隱私政策最後更新日期：2026 年 01 月 01 日。",
     ],
   },
@@ -101,9 +101,16 @@ const PageHeader = ({ title, subtitle, updated }) => (
   </div>
 );
 
-const Card = ({ children, className = "" }) => (
-  <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 ${className}`}>{children}</div>
-);
+const Card = forwardRef(({ children, className = "" }, ref) => (
+  <div
+    ref={ref}
+    className={`bg-white rounded-2xl shadow-sm border border-gray-100 ${className}`}
+  >
+    {children}
+  </div>
+));
+
+Card.displayName = "Card";
 
 /* ═══════════════════════════════════════════════════════════════════════
    DOCUMENT VIEWER (reused for both pages)
@@ -121,20 +128,20 @@ function DocumentViewer({ sections, accentColor = "red" }) {
   // Accent color classes
   const accent = {
     red: {
-      dot:    "bg-red-700",
+      dot: "bg-red-700",
       active: "bg-red-50 text-red-800 border-red-200 font-bold",
-      idle:   "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
-      icon:   "bg-red-100",
+      idle: "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
+      icon: "bg-red-100",
       border: "border-red-200",
-      num:    "bg-red-800 text-white",
+      num: "bg-red-800 text-white",
     },
     blue: {
-      dot:    "bg-blue-600",
+      dot: "bg-blue-600",
       active: "bg-blue-50 text-blue-800 border-blue-200 font-bold",
-      idle:   "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
-      icon:   "bg-blue-100",
+      idle: "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
+      icon: "bg-blue-100",
       border: "border-blue-200",
-      num:    "bg-blue-700 text-white",
+      num: "bg-blue-700 text-white",
     },
   }[accentColor];
 
@@ -147,7 +154,7 @@ function DocumentViewer({ sections, accentColor = "red" }) {
           <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">目錄</p>
           <nav className="space-y-1">
             {sections.map((s, i) => (
-              <button
+              <div
                 key={s.id}
                 onClick={() => scrollTo(s.id)}
                 className={`w-full text-left px-3 py-2 rounded-xl text-xs transition-all cursor-pointer border flex items-center gap-2
@@ -155,7 +162,7 @@ function DocumentViewer({ sections, accentColor = "red" }) {
               >
                 <span className="text-sm flex-shrink-0">{s.icon}</span>
                 <span className="leading-snug">{s.title}</span>
-              </button>
+              </div>
             ))}
           </nav>
         </Card>
@@ -169,11 +176,11 @@ function DocumentViewer({ sections, accentColor = "red" }) {
           <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">快速跳轉</p>
           <div className="flex flex-wrap gap-2">
             {sections.map((s, i) => (
-              <button key={s.id} onClick={() => scrollTo(s.id)}
+              <div key={s.id} onClick={() => scrollTo(s.id)}
                 className={`text-xs px-2.5 py-1.5 rounded-lg border cursor-pointer transition-all
                   ${activeSection === s.id ? accent.active : `border-gray-100 text-gray-500 hover:border-gray-200 bg-gray-50`}`}>
                 {s.icon} {s.title}
-              </button>
+              </div>
             ))}
           </div>
         </Card>
@@ -181,8 +188,8 @@ function DocumentViewer({ sections, accentColor = "red" }) {
         {sections.map((s, i) => (
           <Card
             key={s.id}
-            ref={el => sectionRefs.current[s.id] = el}
-            className="p-5 md:p-6 scroll-mt-4"
+            ref={(el) => (sectionRefs.current[s.id] = el)}
+            className="p-5 md:p-6 scroll-mt-24"
           >
             {/* Section header */}
             <div className="flex items-start gap-3 mb-4 pb-4 border-b border-gray-100">
@@ -251,15 +258,15 @@ export default function PrivacyPolicy() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex-1">
             <p className="font-bold text-blue-900 text-sm mb-1">對隱私政策有疑問？</p>
-            <p className="text-xs text-blue-600">聯繫我們的資料保護負責人：privacy@aiplatform.tw</p>
+            <p className="text-xs text-blue-600">聯繫我們的資料保護負責人：ian.service.tcnr@gmail.com</p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
-            <button className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors whitespace-nowrap">
+            <div className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors whitespace-nowrap">
               聯繫隱私團隊
-            </button>
-            <button className="bg-white hover:bg-gray-50 border border-blue-200 text-blue-700 text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors whitespace-nowrap">
+            </div>
+            <div className="bg-white hover:bg-gray-50 border border-blue-200 text-blue-700 text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors whitespace-nowrap">
               下載 PDF
-            </button>
+            </div>
           </div>
         </div>
       </Card>

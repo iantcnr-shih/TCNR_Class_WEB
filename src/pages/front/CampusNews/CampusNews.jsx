@@ -94,7 +94,7 @@ export default function CourseAnnouncement() {
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <PageHeader title="課程公告" subtitle="課程資訊、活動通知與學習排程一覽" />
 
-      <div className="flex gap-1 mb-6 border-b border-gray-200 overflow-x-auto">
+      <div className="flex gap-1 mb-6 border-b border-gray-200">
         {tabs.map(([key, icon, label]) => (
           <div
             key={key}

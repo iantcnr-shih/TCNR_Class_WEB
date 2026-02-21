@@ -110,7 +110,7 @@ const Navbar = () => {
     ];
 
     const menuItems = [
-        { name: "個人資料", path: "#profile", roles: ["admin", "student"] },
+        { name: "個人資料", path: "/profile", roles: ["admin", "student"] },
         { name: "管理專區", path: "/admin", roles: ["admin"] },
         { name: "登出", action: "logout", roles: ["admin", "student"] },
     ];

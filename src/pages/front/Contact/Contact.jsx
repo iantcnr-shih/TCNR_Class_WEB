@@ -9,7 +9,7 @@ const contactChannels = [
   {
     icon: "📧",
     title: "Email 信箱",
-    value: "support@aiplatform.tw",
+    value: "ian.service.tcnr@gmail.com",
     desc: "一般問題，1-2 個工作天回覆",
     color: "blue",
     action: "寄送 Email",
@@ -25,7 +25,7 @@ const contactChannels = [
   {
     icon: "📞",
     title: "電話諮詢",
-    value: "(02) 2345-6789",
+    value: "(04) 5566-6789",
     desc: "週一至週五 09:00–18:00",
     color: "orange",
     action: "撥打電話",
@@ -33,7 +33,7 @@ const contactChannels = [
   {
     icon: "📍",
     title: "實體地址",
-    value: "台北市信義區松仁路 100 號 8F",
+    value: "台中市南區國光路250號",
     desc: "來訪請事先預約",
     color: "red",
     action: "查看地圖",
@@ -51,10 +51,10 @@ const staffContacts = [
     color: "red",
   },
   {
-    name: "Ian Chen",
+    name: "Ian Shih",
     role: "班代",
     emoji: "👨‍💻",
-    email: "ian@aiplatform.tw",
+    email: "ian.tcnr@gmail.com",
     handle: "@ian",
     resp: "班級事務、行政協調",
     color: "blue",

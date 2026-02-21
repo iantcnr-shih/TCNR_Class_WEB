@@ -5,17 +5,16 @@ import { useState, useRef } from "react";
 ═══════════════════════════════════════════════════════════════════════ */
 
 const initialProfile = {
-  name: "Ian Chen",
+  name: "Ian Shih",
   nickname: "Ian",
-  email: "ian.chen@aiplatform.tw",
-  phone: "0912-345-678",
+  email: "ian.tcnr@gmail.com",
+  phone: "0999-999-999",
   role: "班代",
   cohort: "2026 第一期",
   joinDate: "2026-01-19",
   bio: "全端工程師學員，對 React 和 Node.js 特別有興趣。目標是在結業後加入新創公司。",
-  github: "github.com/ian-chen",
-  linkedin: "linkedin.com/in/ian-chen",
-  skills: ["React", "Node.js", "TypeScript", "PostgreSQL"],
+  github: "github.com/iantcnr-shih",
+  skills: ["PHP Laravel", "React", "Node.js", "JavaScript", "PostgreSQL", "MySQL",],
   avatar: "👨‍💻",
 };
 

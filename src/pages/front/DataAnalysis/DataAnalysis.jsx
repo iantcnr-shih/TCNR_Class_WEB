@@ -77,7 +77,7 @@ export default function DataAnalysis() {
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <PageHeader title="數據分析" subtitle="視覺化儀表板，支持數據驅動的決策制定" />
 
-      <div className="flex gap-1 mb-6 border-b border-gray-200 overflow-x-auto">
+      <div className="flex gap-1 mb-6 border-b border-gray-200">
         {tabs.map(([key, icon, label]) => (
           <div key={key} onClick={() => setTab(key)}
             className={`px-4 md:px-5 py-3 text-sm font-semibold rounded-t-lg border-b-2 -mb-px cursor-pointer whitespace-nowrap flex-shrink-0 transition-all

@@ -1,8 +1,8 @@
 /* ─── DATA ─────────────────────────────────────────────────────────── */
 const teamMembers = [
-  { name: "Ian",   role: "第一任班代", emoji: "👨‍💻", skills: ["Full-Stack", "PHP Laravel", "React", "Node.js"],  desc: "負責班級統籌，協調各項目開發", color: "red"     },
-  { name: "Billy", role: "第二任班代", emoji: "🎨",   skills: ["UI/UX", "Vue", "Python"],          desc: "負責學術活動規劃，推動知識分享", color: "blue"    },
-  { name: "Tako",  role: "成員", emoji: "🚀",   skills: ["Backend", "Database", "Docker"],   desc: "後端技術核心，負責系統架構設計", color: "emerald" },
+  { name: "Ian",   role: "班代", emoji: "👨‍💻", skills: ["Full-Stack", "PHP Laravel", "React", "Node.js"],  desc: "負責班級統籌，協調各項目開發", color: "red"     },
+  { name: "Billy", role: "準班代", emoji: "🎨",   skills: ["UI/UX", "Vue", "Python"],          desc: "負責學術活動規劃，推動知識分享", color: "blue"    },
+  { name: "Tako",  role: "技術助教", emoji: "🚀",   skills: ["Backend", "Database", "Docker"],   desc: "後端技術核心，負責系統架構設計", color: "emerald" },
 ];
 
 const memberColor = {

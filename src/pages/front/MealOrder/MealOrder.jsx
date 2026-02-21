@@ -230,7 +230,7 @@ export default function MealOrder() {
       <PageHeader title="訂餐管理" subtitle="智能訂餐系統，優化用餐體驗，提升行政效率" />
 
       {/* Tabs — scrollable on mobile */}
-      <div className="flex gap-1 mb-6 border-b border-gray-200 overflow-x-auto">
+      <div className="flex gap-1 mb-6 border-b border-gray-200">
         {tabs.map(([key, icon, label]) => (
           <div
             key={key}

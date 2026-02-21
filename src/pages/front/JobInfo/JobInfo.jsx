@@ -49,7 +49,7 @@ export default function JobInfo() {
             <PageHeader title="職涯發展" subtitle="整合產業資源，拓展職業發展機會" />
 
             {/* Tabs */}
-            <div className="flex gap-1 mb-6 border-b border-gray-200 overflow-x-auto">
+            <div className="flex gap-1 mb-6 border-b border-gray-200">
                 {tabs.map(([key, icon, label]) => (
                     <div
                         key={key}
