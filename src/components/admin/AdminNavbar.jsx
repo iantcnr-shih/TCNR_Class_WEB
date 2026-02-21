@@ -17,7 +17,7 @@ const AdminNavbar = () => {
         { id: 'tech-forum', name: '知識論壇', icon: MessageSquare, url: '/admin/tech-forum', color: 'cyan', bgColor: 'bg-cyan-500', lightBg: 'bg-cyan-50', textColor: 'text-cyan-600' },
         { id: 'data-analysis', name: '數據分析', icon: BarChart3, url: '/admin/data-analysis', color: 'indigo', bgColor: 'bg-indigo-500', lightBg: 'bg-indigo-50', textColor: 'text-indigo-600' },
         { id: 'ai', name: 'AI 應用', icon: Brain, url: '/admin/ai', color: 'pink', bgColor: 'bg-pink-500', lightBg: 'bg-pink-50', textColor: 'text-pink-600' },
-        { id: 'team', name: '團隊開發', icon: Users, url: '/admin/team', color: 'teal', bgColor: 'bg-teal-500', lightBg: 'bg-teal-50', textColor: 'text-teal-600' },
+        { id: 'team', name: '團隊開發', icon: Users, url: '/admin/dev-team', color: 'teal', bgColor: 'bg-teal-500', lightBg: 'bg-teal-50', textColor: 'text-teal-600' },
         { id: 'go-user', name: '前往使用者頁面', icon: ArrowRightCircle, url: '/', color: 'bg-yellow-500', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-yellow-500' },
         { id: 'logout', name: '登出', icon: LogOut, url: 'logout', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' }
     ];

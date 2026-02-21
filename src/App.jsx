@@ -11,9 +11,13 @@ import AdminAi from "@/pages/admin/AdminAi";
 import AdminDevTeam from "@/pages/admin/AdminDevTeam";
 import FrontLayout from "@/layouts/FrontLayout";
 import Home from "@/pages/front/Home";
+import JobInfo from "@/pages/front/JobInfo/JobInfo";
+import CampusNews from "@/pages/front/CampusNews/CampusNews";
 import MealOrder from "@/pages/front/MealOrder/MealOrder";
 import Environment from "@/pages/front/Environment/Environment";
 import ClassMeeting from "@/pages/front/ClassMeeting/ClassMeeting";
+import TechForum from "@/pages/front/TechForum/TechForum";
+import DataAnalysis from "@/pages/front/DataAnalysis/DataAnalysis";
 import DevTeam from "@/pages/front/DevTeam/DevTeam";
 import Lunch from "@/pages/front/Lunch";
 import Login from "@/pages/auth/Login";
@@ -46,6 +50,12 @@ function App() {
         <Route path="/" element={<FrontLayout />}>
           <Route index element={<Home />} />
         </Route>
+        <Route path="/job-info" element={<FrontLayout />}>
+          <Route index element={<JobInfo />} />
+        </Route>
+        <Route path="/campus-news" element={<FrontLayout />}>
+          <Route index element={<CampusNews />} />
+        </Route>
         <Route path="/meal-order" element={<FrontLayout />}>
           <Route index element={<MealOrder />} />
         </Route>
@@ -54,6 +64,12 @@ function App() {
         </Route>
         <Route path="/class-meeting" element={<FrontLayout />}>
           <Route index element={<ClassMeeting />} />
+        </Route>
+        <Route path="/tech-forum" element={<FrontLayout />}>
+          <Route index element={<TechForum />} />
+        </Route>
+        <Route path="/data-analysis" element={<FrontLayout />}>
+          <Route index element={<DataAnalysis />} />
         </Route>
         <Route path="/dev-team" element={<FrontLayout />}>
           <Route index element={<DevTeam />} />

@@ -35,7 +35,7 @@ const Features = () => {
       description: '專業交流平台，促進經驗分享與思想碰撞',
       iconColor: 'text-[#FC801C]',
       iconBg: 'bg-orange-50',
-      url: '#tech-forum',
+      url: '/tech-forum',
     },
     {
       icon: Briefcase,
@@ -43,7 +43,7 @@ const Features = () => {
       description: '整合產業資源，拓展職業發展機會',
       iconColor: 'text-[#BB496B]',
       iconBg: 'bg-pink-50',
-      url: '#job-info',
+      url: '/job-info',
     },
     {
       icon: BarChart3,
@@ -51,7 +51,7 @@ const Features = () => {
       description: '視覺化儀表板，支持數據驅動的決策制定',
       iconColor: 'text-[#311418]',
       iconBg: 'bg-slate-50',
-      url: '#data-analysis',
+      url: '/data-analysis',
     },
     {
       icon: Brain,

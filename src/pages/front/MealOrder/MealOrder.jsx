@@ -374,23 +374,6 @@ export default function MealOrder() {
             訂餐紀錄
           </h3>
 
-          {/* Mobile card view */}
-          <div className="md:hidden space-y-3">
-            {orderHistory.map((row, i) => (
-              <div key={i} className="border border-gray-100 rounded-xl p-4 bg-gray-50">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="font-semibold text-sm text-gray-800">{row.item}</span>
-                  <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusBadge[row.status]}`}>{row.status}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-400">{row.date}</span>
-                  <span className="text-orange-500 font-bold text-sm">NT${row.amount}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-
 
           {user ? (
             <>
@@ -416,6 +399,21 @@ export default function MealOrder() {
                   ))}
                 </tbody>
               </table>
+              {/* Mobile card view */}
+              <div className="md:hidden space-y-3">
+                {orderHistory.map((row, i) => (
+                  <div key={i} className="border border-gray-100 rounded-xl p-4 bg-gray-50">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-semibold text-sm text-gray-800">{row.item}</span>
+                      <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusBadge[row.status]}`}>{row.status}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-400">{row.date}</span>
+                      <span className="text-orange-500 font-bold text-sm">NT${row.amount}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </>
           ) : (
             <div>

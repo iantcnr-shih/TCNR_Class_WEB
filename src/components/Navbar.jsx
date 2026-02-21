@@ -24,16 +24,16 @@ const Navbar = () => {
             icon: Briefcase,
             url: '#news',
             dropdown: [
-                { name: '職涯發展', url: '#job-info' },
-                { name: '課程公告', url: '#campus-news' },
+                { name: '職涯發展', url: '/job-info' },
+                { name: '課程公告', url: '/campus-news' },
             ]
         },
         { name: '訂餐管理', icon: Utensils, url: '/meal-order' },
         { name: '環境管理', icon: Sparkles, url: '/environment' },
         { name: '班務會議', icon: Calendar, url: '/class-meeting' },
-        { name: '知識論壇', icon: MessageSquare, url: '#tech-forum' },
+        { name: '知識論壇', icon: MessageSquare, url: '/tech-forum' },
 
-        { name: '數據分析', icon: BarChart3, url: '#data-analysis' },
+        { name: '數據分析', icon: BarChart3, url: '/data-analysis' },
         { name: 'AI 應用', icon: Brain, url: '#ai' },
         { name: '團隊開發', icon: Users, url: '/dev-team' },
         { name: '登入', icon: LogIn, url: '/login' },
@@ -47,8 +47,8 @@ const Navbar = () => {
             url: '#news',
             color: 'text-[rgb(194,37,37)]',
             dropdown: [
-                { name: '職涯發展', icon: TrendingUp, color: 'text-orange-600', url: '#job-info' },
-                { name: '課程公告', icon: Megaphone, color: 'text-emerald-600', url: '#campus-news' },
+                { name: '職涯發展', icon: TrendingUp, color: 'text-orange-600', url: '/job-info' },
+                { name: '課程公告', icon: Megaphone, color: 'text-emerald-600', url: '/campus-news' },
             ]
         },
         {
@@ -60,7 +60,7 @@ const Navbar = () => {
                 { name: '訂餐管理', icon: Utensils, color: 'text-cyan-600', url: '/meal-order' },
                 { name: '環境管理', icon: Sparkles, color: 'text-indigo-600', url: '/environment' },
                 { name: '班務會議', icon: Calendar, color: 'text-pink-600', url: '/class-meeting' },
-                { name: '知識論壇', icon: MessageSquare, color: 'text-blue-600', url: '#tech-forum' },
+                { name: '知識論壇', icon: MessageSquare, color: 'text-blue-600', url: '/tech-forum' },
             ]
         },
         {
@@ -69,7 +69,7 @@ const Navbar = () => {
             url: '#resources',
             color: 'text-teal-600',
             dropdown: [
-                { name: '數據分析', icon: BarChart3, color: 'text-blue-600', url: '#data-analysis' },
+                { name: '數據分析', icon: BarChart3, color: 'text-blue-600', url: '/data-analysis' },
                 { name: 'AI 應用', icon: Brain, color: 'text-orange-600', url: '#ai' },
             ]
         },
@@ -287,6 +287,10 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                                             alert("功能尚未實裝, 敬請期待");
                                                         } else {
                                                             navigate(item.path);
+                                                            window.scrollTo({
+                                                                top: 0,
+                                                                behavior: "smooth"
+                                                            });
                                                         }
                                                     }
                                                     setShowMenu(false);
@@ -311,6 +315,10 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                             alert("功能尚未實裝, 敬請期待");
                                         } else {
                                             navigate(item.url);
+                                            window.scrollTo({
+                                                top: 0,
+                                                behavior: "smooth"
+                                            });
                                         }
                                     }}
                                 >
@@ -339,6 +347,10 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                                                     alert("功能尚未實裝, 敬請期待");
                                                                 } else {
                                                                     navigate(subItem.url);
+                                                                    window.scrollTo({
+                                                                        top: 0,
+                                                                        behavior: "smooth"
+                                                                    });
                                                                 }
                                                                 setActiveDropdown(null);
                                                             }}
@@ -391,6 +403,10 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                                     logout();
                                                 } else {
                                                     navigate(item.url);
+                                                    window.scrollTo({
+                                                        top: 0,
+                                                        behavior: "smooth"
+                                                    });
                                                     setIsOpen(false);
                                                 }
                                             }}
@@ -439,6 +455,10 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                                                     alert("功能尚未實裝, 敬請期待");
                                                                 } else {
                                                                     navigate(subItem.url);
+                                                                    window.scrollTo({
+                                                                        top: 0,
+                                                                        behavior: "smooth"
+                                                                    });
                                                                     setTimeout(() => {
                                                                         setIsOpen(false);
                                                                     }, 100);

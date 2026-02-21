@@ -8,8 +8,8 @@ const AdminFooter = () => {
       { name: '知識論壇', href: '#tech-forum' },
     ],
     resources: [
-      { name: '職涯發展', href: '#job-info' },
-      { name: '課程公告', href: '#job-info' },
+      { name: '職涯發展', href: '/job-info' },
+      { name: '課程公告', href: '/campus-news' },
       { name: '數據分析', href: '#data-analysis' },
       { name: 'AI 應用', href: '#ai' },
     ],

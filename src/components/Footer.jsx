@@ -7,12 +7,12 @@ const Footer = () => {
       { name: '訂餐管理', url: '/meal-order' },
       { name: '環境管理', url: '/environment' },
       { name: '班務會議', url: '/class-meeting' },
-      { name: '知識論壇', url: '#tech-forum' },
+      { name: '知識論壇', url: '/tech-forum' },
     ],
     resources: [
-      { name: '職涯發展', url: '#job-info' },
-      { name: '課程公告', url: '#campus-news' },
-      { name: '數據分析', url: '#data-analysis' },
+      { name: '職涯發展', url: '/job-info' },
+      { name: '課程公告', url: '/campus-news' },
+      { name: '數據分析', url: '/data-analysis' },
       { name: 'AI 應用', url: '#ai' },
     ],
     about: [
