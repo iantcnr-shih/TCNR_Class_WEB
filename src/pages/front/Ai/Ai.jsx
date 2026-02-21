@@ -102,15 +102,12 @@ const PageHeader = ({ title, subtitle }) => (
   </div>
 );
 
-// const Card = ({ children, className = "" }) => (
-//   <div className={`bg-white rounded-2xl shadow-sm border ${className}`}>{children}</div>
-// );
 const Card = forwardRef(
   ({ children, className = "", ...props }, ref) => (
     <div
       ref={ref}
       {...props}
-      className={`bg-white rounded-2xl shadow-sm border border-gray-100 ${className}`}
+      className={`bg-white rounded-2xl shadow-sm border ${className}`}
     >
       {children}
     </div>
