@@ -1,8 +1,8 @@
 /* ─── DATA ─────────────────────────────────────────────────────────── */
 const cleanPeriods = [
-  { label: "第一期", range: "2026-01-19 ～ 2026-02-26", status: "已完成",  color: "emerald", areas: ["走廊A區", "洗手間", "電梯口"] },
-  { label: "第二期", range: "2026-03-02 ～ 2026-03-27", status: "進行中",  color: "orange",  areas: ["教室B區", "儲藏室", "陽台"]   },
-  { label: "第三期", range: "2026-03-30 ～ 2026-04-28", status: "待開始",  color: "gray",    areas: ["走廊C區", "辦公室", "停車場"] },
+  { label: "第一期", range: "2026-01-19 ～ 2026-02-26", status: "進行中",  color: "emerald", areas: ["外掃A區", "教室B區"] },
+  { label: "第二期", range: "2026-03-02 ～ 2026-03-27", status: "待開始",  color: "orange",  areas: ["外掃A區", "教室B區"] },
+  { label: "第三期", range: "2026-03-30 ～ 2026-04-28", status: "尚未分配",  color: "gray",    areas: ["外掃A區", "教室B區"] },
 ];
 
 /* ─── LOOKUP MAPS ───────────────────────────────────────────────────── */
@@ -52,9 +52,11 @@ export default function Environment() {
                 </div>
               ))}
             </div>
-            <button className={`mt-4 w-full text-white text-sm font-bold py-2 rounded-xl transition-colors cursor-pointer ${periodBtn[p.color]}`}>
+            <div className={`mt-4 w-full text-white text-center text-sm font-bold py-2 rounded-xl transition-colors cursor-pointer ${periodBtn[p.color]}`}
+              onClick={()=>showpic()}
+            >
               查看詳情
-            </button>
+            </div>
           </div>
         ))}
       </div>

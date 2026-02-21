@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import api from "@/api/axios";
+import ReviewSection from "@/components/reviews/ReviewSection";
 
 /* ─── DATA ─────────────────────────────────────────────────────────── */
 
@@ -15,9 +17,9 @@ const drinkOptions = [
   { name: "豆漿", price: 30 },
 ];
 const storeReviews = [
-  { name: "金鑽便當", rating: 4.5, comment: "份量足，口味佳" },
-  { name: "老媽廚房", rating: 4.2, comment: "湯品新鮮，服務好" },
-  { name: "健康廚坊", rating: 3.8, comment: "素食選擇豐富" },
+  { name: "八方雲集", rating: 4.5, comment: "鍋貼很酥脆，湯品大碗好喝" },
+  { name: "米撰雞腿壩王", rating: 4.2, comment: "雞腿炸得很酥，鹹香好吃" },
+  { name: "五棧燒鵝", rating: 3.8, comment: "港式燒鵝便當為招牌必點" },
 ];
 const mealReviews = [
   { name: "雞腿飯", rating: 4.7, comment: "雞腿夠大塊，飯Q彈" },
@@ -60,10 +62,168 @@ const PageHeader = ({ title, subtitle }) => (
 /* ─── 訂餐管理 ──────────────────────────────────────────────────────── */
 export default function MealOrder() {
   const [tab, setTab] = useState("service");
+  const [user, setUser] = useState(null);
   const [selectedLunch, setSelectedLunch] = useState(null);
   const [selectedDrink, setSelectedDrink] = useState(null);
+  const [orderexpanded, setOrderexpanded] = useState(-1);
+  const [expanded, setExpanded] = useState(-1);
 
   const tabs = [["service", "🍱", "訂餐服務"], ["review", "⭐", "餐點評價"], ["history", "📋", "歷史紀錄"]];
+
+  const reviewSections = [
+    {
+      title: "新增評價",
+      icon: "🏪",
+      content: (
+        <div className="text-sm text-gray-500">
+          <ReviewSection shopId={1} />
+        </div>
+      ),
+    },
+    {
+      title: "店家評價",
+      icon: "🏪",
+      content: storeReviews.map((r, i) => (
+        <div key={i} className="bg-gray-50 rounded-xl p-4 mb-3 border border-gray-100">
+          <div className="flex justify-between items-center mb-1 flex-wrap gap-2">
+            <span className="font-bold text-gray-800">{r.name}</span>
+            <Stars rating={r.rating} />
+          </div>
+          <p className="text-sm text-gray-500">{r.comment}</p>
+        </div>
+      )),
+    },
+    {
+      title: "餐點評價",
+      icon: "🍽️",
+      content: mealReviews.map((r, i) => (
+        <div key={i} className="bg-gray-50 rounded-xl p-4 mb-3 border border-gray-100">
+          <div className="flex justify-between items-center mb-1 flex-wrap gap-2">
+            <span className="font-bold text-gray-800">{r.name}</span>
+            <Stars rating={r.rating} />
+          </div>
+          <p className="text-sm text-gray-500">{r.comment}</p>
+        </div>
+      )),
+    },
+  ];
+
+  const orderSections = [
+    {
+      title: "午餐選擇",
+      icon: "🍱",
+      content: (
+        <>
+          {lunchOptions.map((item, i) => (
+            <div
+              key={i}
+              onClick={() => item.available && setSelectedLunch(item.name)}
+              className={`flex items-center justify-between p-3 rounded-xl mb-2 border-[1.5px] transition-all
+              ${!item.available
+                  ? "opacity-50 cursor-not-allowed bg-gray-50 border-gray-200"
+                  : selectedLunch === item.name
+                    ? "bg-red-50 border-red-600 cursor-pointer"
+                    : "border-gray-200 hover:border-red-300 cursor-pointer hover:bg-red-50/30"}`}
+            >
+              <span className="font-semibold text-sm text-gray-800">{item.name}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-orange-500 font-bold text-sm">NT${item.price}</span>
+                {!item.available && (
+                  <span className="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full font-medium">
+                    售完
+                  </span>
+                )}
+                {selectedLunch === item.name && (
+                  <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                    已選
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </>
+      ),
+      is_order: false
+    },
+    {
+      title: "飲料選擇",
+      icon: "🧋",
+      content: (
+        <>
+          {drinkOptions.map((item, i) => (
+            <div
+              key={i}
+              onClick={() => setSelectedDrink(item.name)}
+              className={`flex items-center justify-between p-3 rounded-xl mb-2 border-[1.5px] cursor-pointer transition-all
+              ${selectedDrink === item.name
+                  ? "bg-red-50 border-red-600"
+                  : "border-gray-200 hover:border-red-300 hover:bg-red-50/30"}`}
+            >
+              <span className="font-semibold text-sm text-gray-800">{item.name}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-orange-500 font-bold text-sm">NT${item.price}</span>
+                {selectedDrink === item.name && (
+                  <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                    已選
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </>
+      ),
+      is_order: false
+    },
+    {
+      title: "餐點總攬",
+      icon: "📋",
+      content: (
+        <>
+          {lunchOptions.map((item, i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between p-3 rounded-xl mb-2 bg-gray-50 border border-gray-100"
+            >
+              <span className="font-semibold text-sm text-gray-800">{item.name}</span>
+              <span className="text-orange-500 font-bold text-sm">NT${item.price}</span>
+            </div>
+          ))}
+        </>
+      ),
+    },
+    {
+      title: "飲料總攬",
+      icon: "📋",
+      content: (
+        <>
+          {drinkOptions.map((item, i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between p-3 rounded-xl mb-2 bg-gray-50 border border-gray-100"
+            >
+              <span className="font-semibold text-sm text-gray-800">{item.name}</span>
+              <span className="text-orange-500 font-bold text-sm">NT${item.price}</span>
+            </div>
+          ))}
+        </>
+      ),
+    },
+  ];
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await api.get('/api/user');
+        let user = res.data;
+        user.role = "admin";
+        setUser(user);
+      } catch (error) {
+        console.log("user error:", error);
+        setUser(null);
+      }
+    };
+    fetchUser();
+  }, []);
 
   return (
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
@@ -79,8 +239,8 @@ export default function MealOrder() {
               px-3 sm:px-4 md:px-5 py-2 sm:py-3 text-xs sm:text-sm md:text-base font-semibold 
               rounded-t-lg transition-all border-b-2 -mb-px cursor-pointer whitespace-nowrap flex-shrink-0
               ${tab === key
-                          ? "bg-red-50 text-red-800 border-red-700 shadow-md transform translate-y-0"
-                          : "text-gray-400 border-transparent hover:text-gray-600 hover:shadow-sm hover:-translate-y-0.5"}
+                ? "bg-red-50 text-red-800 border-red-700 shadow-md transform translate-y-0"
+                : "text-gray-400 border-transparent hover:text-gray-600 hover:shadow-sm hover:-translate-y-0.5"}
               active:translate-y-0.5 active:shadow-inner
             `}
           >
@@ -91,106 +251,118 @@ export default function MealOrder() {
 
       {/* 訂餐服務 — 1 col on mobile, 2 col on md+ */}
       {tab === "service" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* 午餐 */}
-          <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
-            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">🍱</span>
-              午餐選擇
-            </h3>
-            {lunchOptions.map((item, i) => (
+        <div className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-5">
+            {orderSections.map((sec, i) => (
               <div
                 key={i}
-                onClick={() => item.available && setSelectedLunch(item.name)}
-                className={`flex items-center justify-between p-3 rounded-xl mb-2 border-[1.5px] transition-all
-                  ${!item.available
-                    ? "opacity-50 cursor-not-allowed bg-gray-50 border-gray-200"
-                    : selectedLunch === item.name
-                      ? "bg-red-50 border-red-600 cursor-pointer"
-                      : "border-gray-200 hover:border-red-300 cursor-pointer hover:bg-red-50/30"}`}
+                className={`bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all
+        ${orderexpanded === i ? "shadow-lg" : "shadow-sm"}`}
               >
-                <span className="font-semibold text-sm text-gray-800">{item.name}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-orange-500 font-bold text-sm">NT${item.price}</span>
-                  {!item.available && <span className="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full font-medium">售完</span>}
-                  {selectedLunch === item.name && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-medium">已選</span>}
+                {/* Header */}
+                <div
+                  onClick={() => setOrderexpanded(orderexpanded === i ? -1 : i)}
+                  className={`flex items-center justify-between p-5 cursor-pointer transition-colors
+          ${orderexpanded === i ? "bg-red-50" : "bg-white hover:bg-gray-50"}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                      {sec.icon}
+                    </span>
+                    <span className="font-bold text-gray-800">{sec.title}</span>{sec.is_order === false && <span>(尚未點餐)</span>}
+                  </div>
+
+                  <span
+                    className={`text-gray-400 transition-transform duration-300
+            ${orderexpanded === i ? "rotate-180" : ""}`}
+                  >
+                    ▾
+                  </span>
+                </div>
+
+                {/* Content */}
+                <div
+                  className={`transition-all duration-300 ease-in-out overflow-hidden
+          ${orderexpanded === i ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}`}
+                >
+                  <div className="p-5 pt-4 border-t border-gray-100">
+                    {sec.content}
+
+                    {/* 訂單摘要只在前兩個 section 顯示 */}
+                    {(i === 0 || i === 1) && (selectedLunch || selectedDrink) && (
+                      <div className="mt-4 p-4 bg-red-50 rounded-xl border border-red-100">
+                        <p className="text-xs text-gray-400 mb-2">訂單摘要</p>
+                        {selectedLunch && <p className="text-sm font-semibold">🍱 {selectedLunch}</p>}
+                        {selectedDrink && <p className="text-sm font-semibold">🧋 {selectedDrink}</p>}
+                        <div className="flex gap-2 mt-3">
+                          <button className="bg-red-800 hover:bg-red-900 text-white text-sm font-bold px-4 py-2 rounded-lg">
+                            確認訂餐
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedLunch(null);
+                              setSelectedDrink(null);
+                            }}
+                            className="border border-red-700 text-red-700 hover:bg-red-50 text-sm font-bold px-4 py-2 rounded-lg"
+                          >
+                            清除
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
-          </div>
-
-          {/* 飲料 */}
-          <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
-            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">🧋</span>
-              飲料選擇
-            </h3>
-            {drinkOptions.map((item, i) => (
-              <div
-                key={i}
-                onClick={() => setSelectedDrink(item.name)}
-                className={`flex items-center justify-between p-3 rounded-xl mb-2 border-[1.5px] cursor-pointer transition-all
-                  ${selectedDrink === item.name ? "bg-red-50 border-red-600" : "border-gray-200 hover:border-red-300 hover:bg-red-50/30"}`}
-              >
-                <span className="font-semibold text-sm text-gray-800">{item.name}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-orange-500 font-bold text-sm">NT${item.price}</span>
-                  {selectedDrink === item.name && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-medium">已選</span>}
-                </div>
-              </div>
-            ))}
-
-            {(selectedLunch || selectedDrink) && (
-              <div className="mt-4 p-4 bg-red-50 rounded-xl border border-red-100">
-                <p className="text-xs text-gray-400 mb-2">訂單摘要</p>
-                {selectedLunch && <p className="text-sm font-semibold text-gray-700">🍱 {selectedLunch}</p>}
-                {selectedDrink && <p className="text-sm font-semibold text-gray-700">🧋 {selectedDrink}</p>}
-                <div className="flex gap-2 mt-3">
-                  <button className="bg-red-800 hover:bg-red-900 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors cursor-pointer">確認訂餐</button>
-                  <button
-                    onClick={() => { setSelectedLunch(null); setSelectedDrink(null); }}
-                    className="border border-red-700 text-red-700 hover:bg-red-50 text-sm font-bold px-4 py-2 rounded-lg transition-colors cursor-pointer"
-                  >清除</button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
 
       {/* 餐點評價 — 1 col on mobile, 2 col on md+ */}
       {tab === "review" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
-            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">🏪</span>
-              店家評價
-            </h3>
-            {storeReviews.map((r, i) => (
-              <div key={i} className="bg-gray-50 rounded-xl p-4 mb-3 border border-gray-100">
-                <div className="flex justify-between items-center mb-1 flex-wrap gap-2">
-                  <span className="font-bold text-gray-800">{r.name}</span>
-                  <Stars rating={r.rating} />
+        <div className="grid grid-cols-1 gap-5">
+          {reviewSections.map((sec, i) => (
+            <div
+              key={i}
+              className={`bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all
+      ${expanded === i ? "shadow-lg" : "shadow-sm"}
+    `}
+            >
+              {/* Header */}
+              <div
+                onClick={() => setExpanded(expanded === i ? -1 : i)}
+                className={`w-full flex items-center justify-between p-5 text-left transition-colors
+        ${expanded === i ? "bg-amber-50" : "bg-white hover:bg-gray-50"}
+      `}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                    {sec.icon}
+                  </span>
+                  <span className="font-bold text-gray-800">{sec.title}</span>
                 </div>
-                <p className="text-sm text-gray-500">{r.comment}</p>
+
+                <span
+                  className={`text-gray-400 transition-transform duration-300
+          ${expanded === i ? "rotate-180" : ""}
+        `}
+                >
+                  ▾
+                </span>
               </div>
-            ))}
-          </div>
-          <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
-            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">🍽️</span>
-              餐點評價
-            </h3>
-            {mealReviews.map((r, i) => (
-              <div key={i} className="bg-gray-50 rounded-xl p-4 mb-3 border border-gray-100">
-                <div className="flex justify-between items-center mb-1 flex-wrap gap-2">
-                  <span className="font-bold text-gray-800">{r.name}</span>
-                  <Stars rating={r.rating} />
+
+              {/* Content */}
+              <div
+                className={`transition-all duration-300 ease-in-out overflow-hidden
+        ${expanded === i ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}
+      `}
+              >
+                <div className="p-5 pt-4 border-t border-gray-100">
+                  {sec.content}
                 </div>
-                <p className="text-sm text-gray-500">{r.comment}</p>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -198,7 +370,7 @@ export default function MealOrder() {
       {tab === "history" && (
         <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
           <h3 className="font-bold text-gray-800 mb-5 flex items-center gap-2">
-            <span className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">📋</span>
+            <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">📋</span>
             訂餐紀錄
           </h3>
 
@@ -218,30 +390,43 @@ export default function MealOrder() {
             ))}
           </div>
 
-          {/* Desktop table view */}
-          <table className="hidden md:table w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50">
-                {["日期", "餐點內容", "金額", "狀態"].map(h => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {orderHistory.map((row, i) => (
-                <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 text-gray-400">{row.date}</td>
-                  <td className="px-4 py-3 font-semibold text-gray-700">{row.item}</td>
-                  <td className="px-4 py-3 text-orange-500 font-bold">NT${row.amount}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusBadge[row.status]}`}>{row.status}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+
+          {user ? (
+            <>
+              {/* Desktop table view */}
+              <table className="hidden md:table w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50">
+                    {["日期", "餐點內容", "金額", "狀態"].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-xs font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {orderHistory.map((row, i) => (
+                    <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 text-gray-400">{row.date}</td>
+                      <td className="px-4 py-3 font-semibold text-gray-700">{row.item}</td>
+                      <td className="px-4 py-3 text-orange-500 font-bold">NT${row.amount}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusBadge[row.status]}`}>{row.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          ) : (
+            <div>
+              <div>
+                尚未登入，請先登入會員後查看相關資料。
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 }
