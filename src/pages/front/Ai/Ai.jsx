@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, forwardRef } from "react";
 
 /* ═══════════════════════════════════════════════════════════════════════
    DATA
@@ -71,23 +71,23 @@ const quickPrompts = {
 };
 
 const systemPrompts = {
-  chat:    "你是一位友善、專業的全端工程師助教，專門輔助學員學習 React、Node.js、TypeScript、資料庫等全端技術。請用繁體中文回覆，回答要清晰、有條理，適當使用程式碼範例。",
-  review:  "你是一位資深程式碼審查者，擅長 React、Node.js、TypeScript、SQL 等技術。請用繁體中文分析使用者提供的程式碼，指出問題、說明原因，並提供改善建議與最佳實踐。",
-  quiz:    "你是一位技術面試官，專門出全端工程相關的測驗題目。請用繁體中文出題，包含題目描述、選項（若為選擇題）、標準答案與詳細解說。",
+  chat: "你是一位友善、專業的全端工程師助教，專門輔助學員學習 React、Node.js、TypeScript、資料庫等全端技術。請用繁體中文回覆，回答要清晰、有條理，適當使用程式碼範例。",
+  review: "你是一位資深程式碼審查者，擅長 React、Node.js、TypeScript、SQL 等技術。請用繁體中文分析使用者提供的程式碼，指出問題、說明原因，並提供改善建議與最佳實踐。",
+  quiz: "你是一位技術面試官，專門出全端工程相關的測驗題目。請用繁體中文出題，包含題目描述、選項（若為選擇題）、標準答案與詳細解說。",
   summary: "你是一位擅長整理技術資料的助手。請用繁體中文將使用者提供的內容整理成清晰的結構化摘要，包含重點條列、關鍵概念解釋。",
 };
 
 const tagColor = {
-  blue:   "bg-blue-100 text-blue-700",
-  emerald:"bg-emerald-100 text-emerald-700",
+  blue: "bg-blue-100 text-blue-700",
+  emerald: "bg-emerald-100 text-emerald-700",
   orange: "bg-orange-100 text-orange-700",
   violet: "bg-violet-100 text-violet-700",
 };
 const toolAccent = {
-  blue:   { card: "border-t-4 border-blue-500",   icon: "bg-blue-50",   btn: "bg-blue-600 hover:bg-blue-700",   ring: "ring-blue-200",   text: "text-blue-700",   bubble: "bg-blue-600"   },
-  emerald:{ card: "border-t-4 border-emerald-500", icon: "bg-emerald-50",btn: "bg-emerald-600 hover:bg-emerald-700", ring: "ring-emerald-200", text: "text-emerald-700", bubble: "bg-emerald-600" },
-  orange: { card: "border-t-4 border-orange-500",  icon: "bg-orange-50", btn: "bg-orange-500 hover:bg-orange-600",  ring: "ring-orange-200",  text: "text-orange-700",  bubble: "bg-orange-500"  },
-  violet: { card: "border-t-4 border-violet-500",  icon: "bg-violet-50", btn: "bg-violet-600 hover:bg-violet-700",  ring: "ring-violet-200",  text: "text-violet-700",  bubble: "bg-violet-600"  },
+  blue: { card: "border-t-4 border-blue-500", icon: "bg-blue-50", btn: "bg-blue-600 hover:bg-blue-700", ring: "ring-blue-200", text: "text-blue-700", bubble: "bg-blue-600" },
+  emerald: { card: "border-t-4 border-emerald-500", icon: "bg-emerald-50", btn: "bg-emerald-600 hover:bg-emerald-700", ring: "ring-emerald-200", text: "text-emerald-700", bubble: "bg-emerald-600" },
+  orange: { card: "border-t-4 border-orange-500", icon: "bg-orange-50", btn: "bg-orange-500 hover:bg-orange-600", ring: "ring-orange-200", text: "text-orange-700", bubble: "bg-orange-500" },
+  violet: { card: "border-t-4 border-violet-500", icon: "bg-violet-50", btn: "bg-violet-600 hover:bg-violet-700", ring: "ring-violet-200", text: "text-violet-700", bubble: "bg-violet-600" },
 };
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -102,9 +102,22 @@ const PageHeader = ({ title, subtitle }) => (
   </div>
 );
 
-const Card = ({ children, className = "" }) => (
-  <div className={`bg-white rounded-2xl shadow-sm border ${className}`}>{children}</div>
+// const Card = ({ children, className = "" }) => (
+//   <div className={`bg-white rounded-2xl shadow-sm border ${className}`}>{children}</div>
+// );
+const Card = forwardRef(
+  ({ children, className = "", ...props }, ref) => (
+    <div
+      ref={ref}
+      {...props}
+      className={`bg-white rounded-2xl shadow-sm border border-gray-100 ${className}`}
+    >
+      {children}
+    </div>
+  )
 );
+
+Card.displayName = "Card";
 
 /* ═══════════════════════════════════════════════════════════════════════
    CHAT INTERFACE (shared by all tools)
@@ -115,12 +128,11 @@ function ChatInterface({ tool, onBack }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `你好！我是【${tool.title}】。${
-        tool.id === "chat"    ? "有任何技術問題都可以問我！" :
-        tool.id === "review"  ? "請把你想審查的程式碼貼給我，我來幫你找問題！" :
-        tool.id === "quiz"    ? "告訴我你想練習的主題和難度，我來幫你出題！" :
-                                "把你想整理的內容貼過來，我幫你生成摘要！"
-      }`,
+      content: `你好！我是【${tool.title}】。${tool.id === "chat" ? "有任何技術問題都可以問我！" :
+          tool.id === "review" ? "請把你想審查的程式碼貼給我，我來幫你找問題！" :
+            tool.id === "quiz" ? "告訴我你想練習的主題和難度，我來幫你出題！" :
+              "把你想整理的內容貼過來，我幫你生成摘要！"
+        }`,
     },
   ]);
   const [input, setInput] = useState("");
@@ -134,6 +146,7 @@ function ChatInterface({ tool, onBack }) {
 
   const send = async (text) => {
     const userText = text ?? input.trim();
+    if (!userText) alert("請輸入傳送訊息");
     if (!userText || loading) return;
     setInput("");
 
@@ -142,7 +155,7 @@ function ChatInterface({ tool, onBack }) {
     setLoading(true);
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("https://", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -186,10 +199,10 @@ function ChatInterface({ tool, onBack }) {
     <div className="flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-80px)]">
       {/* Chat header */}
       <div className="flex items-center gap-3 px-4 md:px-6 py-4 bg-white border-b border-gray-100 flex-shrink-0">
-        <button onClick={onBack}
+        <div onClick={onBack}
           className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 cursor-pointer transition-colors flex-shrink-0">
           ←
-        </button>
+        </div>
         <div className={`w-9 h-9 rounded-xl ${accent.icon} flex items-center justify-center text-lg flex-shrink-0`}>
           {tool.icon}
         </div>
@@ -197,10 +210,10 @@ function ChatInterface({ tool, onBack }) {
           <p className="font-bold text-gray-800 text-sm">{tool.title}</p>
           <p className="text-xs text-gray-400 truncate hidden sm:block">{tool.desc}</p>
         </div>
-        <button onClick={() => setMessages([{ role: "assistant", content: `對話已重置。有什麼需要幫忙的嗎？` }])}
+        <div onClick={() => setMessages([{ role: "assistant", content: `對話已重置。有什麼需要幫忙的嗎？` }])}
           className="ml-auto text-xs text-gray-400 hover:text-gray-600 cursor-pointer whitespace-nowrap px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
           🗑️ 清除
-        </button>
+        </div>
       </div>
 
       {/* Quick prompts */}
@@ -266,13 +279,13 @@ function ChatInterface({ tool, onBack }) {
             className="flex-1 resize-none border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all leading-relaxed"
             style={{ maxHeight: "120px", overflowY: "auto" }}
           />
-          <button
+          <div
             onClick={() => send()}
             disabled={!input.trim() || loading}
             className={`w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold transition-all cursor-pointer flex-shrink-0
               ${input.trim() && !loading ? `${accent.btn}` : "bg-gray-200 cursor-not-allowed"}`}>
             ↑
-          </button>
+          </div>
         </div>
         <p className="text-xs text-gray-300 mt-2 text-center">AI 生成內容僅供參考，請自行判斷正確性</p>
       </div>
@@ -348,9 +361,9 @@ export default function Ai() {
                     <span key={i} className={`text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-500`}>{p.slice(0, 12)}…</span>
                   ))}
                 </div>
-                <button className={`text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors cursor-pointer flex-shrink-0 ml-2 ${accent.btn}`}>
+                <div className={`text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors cursor-pointer flex-shrink-0 ml-2 ${accent.btn}`}>
                   開始使用
-                </button>
+                </div>
               </div>
             </Card>
           );
