@@ -4,12 +4,6 @@ import ReviewSection from "@/components/reviews/ReviewSection";
 
 /* ─── DATA ─────────────────────────────────────────────────────────── */
 
-const drinkOptions = [
-  { name: "紅茶", price: 25 },
-  { name: "綠茶", price: 25 },
-  { name: "咖啡", price: 45 },
-  { name: "豆漿", price: 30 },
-];
 const storeReviews = [
   { name: "八方雲集", rating: 4.5, comment: "鍋貼很酥脆，湯品大碗好喝" },
   { name: "米撰雞腿壩王", rating: 4.2, comment: "雞腿炸得很酥，鹹香好吃" },
@@ -57,8 +51,7 @@ const PageHeader = ({ title, subtitle }) => (
 export default function MealOrder() {
   const [tab, setTab] = useState("service");
   const [user, setUser] = useState(null);
-  const [userIP, setUserIP] = useState("192.168.60.21");
-  const [selectedDrink, setSelectedDrink] = useState(null);
+  const [userIP, setUserIP] = useState("");
   const [orderexpanded, setOrderexpanded] = useState(0);
   const [expanded, setExpanded] = useState(-1);
 
@@ -80,12 +73,60 @@ export default function MealOrder() {
   const [orders, setOrders] = useState([]);
   const [shopSummary, setShopSummary] = useState([]);
   const [grandTotal, setGrandTotal] = useState(0);
+  const [grandBubbleteaTotal, setGrandBubbleteaTotal] = useState(0);
   const [sortConfig, setSortConfig] = useState(null);
-
   const [isOrderable, setIsOrderable] = useState(true);
+  const [isBubbleTeaOrderable, setIsBubbleTeaOrderable] = useState(true);
   const [chargedSeatNumber, setChargedSeatNumber] = useState("");
+  const [bubbleteaOrderURL, setBubbleteaOrderURL] = useState("");
+  const [selectBubbleTea, setSelectBubbleTea] = useState("");
+  const [bubbleTeaPrice, setBubbleTeaPrice] = useState();
+  const [bubbleteaOrders, setBubbleteaOrders] = useState([]);
+  const [userbubbleteaorders, setUserobubbletearders] = useState([]);
+
+  const checkIsOrderable = async () => {
+    try {
+      const res = await api.get('/api/getManagerControl');
+      if (res.status === 200) {
+        const controls = res.data.controls
+        let is_orderable = controls.find(item => item.c_title === "isOrderable");
+        if (is_orderable) {
+          setIsOrderable(is_orderable.c_value === "Y" ? true : false);
+          if (is_orderable.c_value === "Y") {
+            return true;
+          }
+        }
+        return false;
+      }
+    } catch (error) {
+      console.log("getManagerControl error:", error);
+      return false;
+    }
+  }
+
+  const checkBubbleTeaIsOrderable = async () => {
+    try {
+      const res = await api.get('/api/getManagerControl');
+      if (res.status === 200) {
+        const controls = res.data.controls
+        let is_BubbleTeaOrderable = controls.find(item => item.c_title === "isBubbleTeaOrderable");
+        if (is_BubbleTeaOrderable) {
+          setIsBubbleTeaOrderable(is_BubbleTeaOrderable.c_value === "Y" ? true : false);
+          if (is_BubbleTeaOrderable.c_value === "Y") {
+            return true;
+          }
+        }
+        return false;
+      }
+    } catch (error) {
+      console.log("getManagerControl error:", error);
+      return false;
+    }
+  }
 
   const handleSendOrder = async () => {
+    const is_Orderable = await checkIsOrderable();
+    if (!is_Orderable) return alert("今日已收單，如需訂餐請洽班代")
     if (!seatNumber) return alert("座號不可空白");
     if (!shopId) return alert("請選擇店家");
     if (!categoryId) return alert("請選擇餐點類別");
@@ -99,6 +140,31 @@ export default function MealOrder() {
         food_id: foodId,
         quantity: quantity,
         user_ip: userIP
+      });
+      if (res.status === 200) {
+        alert("新增餐點成功");
+        location.reload();
+      } else {
+        alert("新增餐點失敗");
+      }
+    } catch (err) {
+      alert("新增餐點失敗");
+      console.error(err);
+    }
+  }
+
+  const handleSendBubbleTeaOrder = async () => {
+    const is_BubbleTeaOrderable = await checkBubbleTeaIsOrderable();
+    if (!is_BubbleTeaOrderable) return alert("今日已收單，如需訂餐請洽班代")
+    if (!seatNumber) return alert("座號不可空白");
+    if (!selectBubbleTea) return alert("請輸入飲料品項");
+    if (!bubbleTeaPrice) return alert("請輸入飲料訂購金額");
+    try {
+      const res = await api.post('/api/addbubbleteaorder', {
+        order_date: today.date,
+        seat_number: seatNumber,
+        bubbletea_name: selectBubbleTea,
+        bubbletea_price: bubbleTeaPrice
       });
       if (res.status === 200) {
         alert("新增餐點成功");
@@ -319,37 +385,100 @@ export default function MealOrder() {
             }
           </div>
         </>
-      ),
-      is_order: false
+      )
     },
     {
       title: "飲料選擇",
       icon: "🧋",
       content: (
         <>
-          {drinkOptions.map((item, i) => (
-            <div
-              key={i}
-              onClick={() => setSelectedDrink(item.name)}
-              className={`flex items-center justify-between p-3 rounded-xl mb-2 border-[1.5px] cursor-pointer transition-all
-              ${selectedDrink === item.name
-                  ? "bg-red-50 border-red-600"
-                  : "border-gray-200 hover:border-red-300 hover:bg-red-50/30"}`}
-            >
-              <span className="font-semibold text-sm text-gray-800">{item.name}</span>
-              <div className="flex items-center gap-2">
-                <span className="text-orange-500 font-bold text-sm">NT${item.price}</span>
-                {selectedDrink === item.name && (
-                  <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                    已選
-                  </span>
-                )}
+          <div className="bg-white border border-gray-200 rounded-xl px-8 py-7 mb-6 shadow-sm">
+            <div className="text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">今日訂單列表<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span></div>
+            {userbubbleteaorders.length === 0 ? (
+              <>
+                <div className="text-center px-10 text-gray-400 text-sm">尚無訂單</div>
+                {isBubbleTeaOrderable &&
+                  <div className="w-full flex">
+                    <div className="mx-auto px-5.5 py-2.5 bg-[rgb(139,26,46)] rounded-lg
+                  text-white font-bold text-[15px] text-center tracking-wider mt-5.5
+                  shadow-lg cursor-pointer transition duration-200 ease-in-out 
+                  hover:-translate-y-0.5 hover:shadow-[0_5px_16px_rgba(139,26,46,0.3)] hover:bg-[#a01f35]"
+                      onClick={() => gotobubleteaorder()}
+                    >前往訂餐</div>
+                  </div>
+                }
+              </>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-gray-200">
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">座號</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">餐點</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">金額</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">付款</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userbubbleteaorders.map(o => (
+                      <tr key={o.bubbletea_order_id} className="border-b border-gray-200 hover:bg-[#FFF8F7] transition-colors duration-150">
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]"><span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-900/10 text-[rgb(139,26,46)] font-bold text-[13px]">{o.seat_number}</span></td>
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.bubbletea_name}</td>
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]">${o.bubbletea_price}</td>
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]">
+                          {o.is_paid === 1 ? (
+                            <span className="inline-flex items-center gap-1.5 bg-[rgba(34,197,94,0.1)] text-[#16a34a] border border-[rgba(34,197,94,0.25)] px-2.5 py-1 rounded-[20px] text-[12px] font-medium">
+                              ✓ 已付款
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-600 border border-orange-200 py-1 px-2.5 rounded-full text-[12px] font-medium">
+                              ○ 未付款
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
+            )}
+            <div className="mt-5 text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">新增訂單<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span></div>
+            <div className="overflow-hidden grid grid-cols-[repeat(auto-fit,_minmax(190px,_1fr))] gap-4">
+              {isBubbleTeaOrderable ? (
+                <>
+                  <div className="overflow-x-auto flex gap-1.5 grid md:grid-cols-2">
+                    <div className="flex flex-1 md:pr-5">
+                      <label className="text-sm font-medium text-[rgb(122,90,90)] tracking-wide">飲料：</label>
+                      <input type="text" className="flex-1 px-3 py-1 border border-gray-300 rounded-lg outline-none focus:border-orange-600 focus:ring-1 focus:ring-orange-200"
+                        onChange={(e) => setSelectBubbleTea(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-1">
+                      <label className="text-sm font-medium text-[rgb(122,90,90)] tracking-wide">金額：</label>
+                      <input type="number" className="flex-1 px-3 py-1 border border-gray-300 rounded-lg outline-none focus:border-orange-600 focus:ring-1 focus:ring-orange-200"
+                        onChange={(e) => setBubbleTeaPrice(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="mx-auto text-md text-[rgb(255,0,0)] font-bold">
+                  今日已收單，如需訂餐請洽班代
+                </div>
+              )}
+
             </div>
-          ))}
+            {isBubbleTeaOrderable &&
+              <div className="w-full px-3.5 py-3.5 bg-[rgb(139,26,46)] rounded-lg
+              text-white font-bold text-[15px] text-center tracking-wider mt-5.5
+              shadow-lg cursor-pointer transition duration-200 ease-in-out 
+              hover:-translate-y-0.5 hover:shadow-[0_5px_16px_rgba(139,26,46,0.3)] hover:bg-[#a01f35]"
+                onClick={handleSendBubbleTeaOrder}
+              >確認送出訂單</div>
+            }
+          </div>
         </>
-      ),
-      is_order: false
+      )
     },
     {
       title: "餐點總攬",
@@ -394,14 +523,14 @@ export default function MealOrder() {
                         <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">
                           {seatNumber == chargedSeatNumber ? (
                             o.is_paid === 1 ? (
-                              <span className="inline-flex items-center gap-1.5 bg-[rgba(34,197,94,0.1)] text-[#16a34a] border border-[rgba(34,197,94,0.25)] px-2.5 py-1 rounded-[20px] text-[12px] hover:opacity-100 cursor-pointer"
+                              <span className="inline-flex items-center gap-1.5 bg-[rgba(34,197,94,0.1)] text-[#16a34a] border border-[rgba(34,197,94,0.25)] px-2.5 py-1 rounded-[20px] text-[12px] hover:opacity-100 cursor-pointer hover:scale-110"
                                 onClick={(e) => { e.stopPropagation(); togglePaid(o.order_id, o.is_paid) }}
                               >
                                 ✓ 已付款
                                 <div className="bg-none border border-current text-inherit px-2 py-0.5 rounded text-[11px] ml-1.5 opacity-75 transition-opacity duration-200 font-sans">取消</div>
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-600 border border-orange-200 py-1 px-2.5 rounded-full text-[12px] hover:opacity-100 cursor-pointer"
+                              <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-600 border border-orange-200 py-1 px-2.5 rounded-full text-[12px] hover:opacity-100 cursor-pointer hover:scale-110"
                                 onClick={(e) => { e.stopPropagation(); togglePaid(o.order_id, o.is_paid) }}
                               >
                                 ○ 未付款
@@ -451,15 +580,76 @@ export default function MealOrder() {
       icon: "📋",
       content: (
         <>
-          {drinkOptions.map((item, i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between p-3 rounded-xl mb-2 bg-gray-50 border border-gray-100"
-            >
-              <span className="font-semibold text-sm text-gray-800">{item.name}</span>
-              <span className="text-orange-500 font-bold text-sm">NT${item.price}</span>
-            </div>
-          ))}
+          <div className="bg-white border border-gray-200 rounded-xl px-8 py-7 mb-6 shadow-sm">
+            <div className="text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">今日訂單列表<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span></div>
+            {bubbleteaOrders.length === 0 ? (
+              <div className="text-center p-10 text-gray-400 text-sm">尚無訂單</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-gray-200">
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">座號</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">餐點</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">金額</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">付款</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bubbleteaOrders.map(o => (
+                      <tr key={o.bubbletea_order_id} className="border-b border-gray-200 hover:bg-[#FFF8F7] transition-colors duration-150"
+                        onClick={() => userbubbleteaorderssummery(o.seat_number)}
+                      >
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]"><span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-900/10 text-[rgb(139,26,46)] font-bold text-[13px]">{o.seat_number}</span></td>
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.bubbletea_name}</td>
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]">${o.bubbletea_price}</td>
+                        <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">
+                          {seatNumber == chargedSeatNumber ? (
+                            o.is_paid === 1 ? (
+                              <span className="inline-flex items-center gap-1.5 bg-[rgba(34,197,94,0.1)] text-[#16a34a] border border-[rgba(34,197,94,0.25)] px-2.5 py-1 rounded-[20px] text-[12px] hover:opacity-100 cursor-pointer hover:scale-110"
+                                onClick={(e) => { e.stopPropagation(); togglebubbleteaPaid(o.bubbletea_order_id, o.is_paid) }}
+                              >
+                                ✓ 已付款
+                                <div className="bg-none border border-current text-inherit px-2 py-0.5 rounded text-[11px] ml-1.5 opacity-75 transition-opacity duration-200 font-sans">取消</div>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-600 border border-orange-200 py-1 px-2.5 rounded-full text-[12px] hover:opacity-100 cursor-pointer hover:scale-110"
+                                onClick={(e) => { e.stopPropagation(); togglebubbleteaPaid(o.bubbletea_order_id, o.is_paid) }}
+                              >
+                                ○ 未付款
+                                <div className="bg-none border border-current text-inherit px-2 py-0.5 rounded text-[11px] ml-1.5 opacity-75 transition-opacity duration-200 font-sans">付款</div>
+                              </span>
+                            )
+                          ) : (
+                            o.is_paid === 1 ? (
+                              <span className="inline-flex items-center gap-1.5 bg-[rgba(34,197,94,0.1)] text-[#16a34a] border border-[rgba(34,197,94,0.25)] px-2.5 py-1 rounded-[20px] text-[12px] hover:opacity-100 cursor-pointer">
+                                ✓ 已付款
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-600 border border-orange-200 py-1 px-2.5 rounded-full text-[12px] hover:opacity-100 cursor-pointer">
+                                ○ 未付款
+                              </span>
+                            )
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {bubbleteaOrders.length > 0 && (
+              <>
+                <div className="mt-8 h-[1px] bg-[rgb(100,57,48)]"></div>
+                <div className="flex flex-wrap gap-2.5 mt-2 pt-5">
+                  <div className="bg-[rgb(139,26,46)] rounded-lg px-5 py-2.5 text-white text-lg font-bold ml-auto shadow-lg">總計 $
+                    {grandBubbleteaTotal}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </>
       ),
     },
@@ -473,10 +663,8 @@ export default function MealOrder() {
           if (Array.isArray(today) && today.length === 0) {
             setToday(res.data.today);  // 設置今天的日期與星期
           }
-          // setUserIP(res.data.user_ip);
+          setUserIP(res.data.user_ip);
         }
-        // const data = await res.json();
-        // setUserIP(data.ip);
       } catch (err) {
         console.error(err);
         setUserIP("未知");
@@ -519,7 +707,7 @@ export default function MealOrder() {
         if (res.status === 200) {
           const orders_list = res.data.orders
           const sortedData = orders_list.sort((a, b) => {
-            return Number(a.seatNumber) - Number(b.seatNumber);
+            return Number(a.seat_number) - Number(b.seat_number);
           });
           setOrders(sortedData);
 
@@ -547,31 +735,70 @@ export default function MealOrder() {
             total: total
           }));
           setShopSummary(shopArray);
-          setGrandTotal(grand_total)
+          setGrandTotal(grand_total);
         }
       } catch (error) {
         console.log("getShops error:", error);
       }
     }
     fetchGetOrders()
+    const fetchGetBubbleteaorders = async () => {
+      try {
+        const res = await api.get('/api/getBubbleteaorders', {
+          params: {
+            seat_number: seatNumber || null,
+            order_date: today.date || null,
+          }
+        });
+        if (res.status === 200) {
+          const bubbletea_orders_list = res.data.bubbletea_orders
+          const sortedData = bubbletea_orders_list.sort((a, b) => {
+            return Number(a.seat_number) - Number(b.seat_number);
+          });
+          setBubbleteaOrders(sortedData);
+
+          let grand_bubbletea_total = 0;    // 全部總額
+
+          bubbletea_orders_list.forEach((element) => {
+            const subtotal = Number(element.bubbletea_price);
+
+            // 累加全部
+            grand_bubbletea_total += subtotal;
+          });
+
+          setGrandBubbleteaTotal(grand_bubbletea_total)
+        }
+      } catch (error) {
+        console.log("getBubbleteaorders error:", error);
+      }
+    }
+    fetchGetBubbleteaorders()
     const fetchManagerControl = async () => {
       try {
         const res = await api.get('/api/getManagerControl');
         if (res.status === 200) {
           const controls = res.data.controls
-          let is_orderable = controls.find(item=>item.c_title === "isOrderable");
+          let is_orderable = controls.find(item => item.c_title === "isOrderable");
           if (is_orderable) {
             setIsOrderable(is_orderable.c_value === "Y" ? true : false);
           }
-          let charged_seat_number = controls.find(item=>item.c_title === "charged_seat_number");
+          let is_bubbletea_orderable = controls.find(item => item.c_title === "isBubbleTeaOrderable");
+          if (is_bubbletea_orderable) {
+            setIsBubbleTeaOrderable(is_bubbletea_orderable.c_value === "Y" ? true : false);
+          }
+          let bubbletea_orderURL = controls.find(item => item.c_title === "bubble_tea_url");
+          if (bubbletea_orderURL) {
+            setBubbleteaOrderURL(bubbletea_orderURL.c_value);
+          }
+          let charged_seat_number = controls.find(item => item.c_title === "charged_seat_number");
           if (charged_seat_number) {
             setChargedSeatNumber(charged_seat_number.c_value);
           }
-          let order_type = controls.find(item=>item.c_title === "order_type");
+          let order_type = controls.find(item => item.c_title === "order_type");
           if (order_type) {
             setOrderType(order_type.c_value);
           }
-          let order_round = controls.find(item=>item.c_title === "order_round");
+          let order_round = controls.find(item => item.c_title === "order_round");
           if (order_round) {
             setOrderRound(Number(order_round.c_value));
           }
@@ -598,6 +825,13 @@ export default function MealOrder() {
       setUserorders(user_order);
     }
   }, [seatNumber, orders])
+
+  useEffect(() => {
+    if (seatNumber !== "" && bubbleteaOrders.length > 0) {
+      const user_bubbletea_order = bubbleteaOrders.filter(order => order.seat_number == seatNumber);
+      setUserobubbletearders(user_bubbletea_order);
+    }
+  }, [seatNumber, bubbleteaOrders])
 
   const selectshop = async (shop_id) => {
     setShopId(shop_id);
@@ -667,6 +901,19 @@ export default function MealOrder() {
       totalAmount += order.quantity * order.price; // 計算每個商品的總金額
     });
 
+    // 或者將結果設置為 state 顯示在 UI 上
+    alert(`［座號 ${seat_number}號］,訂餐總金額［${totalAmount}元］`);
+  };
+  const userbubbleteaorderssummery = (seat_number) => {
+    // 根據 order_id 獲取該使用者所有訂單的數據
+    const selectedOrder = bubbleteaOrders.filter(order => order.seat_number == seat_number);
+
+    let totalAmount = 0;
+
+    selectedOrder.forEach(order => {
+      totalAmount += Number(order.bubbletea_price); // 計算每個商品的總金額
+    });
+
     // 這裡可以設置顯示訂單摘要的邏輯，比如顯示總金額、訂單內容等
     console.log("總金額:", totalAmount);
     // 或者將結果設置為 state 顯示在 UI 上
@@ -688,9 +935,31 @@ export default function MealOrder() {
     } catch (error) {
       console.log("togglePaid error:", error);
     }
+  }
+  const togglebubbleteaPaid = async (bubbletea_order_id, is_paid) => {
+    try {
+      const newIsPaid = is_paid === 1 ? 0 : 1;
+      const res = await api.post('/api/bubbleteaorderpaid', {
+        bubbletea_order_id: bubbletea_order_id,
+        is_paid: newIsPaid,
+      });
+      if (res.status === 200) {
+        setBubbleteaOrders(prev => prev.map(o =>
+          o.bubbletea_order_id === bubbletea_order_id ? { ...o, is_paid: is_paid === 1 ? 0 : 1 } : o
+        ));
+      }
+    } catch (error) {
+      console.log("bubbleteaorderpaid error:", error);
+    }
+  }
 
-
-
+  const gotobubleteaorder = async () => {
+    const is_Orderable = await checkBubbleTeaIsOrderable();
+    if (is_Orderable && bubbleteaOrderURL !== "") {
+      window.open(bubbleteaOrderURL, "_blank");
+    } else {
+      alert("今日已收單，如需訂餐請洽班代")
+    }
   }
 
   return (
@@ -749,7 +1018,9 @@ export default function MealOrder() {
                     <span className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
                       {sec.icon}
                     </span>
-                    <span className="font-bold text-gray-800">{sec.title}</span>{sec.is_order === false && userorders.length < 1 && <span>(尚未點餐)</span>}
+                    <span className="font-bold text-gray-800">{sec.title}</span>
+                    {sec.title === "午餐選擇" ? userorders.length < 1 ? <span>(尚未點餐)</span> : <span>(已點餐)</span> : ""}
+                    {sec.title === "飲料選擇" ? userbubbleteaorders.length < 1 ? <span>(尚未點餐)</span> : <span>(已點餐)</span> : ""}
                   </div>
 
                   <span
