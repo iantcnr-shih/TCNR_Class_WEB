@@ -4,12 +4,6 @@ import ReviewSection from "@/components/reviews/ReviewSection";
 
 /* ─── DATA ─────────────────────────────────────────────────────────── */
 
-const lunchOptions = [
-  { name: "排骨飯", price: 80, available: true },
-  { name: "雞腿飯", price: 90, available: true },
-  { name: "素食便當", price: 75, available: true },
-  { name: "牛肉麵", price: 100, available: false },
-];
 const drinkOptions = [
   { name: "紅茶", price: 25 },
   { name: "綠茶", price: 25 },
@@ -52,7 +46,7 @@ const Stars = ({ rating }) => (
 );
 
 const PageHeader = ({ title, subtitle }) => (
-  <div className="mb-6 md:mb-8">
+  <div className="mb-4 md:mb-6">
     <div className="w-10 h-1 bg-orange-500 rounded-full mb-3" />
     <h1 className="text-xl md:text-2xl font-black text-red-900 mb-1">{title}</h1>
     <p className="text-xs md:text-sm text-gray-500">{subtitle}</p>
@@ -63,10 +57,101 @@ const PageHeader = ({ title, subtitle }) => (
 export default function MealOrder() {
   const [tab, setTab] = useState("service");
   const [user, setUser] = useState(null);
-  const [selectedLunch, setSelectedLunch] = useState(null);
+  const [userIP, setUserIP] = useState("192.168.60.21");
   const [selectedDrink, setSelectedDrink] = useState(null);
-  const [orderexpanded, setOrderexpanded] = useState(-1);
+  const [orderexpanded, setOrderexpanded] = useState(0);
   const [expanded, setExpanded] = useState(-1);
+
+  const [today, setToday] = useState([]);
+  const [seatNumber, setSeatNumber] = useState("");
+  const [shopId, setShopId] = useState("");
+  const [shops, setShops] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [categoryId, setCategoryId] = useState("");
+  const [foods, setFoods] = useState([]);
+  const [foodId, setFoodId] = useState("");
+  const [selectedFood, setSelectedFood] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [quantityOptions, setQuantityOptions] = useState([]);
+  const [orderType, setOrderType] = useState("1");
+  const [orderRound, setOrderRound] = useState(1);
+
+  const [userorders, setUserorders] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [shopSummary, setShopSummary] = useState([]);
+  const [grandTotal, setGrandTotal] = useState(0);
+  const [sortConfig, setSortConfig] = useState(null);
+
+  const [isOrderable, setIsOrderable] = useState(true);
+  const [chargedSeatNumber, setChargedSeatNumber] = useState("");
+
+  const handleSendOrder = async () => {
+    if (!seatNumber) return alert("座號不可空白");
+    if (!shopId) return alert("請選擇店家");
+    if (!categoryId) return alert("請選擇餐點類別");
+    if (!foodId) return alert("請選擇餐點");
+    try {
+      const res = await api.post('/api/addorder', {
+        order_date: today.date,
+        order_type: orderType,
+        order_round: orderRound,
+        seat_number: seatNumber,
+        food_id: foodId,
+        quantity: quantity,
+        user_ip: userIP
+      });
+      if (res.status === 200) {
+        alert("新增餐點成功");
+        location.reload();
+      } else {
+        alert("新增餐點失敗");
+      }
+    } catch (err) {
+      alert("新增餐點失敗");
+      console.error(err);
+    }
+  }
+
+  const handleSort = (key) => {
+    let direction = "asc"; // 移除 TypeScript 的類型聲明
+
+    // 如果是同一個 key，則切換排序方向
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+
+    // 更新排序配置
+    setSortConfig({ key, direction });
+
+    // 根據 key 進行排序
+    const sorted = [...orders].sort((a, b) => {
+      let aValue;
+      let bValue;
+
+      // 根據不同的 key 決定比較的欄位
+      switch (key) {
+        case "seatNumber":
+          aValue = Number(a.seat_number);
+          bValue = Number(b.seat_number);
+          break;
+        case "shop":
+          aValue = a.shop_name;
+          bValue = b.shop_name;
+          break;
+        default:
+          aValue = a[key];
+          bValue = b[key];
+      }
+
+      // 進行升冪或降冪排序
+      if (aValue < bValue) return direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    // 更新訂單列表
+    setOrders(sorted);
+  };
 
   const tabs = [["service", "🍱", "訂餐服務"], ["review", "⭐", "餐點評價"], ["history", "📋", "歷史紀錄"]];
 
@@ -114,33 +199,125 @@ export default function MealOrder() {
       icon: "🍱",
       content: (
         <>
-          {lunchOptions.map((item, i) => (
-            <div
-              key={i}
-              onClick={() => item.available && setSelectedLunch(item.name)}
-              className={`flex items-center justify-between p-3 rounded-xl mb-2 border-[1.5px] transition-all
-              ${!item.available
-                  ? "opacity-50 cursor-not-allowed bg-gray-50 border-gray-200"
-                  : selectedLunch === item.name
-                    ? "bg-red-50 border-red-600 cursor-pointer"
-                    : "border-gray-200 hover:border-red-300 cursor-pointer hover:bg-red-50/30"}`}
-            >
-              <span className="font-semibold text-sm text-gray-800">{item.name}</span>
-              <div className="flex items-center gap-2">
-                <span className="text-orange-500 font-bold text-sm">NT${item.price}</span>
-                {!item.available && (
-                  <span className="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full font-medium">
-                    售完
-                  </span>
-                )}
-                {selectedLunch === item.name && (
-                  <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                    已選
-                  </span>
-                )}
+          <div className="bg-white border border-gray-200 rounded-xl px-8 py-7 mb-6 shadow-sm">
+            <div className="text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">今日訂單列表<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span></div>
+            {userorders.length === 0 ? (
+              <div className="text-center px-10 text-gray-400 text-sm">尚無訂單</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-gray-200">
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">座號</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">店家</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">餐點</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">數量</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">金額</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">付款</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userorders.map(o => (
+                      <tr key={o.order_id} className="border-b border-gray-200 hover:bg-[#FFF8F7] transition-colors duration-150">
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]"><span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-900/10 text-[rgb(139,26,46)] font-bold text-[13px]">{o.seat_number}</span></td>
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.shop_name}</td>
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.food_name}</td>
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.quantity}{o.food_id <= 13 ? "顆" : "份"}</td>
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]">${o.quantity * o.price}</td>
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]">
+                          {o.is_paid === 1 ? (
+                            <span className="inline-flex items-center gap-1.5 bg-[rgba(34,197,94,0.1)] text-[#16a34a] border border-[rgba(34,197,94,0.25)] px-2.5 py-1 rounded-[20px] text-[12px] font-medium">
+                              ✓ 已付款
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-600 border border-orange-200 py-1 px-2.5 rounded-full text-[12px] font-medium">
+                              ○ 未付款
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
+            )}
+            <div className="mt-5 text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">新增訂單<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span></div>
+            <div className="grid grid-cols-[repeat(auto-fit,_minmax(190px,_1fr))] gap-4">
+              {isOrderable ? (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-[rgb(122,90,90)] tracking-wide">店家</label>
+                    <select className="w-full px-3.5 py-2.5 bg-[#F0F0F0] border-[1.5px] border-[rgb(240,213,207)] rounded-lg
+                  text-[rgb(44,26,26)] text-sm font-bold outline-none transition-all duration-200 focus:border-orange-600
+                  focus:shadow-[0_0_0_3px_rgba(224,92,42,0.12)] focus:bg-white appearance-none"
+                      value={shopId}
+                      // onChange={e => setShopId(e.target.value)}
+                      onChange={e => selectshop(e.target.value)}
+                    >
+                      <option value="">請選擇店家</option>
+                      {shops.map(s => <option key={s.shop_id} value={s.shop_id}>{s.shop_name}</option>)}
+                    </select>
+                  </div>
+                  {categories.length > 0 && (
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium text-[rgb(122,90,90)] tracking-wide">餐點類別</label>
+                      <select className=" w-full px-3.5 py-2.5 bg-[#F0F0F0] border-[1.5px] border-[rgb(240,213,207)] rounded-lg
+                    text-[rgb(44,26,26)] text-sm font-bold outline-none transition-all duration-200 focus:border-orange-600
+                    focus:shadow-[0_0_0_3px_rgba(224,92,42,0.12)] focus:bg-white appearance-none"
+                        value={categoryId}
+                        // onChange={e => setCategoryId(e.target.value)}
+                        onChange={e => selectcategory(e.target.value)}
+                      >
+                        <option value="">請選擇類別</option>
+                        {categories.map(c => <option key={c.menu_category_id} value={c.menu_category_id}>{c.category_name}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  {foods.length > 0 && (
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium text-[rgb(122,90,90)] tracking-wide">餐點</label>
+                      <select className=" w-full px-3.5 py-2.5 bg-[#F0F0F0] border-[1.5px] border-[rgb(240,213,207)] rounded-lg
+                    text-[rgb(44,26,26)] text-sm font-bold outline-none transition-all duration-200 focus:border-orange-600
+                    focus:shadow-[0_0_0_3px_rgba(224,92,42,0.12)] focus:bg-white appearance-none"
+                        value={foodId}
+                        // onChange={e => setFoodId(e.target.value)}
+                        onChange={e => selectfood(e.target.value)}
+                      >
+                        <option value="">請選擇餐點</option>
+                        {foods.map(f => <option key={f.food_id} value={f.food_id}>{f.food_name} ${f.price}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  {quantityOptions.length > 0 && (
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium text-[rgb(122,90,90)] tracking-wide">數量</label>
+                      <select className=" w-full px-3.5 py-2.5 bg-[#F0F0F0] border-[1.5px] border-[rgb(240,213,207)] rounded-lg
+                    text-[rgb(44,26,26)] text-sm font-bold outline-none transition-all duration-200 focus:border-orange-600
+                    focus:shadow-[0_0_0_3px_rgba(224,92,42,0.12)] focus:bg-white appearance-none"
+                        value={quantity}
+                        onChange={e => setQuantity(e.target.value)}
+                      >
+                        {quantityOptions.map(o => <option key={o.val} value={o.val}>{o.label}</option>)}
+                      </select>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="mx-auto text-md text-[rgb(255,0,0)] font-bold">
+                  今日已收單，如需訂餐請洽班代
+                </div>
+              )}
+
             </div>
-          ))}
+            {isOrderable &&
+              <div className="w-full px-3.5 py-3.5 bg-[rgb(139,26,46)] rounded-lg
+              text-white font-bold text-[15px] text-center tracking-wider mt-5.5
+              shadow-lg cursor-pointer transition duration-200 ease-in-out 
+              hover:-translate-y-0.5 hover:shadow-[0_5px_16px_rgba(139,26,46,0.3)] hover:bg-[#a01f35]"
+                onClick={handleSendOrder}
+              >確認送出訂單</div>
+            }
+          </div>
         </>
       ),
       is_order: false
@@ -179,15 +356,93 @@ export default function MealOrder() {
       icon: "📋",
       content: (
         <>
-          {lunchOptions.map((item, i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between p-3 rounded-xl mb-2 bg-gray-50 border border-gray-100"
-            >
-              <span className="font-semibold text-sm text-gray-800">{item.name}</span>
-              <span className="text-orange-500 font-bold text-sm">NT${item.price}</span>
-            </div>
-          ))}
+          <div className="bg-white border border-gray-200 rounded-xl px-8 py-7 mb-6 shadow-sm">
+            <div className="text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">今日訂單列表<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span></div>
+            {orders.length === 0 ? (
+              <div className="text-center p-10 text-gray-400 text-sm">尚無訂單</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-gray-200">
+                      <th className="px-4 py-2 text-center text-sm tracking-widest text-[rgb(139,26,46)] font-semibold 
+                        hover:bg-[rgb(139,26,46)] hover:text-white 
+                        hover:rounded-full cursor-pointer transition-all duration-200 ease-in-out"
+                        onClick={() => handleSort("seatNumber")}
+                      >座號</th>
+                      <th className="px-4 py-2 text-center text-sm tracking-widest text-[rgb(139,26,46)] font-semibold 
+                        hover:bg-[rgb(139,26,46)] hover:text-white 
+                        hover:rounded-full cursor-pointer transition-all duration-200 ease-in-out"
+                        onClick={() => handleSort("shop")}
+                      >店家</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">餐點</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">數量</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">金額</th>
+                      <th className="px-4 py-2 text-left text-sm tracking-widest text-[rgb(139,26,46)] font-semibold">付款</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map(o => (
+                      <tr key={o.order_id} className="border-b border-gray-200 hover:bg-[#FFF8F7] transition-colors duration-150"
+                        onClick={() => userorderssummery(o.seat_number)}
+                      >
+                        <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]"><span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-900/10 text-[rgb(139,26,46)] text-[13px]">{o.seat_number}</span></td>
+                        <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">{o.shop_name}</td>
+                        <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">{o.food_name}</td>
+                        <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">{o.quantity}{o.food_id <= 13 ? "顆" : "份"}</td>
+                        <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">${o.quantity * o.price}</td>
+                        <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">
+                          {seatNumber == chargedSeatNumber ? (
+                            o.is_paid === 1 ? (
+                              <span className="inline-flex items-center gap-1.5 bg-[rgba(34,197,94,0.1)] text-[#16a34a] border border-[rgba(34,197,94,0.25)] px-2.5 py-1 rounded-[20px] text-[12px] hover:opacity-100 cursor-pointer"
+                                onClick={(e) => { e.stopPropagation(); togglePaid(o.order_id, o.is_paid) }}
+                              >
+                                ✓ 已付款
+                                <div className="bg-none border border-current text-inherit px-2 py-0.5 rounded text-[11px] ml-1.5 opacity-75 transition-opacity duration-200 font-sans">取消</div>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-600 border border-orange-200 py-1 px-2.5 rounded-full text-[12px] hover:opacity-100 cursor-pointer"
+                                onClick={(e) => { e.stopPropagation(); togglePaid(o.order_id, o.is_paid) }}
+                              >
+                                ○ 未付款
+                                <div className="bg-none border border-current text-inherit px-2 py-0.5 rounded text-[11px] ml-1.5 opacity-75 transition-opacity duration-200 font-sans">付款</div>
+                              </span>
+                            )
+                          ) : (
+                            o.is_paid === 1 ? (
+                              <span className="inline-flex items-center gap-1.5 bg-[rgba(34,197,94,0.1)] text-[#16a34a] border border-[rgba(34,197,94,0.25)] px-2.5 py-1 rounded-[20px] text-[12px] hover:opacity-100 cursor-pointer">
+                                ✓ 已付款
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-600 border border-orange-200 py-1 px-2.5 rounded-full text-[12px] hover:opacity-100 cursor-pointer">
+                                ○ 未付款
+                              </span>
+                            )
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {orders.length > 0 && (
+              <>
+                <div className="mt-8 h-[1px] bg-[rgb(100,57,48)]"></div>
+                <div className="flex flex-wrap gap-2.5 mt-2 pt-5">
+                  {shopSummary.map(({ shop_name, total }) => (
+                    <div key={shop_name} className="bg-[rgb(255,240,238)] border border-[rgb(240,217,201)] rounded-lg py-2.5 px-4 text-ms text-[rgb(86,56,56)] font-bold shadow-lg">
+                      {shop_name}：<span className="text-[rgb(255,102,0)]">${total}</span>
+                    </div>
+                  ))}
+                  <div className="bg-[rgb(139,26,46)] rounded-lg px-5 py-2.5 text-white text-lg font-bold ml-auto shadow-lg">總計 $
+                    {grandTotal}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </>
       ),
     },
@@ -211,6 +466,23 @@ export default function MealOrder() {
   ];
 
   useEffect(() => {
+    const fetchUserIP = async () => {
+      try {
+        const res = await api.get("/api/getUserIP");
+        if (res.status === 200) {
+          if (Array.isArray(today) && today.length === 0) {
+            setToday(res.data.today);  // 設置今天的日期與星期
+          }
+          // setUserIP(res.data.user_ip);
+        }
+        // const data = await res.json();
+        // setUserIP(data.ip);
+      } catch (err) {
+        console.error(err);
+        setUserIP("未知");
+      }
+    };
+    fetchUserIP();
     const fetchUser = async () => {
       try {
         const res = await api.get('/api/user');
@@ -223,14 +495,222 @@ export default function MealOrder() {
       }
     };
     fetchUser();
+    const fetchShops = async () => {
+      try {
+        const res = await api.get('/api/getShops');
+        if (res.status === 200) {
+          setShops(res.data.shops)
+        }
+      } catch (error) {
+        console.log("getShops error:", error);
+      }
+    }
+    fetchShops();
+    const fetchGetOrders = async () => {
+      try {
+        const res = await api.get('/api/getOrders', {
+          params: {
+            seat_number: seatNumber || null,
+            order_date: today.date || null,
+            order_type: orderType,
+            order_round: orderRound,
+          }
+        });
+        if (res.status === 200) {
+          const orders_list = res.data.orders
+          const sortedData = orders_list.sort((a, b) => {
+            return Number(a.seatNumber) - Number(b.seatNumber);
+          });
+          setOrders(sortedData);
+
+          let shopTotals = {};   // 分組
+          let grand_total = 0;    // 全部總額
+
+          orders_list.forEach((element) => {
+            const subtotal = Number(element.quantity) * Number(element.price);
+
+            // 累加全部
+            grand_total += subtotal;
+
+            // 如果這家店還沒出現
+            if (!shopTotals[element.shop_name]) {
+              shopTotals[element.shop_name] = 0;
+            }
+
+            // 累加該店
+            shopTotals[element.shop_name] += subtotal;
+          });
+
+          // 🔥 轉成陣列
+          let shopArray = Object.entries(shopTotals).map(([shop, total]) => ({
+            shop_name: shop,
+            total: total
+          }));
+          setShopSummary(shopArray);
+          setGrandTotal(grand_total)
+        }
+      } catch (error) {
+        console.log("getShops error:", error);
+      }
+    }
+    fetchGetOrders()
+    const fetchManagerControl = async () => {
+      try {
+        const res = await api.get('/api/getManagerControl');
+        if (res.status === 200) {
+          const controls = res.data.controls
+          let is_orderable = controls.find(item=>item.c_title === "isOrderable");
+          if (is_orderable) {
+            setIsOrderable(is_orderable.c_value === "Y" ? true : false);
+          }
+          let charged_seat_number = controls.find(item=>item.c_title === "charged_seat_number");
+          if (charged_seat_number) {
+            setChargedSeatNumber(charged_seat_number.c_value);
+          }
+          let order_type = controls.find(item=>item.c_title === "order_type");
+          if (order_type) {
+            setOrderType(order_type.c_value);
+          }
+          let order_round = controls.find(item=>item.c_title === "order_round");
+          if (order_round) {
+            setOrderRound(Number(order_round.c_value));
+          }
+        }
+      } catch (error) {
+        console.log("getManagerControl error:", error);
+      }
+    }
+    fetchManagerControl()
   }, []);
+
+  useEffect(() => {
+    if (userIP && userIP !== "未知") {
+      // 提取 IP 最後一段數字
+      const lastSegment = userIP.split('.').pop(); // 取得最後一個數字
+      const seatNo = parseInt(lastSegment) - 1;  // 加 1
+      setSeatNumber(seatNo);
+    }
+  }, [userIP])
+
+  useEffect(() => {
+    if (seatNumber !== "" && orders.length > 0) {
+      const user_order = orders.filter(order => order.seat_number == seatNumber);
+      setUserorders(user_order);
+    }
+  }, [seatNumber, orders])
+
+  const selectshop = async (shop_id) => {
+    setShopId(shop_id);
+    setCategories([]);
+    setCategoryId("");
+    setFoods([]);
+    setFoodId("");
+    setQuantity(1);
+
+    try {
+      const res = await api.get('/api/getCategories', {
+        params: { shop_id }  // 這裡將 shop_id 作為查詢參數
+      });
+      if (res.status === 200) {
+        setCategories(res.data.categories)
+      }
+    } catch (error) {
+      console.log("getCategories error:", error);
+    }
+  }
+
+  const selectcategory = async (menu_category_id) => {
+    setCategoryId(menu_category_id);
+    setFoods([]);
+    setFoodId("");
+    setQuantity(1);
+    try {
+      const res = await api.get('/api/getFoods', {
+        params: { menu_category_id }  // 這裡將 shop_id 作為查詢參數
+      });
+      if (res.status === 200) {
+        setFoods(res.data.foods)
+      }
+    } catch (error) {
+      console.log("getFoods error:", error);
+    }
+  }
+
+  const selectfood = (food_id) => {
+    if (food_id === "") setQuantity(1);
+    setFoodId(food_id);
+  }
+
+  useEffect(() => {
+    if (!foodId) { setQuantityOptions([]); return; }
+    const fid = parseInt(foodId);
+    let opts = [];
+    if (fid === 6 || fid === 13) {
+      for (let i = 1; i <= 7; i++) opts.push({ val: i * 2, label: `${i * 2}顆` });
+    } else if (fid < 13) {
+      for (let i = 1; i <= 15; i++) opts.push({ val: i, label: `${i}顆` });
+    } else {
+      opts = [{ val: 1, label: "1份" }];
+    }
+    setQuantityOptions(opts);
+    setQuantity(opts[0]?.val || 1);
+    setSelectedFood(foods.find(f => f.food_id === fid) || null);
+  }, [foodId]);
+
+  const userorderssummery = (seat_number) => {
+    // 根據 order_id 獲取該使用者所有訂單的數據
+    const selectedOrder = orders.filter(order => order.seat_number === seat_number);
+
+    let totalAmount = 0;
+
+    selectedOrder.forEach(order => {
+      totalAmount += order.quantity * order.price; // 計算每個商品的總金額
+    });
+
+    // 這裡可以設置顯示訂單摘要的邏輯，比如顯示總金額、訂單內容等
+    console.log("總金額:", totalAmount);
+    // 或者將結果設置為 state 顯示在 UI 上
+    alert(`［座號 ${seat_number}號］,訂餐總金額［${totalAmount}元］`);
+  };
+
+  const togglePaid = async (order_id, is_paid) => {
+    try {
+      const newIsPaid = is_paid === 1 ? 0 : 1;
+      const res = await api.post('/api/orderpaid', {
+        order_id: order_id,
+        is_paid: newIsPaid,
+      });
+      if (res.status === 200) {
+        setOrders(prev => prev.map(o =>
+          o.order_id === order_id ? { ...o, is_paid: is_paid === 1 ? 0 : 1 } : o
+        ));
+      }
+    } catch (error) {
+      console.log("togglePaid error:", error);
+    }
+
+
+
+  }
 
   return (
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <PageHeader title="訂餐管理" subtitle="智能訂餐系統，優化用餐體驗，提升行政效率" />
+      <div className="
+        inline-block
+        bg-[rgb(255,239,234)]
+        border
+        border-[rgba(224,92,42,0.25)]
+        text-[rgb(84,39,24)]
+        text-xs
+        px-[14px]
+        py-1
+        rounded-full
+        font-medium
+      ">📅 {today.date}　{today.day}</div>
 
       {/* Tabs — scrollable on mobile */}
-      <div className="flex gap-1 mb-6 border-b border-gray-200">
+      <div className="flex gap-1 mt-3 mb-6 border-b border-gray-200">
         {tabs.map(([key, icon, label]) => (
           <div
             key={key}
@@ -256,7 +736,7 @@ export default function MealOrder() {
             {orderSections.map((sec, i) => (
               <div
                 key={i}
-                className={`max-w-3xl rounded-2xl border border-gray-100 overflow-hidden transition-all
+                className={`max-w-4xl rounded-2xl border border-gray-100 overflow-hidden transition-all
         ${orderexpanded === i ? "shadow-lg" : "shadow-sm"}`}
               >
                 {/* Header */}
@@ -269,7 +749,7 @@ export default function MealOrder() {
                     <span className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
                       {sec.icon}
                     </span>
-                    <span className="font-bold text-gray-800">{sec.title}</span>{sec.is_order === false && <span>(尚未點餐)</span>}
+                    <span className="font-bold text-gray-800">{sec.title}</span>{sec.is_order === false && userorders.length < 1 && <span>(尚未點餐)</span>}
                   </div>
 
                   <span
@@ -283,33 +763,10 @@ export default function MealOrder() {
                 {/* Content */}
                 <div
                   className={`transition-all duration-300 ease-in-out overflow-hidden
-          ${orderexpanded === i ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}`}
+          ${orderexpanded === i ? "opacity-100" : "max-h-0 opacity-0"}`}
                 >
                   <div className="p-5 pt-4 border-t border-gray-100">
                     {sec.content}
-
-                    {/* 訂單摘要只在前兩個 section 顯示 */}
-                    {(i === 0 || i === 1) && (selectedLunch || selectedDrink) && (
-                      <div className="mt-4 p-4 bg-red-50 rounded-xl border border-red-100">
-                        <p className="text-xs text-gray-400 mb-2">訂單摘要</p>
-                        {selectedLunch && <p className="text-sm font-semibold">🍱 {selectedLunch}</p>}
-                        {selectedDrink && <p className="text-sm font-semibold">🧋 {selectedDrink}</p>}
-                        <div className="flex gap-2 mt-3">
-                          <button className="bg-red-800 hover:bg-red-900 text-white text-sm font-bold px-4 py-2 rounded-lg">
-                            確認訂餐
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedLunch(null);
-                              setSelectedDrink(null);
-                            }}
-                            className="border border-red-700 text-red-700 hover:bg-red-50 text-sm font-bold px-4 py-2 rounded-lg"
-                          >
-                            清除
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
