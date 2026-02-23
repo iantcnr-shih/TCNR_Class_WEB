@@ -80,3 +80,21 @@ body {
   font-family: 'MyArial';
   color: black;
 }
+
+/* Custom button style for review buttons */
+button.btn-review {
+  background-color: #dbeafe !important;
+  color: #000 !important;
+  border: 1px solid #bfdbfe !important;
+}
+
+button.btn-review:hover {
+  background-color: #bfdbfe !important;
+  border-color: #93c5fd !important;
+}
+
+button.btn-review--active {
+  background-color: #bfdbfe !important;
+  border-color: #93c5fd !important;
+}
+
