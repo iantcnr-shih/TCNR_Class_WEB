@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, ChevronLeft, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import api from "@/api/axios";
 
 const AdminMealOrder = () => {
+
+  const [systemMode, setSystemMode] = useState("base");
+  const [today, setToday] = useState([]);
+  const [userIP, setUserIP] = useState("");
+  const [seatNumber, setSeatNumber] = useState("");
 
   const menuItems = [
     { id: 'latest-news', name: '最新資訊', icon: Newspaper, url: '#latest-news', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' },
@@ -146,7 +152,31 @@ const AdminMealOrder = () => {
       top: 0,
       behavior: "smooth", // 平滑滾動
     }); // 滾到最上方
+    const fetchUserIP = async () => {
+      try {
+        const res = await api.get("/api/getUserIP");
+        if (res.status === 200) {
+          if (Array.isArray(today) && today.length === 0) {
+            setToday(res.data.today);  // 設置今天的日期與星期
+          }
+          setUserIP(res.data.user_ip);
+        }
+      } catch (err) {
+        console.error(err);
+        setUserIP("未知");
+      }
+    };
+    fetchUserIP();
   }, []);
+
+  useEffect(() => {
+    if (userIP && userIP !== "未知") {
+      // 提取 IP 最後一段數字
+      const lastSegment = userIP.split('.').pop(); // 取得最後一個數字
+      const seatNo = parseInt(lastSegment) - 1;  // 加 1
+      setSeatNumber(seatNo);
+    }
+  }, [userIP])
 
   return (
     <div className="d-block min-h-screen bg-slate-50">
@@ -155,114 +185,292 @@ const AdminMealOrder = () => {
         <main className={`flex-1 transition-all duration-300 lg:ml-0`}>
           {/* Header Section */}
           <div className="bg-white border-b border-gray-200 px-6 lg:px-8 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className={`p-3 ${activeMenuItem?.bgColor} rounded-xl shadow-sm`}>
-                  {React.createElement(activeMenuItem?.icon, { className: "h-6 w-6 text-white" })}
-                </div>
-                <div>
-                  <h2 className="text-2xl font-semibold text-slate-900">{currentContent?.title}</h2>
-                  <p className="text-sm text-gray-600 mt-0.5">{currentContent?.description}</p>
+            <div className="flex">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 ${activeMenuItem?.bgColor} rounded-xl shadow-sm`}>
+                    {React.createElement(activeMenuItem?.icon, { className: "h-6 w-6 text-white" })}
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-semibold text-slate-900">{currentContent?.title}</h2>
+                    <p className="text-sm text-gray-600 mt-0.5">{currentContent?.description}</p>
+                  </div>
                 </div>
               </div>
-              <div className={`px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm`}>
-                <span>新增項目</span>
-                <ChevronRight className="h-4 w-4" />
+              <div className="flex ml-auto items-center justify-between">
+                {systemMode === "base" &&
+                  <div className={`hidden sm:flex ml-auto mr-2 px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm hover:shadow-lg hover:scale-105`}
+                    onClick={() => setSystemMode("meal")}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>今日點餐管理</span>
+                  </div>
+                }
+                {systemMode === "meal" &&
+                  <div className={`hidden sm:flex ml-auto mr-2 px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm hover:shadow-lg hover:scale-105`}
+                    onClick={() => setSystemMode("base")}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>回系統概況</span>
+                  </div>
+                }
+                <div className={`px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm hover:scale-105`}>
+                  <span>新增項目</span>
+                  <ChevronRight className="h-4 w-4" />
+                </div>
               </div>
+            </div>
+
+            <div className="flex sm:hidden mt-4 mb-[-0.5rem] ml-auto items-center justify-between">
+              {systemMode === "base" &&
+                <div className={`mr-auto px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm hover:shadow-lg hover:scale-105`}
+                  onClick={() => setSystemMode("meal")}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>今日點餐管理</span>
+                </div>
+              }
+              {systemMode === "meal" &&
+                <div className={`sm:ml-auto mr-2 px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm hover:shadow-lg hover:scale-105`}
+                  onClick={() => setSystemMode("base")}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>回系統概況</span>
+                </div>
+              }
             </div>
           </div>
-
-          <div className="px-6 lg:px-8 py-6">
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl border border-blue-100 p-5 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="p-2 bg-blue-500 rounded-lg shadow-sm">
-                    <TrendingUp className="h-5 w-5 text-white" />
+          {systemMode === "base" &&
+            <div className="px-6 lg:px-8 py-6">
+              {/* Stats Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl border border-blue-100 p-5 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="p-2 bg-blue-500 rounded-lg shadow-sm">
+                      <TrendingUp className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">+12%</span>
                   </div>
-                  <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">+12%</span>
+                  <div className="text-2xl font-bold text-slate-900">1,234</div>
+                  <div className="text-sm text-gray-600 mt-1">總訪問次數</div>
                 </div>
-                <div className="text-2xl font-bold text-slate-900">1,234</div>
-                <div className="text-sm text-gray-600 mt-1">總訪問次數</div>
-              </div>
 
-              <div className="bg-gradient-to-br from-purple-50 to-white rounded-xl border border-purple-100 p-5 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="p-2 bg-purple-500 rounded-lg shadow-sm">
-                    <Users className="h-5 w-5 text-white" />
+                <div className="bg-gradient-to-br from-purple-50 to-white rounded-xl border border-purple-100 p-5 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="p-2 bg-purple-500 rounded-lg shadow-sm">
+                      <Users className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">+8%</span>
                   </div>
-                  <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">+8%</span>
+                  <div className="text-2xl font-bold text-slate-900">856</div>
+                  <div className="text-sm text-gray-600 mt-1">活躍用戶</div>
                 </div>
-                <div className="text-2xl font-bold text-slate-900">856</div>
-                <div className="text-sm text-gray-600 mt-1">活躍用戶</div>
-              </div>
 
-              <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="p-2 bg-orange-500 rounded-lg shadow-sm">
-                    <Clock className="h-5 w-5 text-white" />
+                <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="p-2 bg-orange-500 rounded-lg shadow-sm">
+                      <Clock className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200">23 項</span>
                   </div>
-                  <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200">23 項</span>
+                  <div className="text-2xl font-bold text-slate-900">23</div>
+                  <div className="text-sm text-gray-600 mt-1">待處理事項</div>
                 </div>
-                <div className="text-2xl font-bold text-slate-900">23</div>
-                <div className="text-sm text-gray-600 mt-1">待處理事項</div>
-              </div>
 
-              <div className="bg-gradient-to-br from-green-50 to-white rounded-xl border border-green-100 p-5 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="p-2 bg-green-500 rounded-lg shadow-sm">
-                    <CheckCircle className="h-5 w-5 text-white" />
+                <div className="bg-gradient-to-br from-green-50 to-white rounded-xl border border-green-100 p-5 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="p-2 bg-green-500 rounded-lg shadow-sm">
+                      <CheckCircle className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">100%</span>
                   </div>
-                  <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">100%</span>
+                  <div className="text-2xl font-bold text-slate-900">正常</div>
+                  <div className="text-sm text-gray-600 mt-1">系統狀態</div>
                 </div>
-                <div className="text-2xl font-bold text-slate-900">正常</div>
-                <div className="text-sm text-gray-600 mt-1">系統狀態</div>
               </div>
-            </div>
 
-            {/* Content Table */}
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-slate-900">項目列表</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">項目名稱</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">狀態</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">日期</th>
-                      <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">操作</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {currentContent?.items.map((item, index) => (
-                      <tr key={index} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-2 h-2 ${activeMenuItem?.bgColor} rounded-full`}></div>
-                            <span className="text-sm font-medium text-gray-900">{item.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {getStatusBadge(item.status)}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm text-gray-600">{item.date}</span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className={`text-sm ${activeMenuItem?.textColor} hover:opacity-70 font-medium inline-flex items-center gap-1 transition-opacity`}>
-                            查看詳情
-                            <ChevronRight className="h-4 w-4" />
-                          </div>
-                        </td>
+              {/* Content Table */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-slate-900">項目列表</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">項目名稱</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">狀態</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">日期</th>
+                        <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">操作</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {currentContent?.items.map((item, index) => (
+                        <tr key={index} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-2 h-2 ${activeMenuItem?.bgColor} rounded-full`}></div>
+                              <span className="text-sm font-medium text-gray-900">{item.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            {getStatusBadge(item.status)}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-sm text-gray-600">{item.date}</span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className={`text-sm ${activeMenuItem?.textColor} hover:opacity-70 font-medium inline-flex items-center gap-1 transition-opacity`}>
+                              查看詳情
+                              <ChevronRight className="h-4 w-4" />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
+          }
+          {systemMode === "meal" &&
+            <div className="px-6 lg:px-8 py-6">
+              <div className="mb-8 max-w-2xl">
+                <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
+                  <div>
+                    <div className="
+                      inline-block
+                      bg-[rgb(255,239,234)]
+                      border
+                      border-[rgba(224,92,42,0.25)]
+                      text-[rgb(84,39,24)]
+                      text-xs
+                      px-[14px]
+                      py-1
+                      rounded-full
+                      font-medium
+                    ">📅 {today.date}　{today.day}</div>
+                  </div>
+                  {/* <div id='abc'>
+                    <div>
+                      今日點餐總覽 <span>switch</span>
+                    </div>
+                    <div>
+                      餐點啟用狀態 <span>switch</span>
+                    </div>
+                    <div>
+                      飲料啟用狀態 <span>switch</span>
+                    </div>
+                    <div>
+                      點餐收費值日生 (座號) <span><input type="number" /></span>
+                    </div>
+                    <div>
+                      飲料揪團網址 <span><input type="text" /></span>
+                    </div>
+                    <div>
+                      餐點種類 <span><select></select></span>
+                    </div>
+                    <div>
+                      總體餐點次數 <span><input type="number" /></span>
+                    </div>
+                  </div> */}
+                  <div className=" mt-6 space-y-5 text-sm ">
+                    {/* 標題 */}
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-semibold text-gray-800">
+                        今日點餐設定
+                      </h3>
+                      <span className="text-xs text-gray-400">
+                        今日有效
+                      </span>
+                    </div>
+
+                    {/* 設定清單 */}
+                    <div className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
+                      {/* 今日點餐總覽 */}
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="text-gray-700">今日點餐總覽</span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" className="sr-only peer" />
+                          <div className=" w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-orange-500 transition-colors"></div>
+                          <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                        </label>
+                      </div>
+
+                      {/* 餐點啟用狀態 */}
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="text-gray-700">餐點啟用狀態</span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" className="sr-only peer" />
+                          <div className=" w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-orange-500 transition-colors"></div>
+                          <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                        </label>
+                      </div>
+
+                      {/* 飲料啟用狀態 */}
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="text-gray-700">飲料啟用狀態</span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" className="sr-only peer" />
+                          <div className=" w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-orange-500 transition-colors"></div>
+                          <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                        </label>
+                      </div>
+
+                      {/* 點餐收費值日生 */}
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="text-gray-700">點餐收費值日生（座號）</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={29}
+                          step={1}
+                          defaultValue={25}
+                          placeholder="例：25"
+                          className="w-20 rounded-md border border-gray-300 px-2 py-1 text-right focus:border-orange-400 focus:outline-none"
+
+                        />
+                      </div>
+
+                      {/* 飲料揪團網址 */}
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="text-gray-700">飲料揪團網址：</span>
+                        <input
+                          type="text"
+                          className="flex-1 rounded-md border border-gray-300 px-2 py-1 text-xs focus:border-orange-400 focus:outline-none"
+                          placeholder="貼上連結"
+                        />
+                      </div>
+
+                      {/* 餐點種類 */}
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="text-gray-700">餐點種類</span>
+                        <select className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-orange-400 focus:outline-none">
+                          <option value="1">午餐</option>
+                          <option value="2">晚餐</option>
+                        </select>
+                      </div>
+
+                      {/* 總體餐點次數 */}
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="text-gray-700">總體餐點次數</span>
+                        <span className='ml-auto'>
+                          第<input
+                            type="number"
+                            min={1}
+                            max={10}
+                            step={1}
+                            defaultValue={1}
+                            className="w-10 rounded-md border border-gray-300 mx-1 px-2 py-1 text-right focus:border-orange-400 focus:outline-none"
+                          /> 輪點餐
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
         </main>
       </div>
     </div>
