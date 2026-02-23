@@ -2,6 +2,8 @@
 
 @import "@/styles/ian.css";
 
+@import "@/styles/tako.css";
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -81,20 +83,5 @@ body {
   color: black;
 }
 
-/* Custom button style for review buttons */
-button.btn-review {
-  background-color: #dbeafe !important;
-  color: #000 !important;
-  border: 1px solid #bfdbfe !important;
-}
 
-button.btn-review:hover {
-  background-color: #bfdbfe !important;
-  border-color: #93c5fd !important;
-}
-
-button.btn-review--active {
-  background-color: #bfdbfe !important;
-  border-color: #93c5fd !important;
-}
 
