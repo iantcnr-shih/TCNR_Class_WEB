@@ -1,8 +1,16 @@
 import { useState, useEffect } from "react";
 import api from "@/api/axios";
 import ReviewSection from "@/components/reviews/ReviewSection";
+import { getOrderHistoryMock, getReviewsMock, addReviewMock } from "@/api/reviews.mock";
 
 /* ─── DATA ─────────────────────────────────────────────────────────── */
+
+const drinkOptions = [
+  { name: "紅茶", price: 25 },
+  { name: "綠茶", price: 25 },
+  { name: "咖啡", price: 45 },
+  { name: "豆漿", price: 30 },
+];
 
 const storeReviews = [
   { name: "八方雲集", rating: 4.5, comment: "鍋貼很酥脆，湯品大碗好喝" },
@@ -32,12 +40,18 @@ const statusBadge = {
 };
 /* ─── SHARED COMPONENTS ─────────────────────────────────────────────── */
 
-const Stars = ({ rating }) => (
-  <span className="text-amber-400 font-bold text-sm">
-    {"★".repeat(Math.floor(rating))}{"☆".repeat(5 - Math.floor(rating))}
-    <span className="text-gray-500 ml-1">{rating}</span>
-  </span>
-);
+const Stars = ({ rating }) => {
+  const r0 = Number(rating);
+  const r = Number.isFinite(r0) ? Math.max(0, Math.min(5, r0)) : 0;
+  const full = Math.floor(r);
+  const empty = 5 - full;
+  return (
+    <span className="text-amber-400 font-bold text-sm">
+     {"★".repeat(Math.floor(r))}
+     {"☆".repeat(5 - Math.floor(r))}
+      <span className="text-gray-500 ml-1">{r}</span>
+    </span>
+)};
 
 const PageHeader = ({ title, subtitle }) => (
   <div className="mb-4 md:mb-6">
@@ -84,6 +98,34 @@ export default function MealOrder() {
   const [bubbleteaOrders, setBubbleteaOrders] = useState([]);
   const [userbubbleteaorders, setUserobubbletearders] = useState([]);
 
+  const [reviews, setReviews] = useState([]);
+  // 給 history tab 顯示（date/item/amount/status）
+  const [orderHistory, setOrderHistory] = useState([]);
+  // 給評論功能推導可選店家/餐點（shop_id/food_id/shop_name/food_name）
+  const [orderItems, setOrderItems] = useState([]);
+  const [reviewTarget, setReviewTarget] = useState("shop");
+  const [reviewShopId, setReviewShopId] = useState("");
+  const [reviewFoodId, setReviewFoodId] = useState("");
+
+  const storeReviewList = reviews.filter(r => r.food_id == null);
+  const mealReviewList = reviews.filter(r => r.food_id != null);
+  const reviewableShops = Array.from(
+    new Map(
+      orderItems
+        .filter(o => o?.shop_id != null)
+        .map(o => [o.shop_id, { shop_id: o.shop_id, shop_name: o.shop_name }])
+    ).values()
+  );
+
+  const reviewableFoods = Array.from(
+    new Map(
+      orderItems
+        .filter(o => o?.food_id != null)
+        .map(o => [o.food_id, { food_id: o.food_id, food_name: o.food_name, shop_id: o.shop_id }])
+    ).values()
+  );
+
+  
   const checkIsOrderable = async () => {
     try {
       const res = await api.get('/api/getManagerControl');
@@ -123,6 +165,37 @@ export default function MealOrder() {
       return false;
     }
   }
+  
+  const handleAddReview = async (payload) => {
+  if (!payload?.shop_id) {
+    alert("請先選擇店家");
+    return;
+  }
+
+  const normalized = {
+    ...payload,
+    target: payload?.target ?? (payload?.food_id != null ? "food" : "shop"),
+    shop_id: Number(payload.shop_id),
+    food_id: payload.food_id == null ? null : Number(payload.food_id),
+  };
+
+  if (normalized.target === "food" && !normalized.food_id) {
+    alert("請選擇餐點");
+    return;
+  }
+
+  if (normalized.target === "shop") {
+    normalized.food_id = null;
+  }
+
+  try {
+    const newReview = await addReviewMock(normalized);
+    setReviews((prev) => [newReview, ...prev]);
+  } catch (e) {
+    console.error(e);
+    alert("新增評論失敗");
+  }
+};
 
   const handleSendOrder = async () => {
     const is_Orderable = await checkIsOrderable();
@@ -226,37 +299,122 @@ export default function MealOrder() {
       title: "新增評價",
       icon: "🏪",
       content: (
-        <div className="text-sm text-gray-500">
-          <ReviewSection shopId={1} />
-        </div>
-      ),
+  <div className="text-sm text-gray-500 space-y-3">
+    {/* 先選：評論類型 */}
+    <div className="flex gap-2">
+      <button
+        className={`px-3 py-1 rounded-full border ${reviewTarget === "shop" ? "bg-amber-50 border-amber-300" : "bg-white border-gray-200"}`}
+        onClick={() => {
+          setReviewTarget("shop");
+          setReviewFoodId("");
+        }}
+      >
+        店家評價
+      </button>
+      <button
+        className={`px-3 py-1 rounded-full border ${reviewTarget === "food" ? "bg-amber-50 border-amber-300" : "bg-white border-gray-200"}`}
+        onClick={() => setReviewTarget("food")}
+      >
+        餐點評價
+      </button>
+    </div>
+
+    {/* 再選：店家 */}
+    <div>
+      <div className="text-xs text-gray-500 mb-1">選擇店家（來自點餐紀錄）</div>
+      <select
+        className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white"
+        value={reviewShopId}
+        onChange={(e) => {
+          const nextShopId = e.target.value;
+          setReviewShopId(nextShopId);
+          setReviewFoodId(""); 
+          // 店家變更就清空餐點
+        }}
+      >
+        <option value="">請選擇店家</option>
+        {reviewableShops.map(s => (
+          <option key={s.shop_id} value={s.shop_id}>{s.shop_name}</option>
+        ))}
+      </select>
+    </div>
+
+    {/* 餐點評價才需要選餐點 */}
+    {reviewTarget === "food" && (
+      <div>
+        <div className="text-xs text-gray-500 mb-1">選擇餐點（來自點餐紀錄）</div>
+        <select
+          className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white"
+          value={reviewFoodId}
+          onChange={(e) => setReviewFoodId(e.target.value)}
+          disabled={!reviewShopId}
+        >
+          <option value="">{reviewShopId ? "請選擇餐點" : "請先選店家"}</option>
+          {reviewableFoods
+            .filter(f => String(f.shop_id) === String(reviewShopId))
+            .map(f => (
+              <option key={f.food_id} value={f.food_id}>{f.food_name}</option>
+            ))}
+        </select>
+      </div>
+    )}
+
+    {/* 送出區：沒有選店家就不顯示 ReviewSection */}
+    {!reviewShopId ? (
+      <div className="text-red-600 font-semibold">請先選擇店家</div>
+    ) : (
+      <ReviewSection
+       shopId={Number(reviewShopId)}
+        foodId={reviewTarget === "food" && reviewFoodId ? Number(reviewFoodId) : null}
+        seatNumber={seatNumber ? String(seatNumber) : null}
+        reviews={reviews}
+        onAddReview={handleAddReview}
+      />
+    )}
+  </div>
+),
     },
     {
       title: "店家評價",
       icon: "🏪",
-      content: storeReviews.map((r, i) => (
-        <div key={i} className="bg-gray-50 rounded-xl p-4 mb-3 border border-gray-100">
-          <div className="flex justify-between items-center mb-1 flex-wrap gap-2">
-            <span className="font-bold text-gray-800">{r.name}</span>
-            <Stars rating={r.rating} />
-          </div>
-          <p className="text-sm text-gray-500">{r.comment}</p>
+      content: storeReviewList.length === 0 ? (
+    <div className="text-gray-400">目前尚無店家評價</div>
+  ) : (
+    storeReviewList.map(r => (
+      <div key={r.review_id} className="bg-gray-50 rounded-xl p-4 mb-3 border border-gray-100">
+        <div className="flex justify-between items-center mb-1 flex-wrap gap-2">
+          <span className="font-bold text-gray-800">
+            {r.user_name ?? `User#${r.user_id}`}
+          </span>
+          <Stars rating={r.rating} />
         </div>
-      )),
-    },
+        <p className="text-sm text-gray-500">{r.comment}</p>
+      </div>
+    ))
+  ),
+},
     {
       title: "餐點評價",
       icon: "🍽️",
-      content: mealReviews.map((r, i) => (
-        <div key={i} className="bg-gray-50 rounded-xl p-4 mb-3 border border-gray-100">
-          <div className="flex justify-between items-center mb-1 flex-wrap gap-2">
-            <span className="font-bold text-gray-800">{r.name}</span>
-            <Stars rating={r.rating} />
-          </div>
-          <p className="text-sm text-gray-500">{r.comment}</p>
+      content: mealReviewList.length === 0 ? (
+    <div className="text-gray-400">目前尚無餐點評價</div>
+  ) : (
+    mealReviewList.map(r => (
+      <div key={r.review_id} className="bg-gray-50 rounded-xl p-4 mb-3 border border-gray-100">
+        <div className="flex justify-between items-center mb-1 flex-wrap gap-2">
+          <span className="font-bold text-gray-800">
+            {r.food_name ?? `food#${r.food_id}`}
+          </span>
+          <Stars rating={r.rating} />
         </div>
-      )),
-    },
+        <p className="text-sm text-gray-500">{r.comment}</p>
+        <div className="text-xs text-gray-400 mt-2">
+          by {r.user_name ?? `User#${r.user_id}`}
+        </div>
+      </div>
+    ))
+  ),
+},
   ];
 
   const orderSections = [
@@ -654,6 +812,32 @@ export default function MealOrder() {
       ),
     },
   ];
+
+useEffect(() => {
+  const boot = async () => {
+    const [historyRes, rs] = await Promise.all([
+      getOrderHistoryMock(),
+      getReviewsMock(),
+    ]);
+
+    // 兼容兩種可能：
+    // 1) 舊版：historyRes 是陣列（只給 history tab）
+    // 2) 新版：historyRes 是 { history: [], orderItems: [] }
+    if (Array.isArray(historyRes)) {
+      setOrderHistory(historyRes);
+      setOrderItems([]); // 暫時空，等調整 mock
+    } else {
+      setOrderHistory(historyRes?.history ?? []);
+      setOrderItems(historyRes?.orderItems ?? []);
+    }
+
+    setReviews(rs);
+  };
+
+  boot();
+}, []);
+
+
 
   useEffect(() => {
     const fetchUserIP = async () => {
