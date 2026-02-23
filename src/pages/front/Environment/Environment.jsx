@@ -20,7 +20,7 @@ const cleanPeriods = [
     status: "待開始",
     color: "orange",
     areas: ["外掃A區", "教室B區"],
-    photos: ["/TCNR_Class_WEB/images/2_1.jpg"],
+    photos: ["/TCNR_Class_WEB/images/2_1.jpg", "/TCNR_Class_WEB/images/2_2.jpg", "/TCNR_Class_WEB/images/2_3.jpg"],
   },
   {
     label: "第三期",
