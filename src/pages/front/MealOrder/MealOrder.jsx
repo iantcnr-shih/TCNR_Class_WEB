@@ -303,7 +303,7 @@ export default function MealOrder() {
           {/* 先選：評論類型 */}
           <div className="flex gap-2">
             <button
-              className={`px-3 py-1 rounded-full border ${reviewTarget === "shop" ? "bg-amber-50 border-amber-300" : "bg-white border-gray-200"}`}
+              className={`btn-review px-3 py-1 rounded-full border ${reviewTarget === "shop" ? "btn-review--active" : ""}`}
               onClick={() => {
                 setReviewTarget("shop");
                 setReviewFoodId("");
@@ -312,13 +312,12 @@ export default function MealOrder() {
               店家評價
             </button>
             <button
-              className={`px-3 py-1 rounded-full border ${reviewTarget === "food" ? "bg-amber-50 border-amber-300" : "bg-white border-gray-200"}`}
+              className={`btn-review px-3 py-1 rounded-full border ${reviewTarget === "food" ? "btn-review--active" : ""}`}
               onClick={() => setReviewTarget("food")}
             >
               餐點評價
             </button>
           </div>
-
           {/* 再選：店家 */}
           <div>
             <div className="text-xs text-gray-500 mb-1">選擇店家（來自點餐紀錄）</div>

@@ -2,6 +2,8 @@
 
 @import "@/styles/ian.css";
 
+@import "@/styles/tako.css";
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -80,3 +82,6 @@ body {
   font-family: 'MyArial';
   color: black;
 }
+
+
+
