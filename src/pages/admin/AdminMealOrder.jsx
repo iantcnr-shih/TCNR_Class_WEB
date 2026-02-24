@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, ChevronLeft, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, use } from 'react';
+import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, ChevronLeft, TrendingUp, Clock, CheckCircle, ClipboardList, SlidersHorizontal, ShoppingCart } from 'lucide-react';
 import api from "@/api/axios";
 
 const AdminMealOrder = () => {
@@ -8,6 +8,60 @@ const AdminMealOrder = () => {
   const [today, setToday] = useState([]);
   const [userIP, setUserIP] = useState("");
   const [seatNumber, setSeatNumber] = useState("");
+  const [chargedSeatNumber, setChargedSeatNumber] = useState();
+  const [isOrderOverview, setIsOrderOverview] = useState(false);
+  const [isOrderable, setIsOrderable] = useState(false);
+  const [isBubbleTeaOrderable, setIsBubbleTeaOrderable] = useState(false);
+  const [bubbleteaOrderURL, setBubbleteaOrderURL] = useState("");
+  const [orderType, setOrderType] = useState("1");
+  const [orderRound, setOrderRound] = useState(1);
+
+
+  const fetchManagerControl = async () => {
+    try {
+      const res = await api.get('/api/getManagerControl');
+      if (res.status === 200) {
+        const controls = res.data.controls
+        let is_orderable = controls.find(item => item.c_title === "isOrderable");
+        if (is_orderable) {
+          setIsOrderable(is_orderable.c_value === "Y" ? true : false);
+        }
+        let is_bubbletea_orderable = controls.find(item => item.c_title === "isBubbleTeaOrderable");
+        if (is_bubbletea_orderable) {
+          setIsBubbleTeaOrderable(is_bubbletea_orderable.c_value === "Y" ? true : false);
+        }
+        let bubbletea_orderURL = controls.find(item => item.c_title === "bubble_tea_url");
+        if (bubbletea_orderURL) {
+          setBubbleteaOrderURL(bubbletea_orderURL.c_value);
+        }
+        let charged_seat_number = controls.find(item => item.c_title === "charged_seat_number");
+        if (charged_seat_number) {
+          setChargedSeatNumber(charged_seat_number.c_value);
+        }
+        let order_type = controls.find(item => item.c_title === "order_type");
+        if (order_type) {
+          setOrderType(order_type.c_value);
+        }
+        let order_round = controls.find(item => item.c_title === "order_round");
+        if (order_round) {
+          setOrderRound(Number(order_round.c_value));
+        }
+      }
+    } catch (error) {
+      console.log("getManagerControl error:", error);
+    }
+  }
+
+  useEffect(() => {
+    fetchManagerControl()
+  }, [])
+
+  const subMenuItems = [
+    { id: 'base', name: '主選單', icon: ClipboardList },
+    { id: 'today-order', name: '今日點餐管理', icon: ClipboardList },
+    { id: 'meal-settings', name: '餐點設定管理', icon: SlidersHorizontal },
+    { id: 'order-management', name: '訂單管理', icon: ShoppingCart },
+  ];
 
   const menuItems = [
     { id: 'latest-news', name: '最新資訊', icon: Newspaper, url: '#latest-news', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' },
@@ -124,7 +178,6 @@ const AdminMealOrder = () => {
 
   const currentContent = getContentForMenu("meal-order");
 
-
   const getStatusBadge = (status) => {
     const badges = {
       new: 'bg-blue-100 text-blue-700 border border-blue-200',
@@ -148,16 +201,13 @@ const AdminMealOrder = () => {
   const activeMenuItem = menuItems.find(item => item.id === "meal-order");
 
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth", // 平滑滾動
-    }); // 滾到最上方
+    window.scrollTo({ top: 0, behavior: "smooth" });
     const fetchUserIP = async () => {
       try {
         const res = await api.get("/api/getUserIP");
         if (res.status === 200) {
           if (Array.isArray(today) && today.length === 0) {
-            setToday(res.data.today);  // 設置今天的日期與星期
+            setToday(res.data.today);
           }
           setUserIP(res.data.user_ip);
         }
@@ -171,78 +221,184 @@ const AdminMealOrder = () => {
 
   useEffect(() => {
     if (userIP && userIP !== "未知") {
-      // 提取 IP 最後一段數字
-      const lastSegment = userIP.split('.').pop(); // 取得最後一個數字
-      const seatNo = parseInt(lastSegment) - 1;  // 加 1
+      const lastSegment = userIP.split('.').pop();
+      const seatNo = parseInt(lastSegment) - 1;
       setSeatNumber(seatNo);
     }
-  }, [userIP])
+  }, [userIP]);
+
+  const handleOrderOverview = async (newState) => {
+    try {
+      // 假設後端是 POST 更新狀態
+      const res = await api.post("/api/changeOrderOverview", { enabled: newState });
+      if (res.status === 200) {
+        // setIsOrderOverview(newState); // 成功後才更新 UI
+        // setIsOrderable(newState);
+        // setIsBubbleTeaOrderable(newState);
+        fetchManagerControl();
+      }
+    } catch (err) {
+      console.error("更新狀態失敗:", err);
+      // 可以選擇加提示
+      alert("更新狀態失敗，請稍後再試");
+    }
+  };
+
+  const handleIsMealActive = async (newState) => {
+    try {
+      // 假設後端是 POST 更新狀態
+      const res = await api.post("/api/changeIsMealActive", { enabled: newState });
+      if (res.status === 200) {
+        // setIsOrderable(newState); // 成功後才更新 UI
+        fetchManagerControl();
+      }
+    } catch (err) {
+      console.error("更新狀態失敗:", err);
+      // 可以選擇加提示
+      alert("更新狀態失敗，請稍後再試");
+    }
+  };
+
+  const handleIsDrinkActive = async (newState) => {
+    try {
+      // 假設後端是 POST 更新狀態
+      const res = await api.post("/api/changeIsDrinkActive", { enabled: newState });
+      if (res.status === 200) {
+        // setIsBubbleTeaOrderable(newState); // 成功後才更新 UI
+        fetchManagerControl();
+      }
+    } catch (err) {
+      console.error("更新狀態失敗:", err);
+      // 可以選擇加提示
+      alert("更新狀態失敗，請稍後再試");
+    }
+  };
+
+  useEffect(() => {
+    if (isOrderable || isBubbleTeaOrderable) {
+      setIsOrderOverview(true);
+    } else {
+      setIsOrderOverview(false);
+    }
+  }, [isOrderable, isBubbleTeaOrderable])
+
+  const updateChargedSeatNumber = async (value) => {
+    try {
+      const res = await api.post('/api/updateChargedSeatNumber', {
+        charged_seat_number: value,
+      });
+      if (res.status === 200) {
+        fetchManagerControl();
+      } else {
+        console.error('更新失敗', res.data.message);
+      }
+    } catch (err) {
+      console.error('更新狀態失敗:', err);
+    }
+  };
+
+  const updateBubbleteaOrderURL = async (value) => {
+    try {
+      const res = await api.post('/api/updateBubbleteaOrderURL', {
+        bubble_tea_url: value,
+      });
+      if (res.status === 200) {
+        fetchManagerControl();
+      } else {
+        console.error('更新失敗', res.data.message);
+      }
+    } catch (err) {
+      console.error('更新狀態失敗:', err);
+    }
+  };
+  
+  const updateOrderType = async (value) => {
+    try {
+      const res = await api.post('/api/updateOrderType', {
+        order_type: value,
+      });
+      if (res.status === 200) {
+        fetchManagerControl();
+      } else {
+        console.error('更新失敗', res.data.message);
+      }
+    } catch (err) {
+      console.error('更新狀態失敗:', err);
+    }
+  };
+
+  const updateOrderRound = async (value) => {
+    try {
+      const res = await api.post('/api/updateOrderRound', {
+        order_round: value,
+      });
+      if (res.status === 200) {
+        fetchManagerControl();
+      } else {
+        console.error('更新失敗', res.data.message);
+      }
+    } catch (err) {
+      console.error('更新狀態失敗:', err);
+    }
+  };
 
   return (
     <div className="d-block min-h-screen bg-slate-50">
       <div className="flex">
-        {/* Main Content */}
-        <main className={`flex-1 transition-all duration-300 lg:ml-0`}>
+        {/* ✅ min-w-0 防止 flex 子元素撐破父容器寬度 */}
+        <main className="flex-1 min-w-0 transition-all duration-300 lg:ml-0">
+
           {/* Header Section */}
-          <div className="bg-white border-b border-gray-200 px-6 lg:px-8 py-6">
-            <div className="flex">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`p-3 ${activeMenuItem?.bgColor} rounded-xl shadow-sm`}>
-                    {React.createElement(activeMenuItem?.icon, { className: "h-6 w-6 text-white" })}
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-semibold text-slate-900">{currentContent?.title}</h2>
-                    <p className="text-sm text-gray-600 mt-0.5">{currentContent?.description}</p>
-                  </div>
+          {/* ✅ overflow-hidden 讓 header 本身不溢出 */}
+          <div className="bg-white border-b border-gray-200">
+
+            {/* Title Row */}
+            <div className="px-6 lg:px-8 pt-6 pb-0 flex items-center gap-4">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className={`shrink-0 p-3 ${activeMenuItem?.bgColor} rounded-xl shadow-sm`}>
+                  {React.createElement(activeMenuItem?.icon, { className: "h-6 w-6 text-white" })}
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-2xl font-semibold text-slate-900 truncate">{currentContent?.title}</h2>
+                  <p className="text-sm text-gray-600 mt-0.5 truncate">{currentContent?.description}</p>
                 </div>
               </div>
-              <div className="flex ml-auto items-center justify-between">
-                {systemMode === "base" &&
-                  <div className={`hidden sm:flex ml-auto mr-2 px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm hover:shadow-lg hover:scale-105`}
-                    onClick={() => setSystemMode("meal")}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    <span>今日點餐管理</span>
-                  </div>
-                }
-                {systemMode === "meal" &&
-                  <div className={`hidden sm:flex ml-auto mr-2 px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm hover:shadow-lg hover:scale-105`}
-                    onClick={() => setSystemMode("base")}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    <span>回系統概況</span>
-                  </div>
-                }
-                <div className={`px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm hover:scale-105`}>
+              <div className="ml-auto shrink-0">
+                <div className={`px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm hover:scale-105 cursor-pointer`}>
                   <span>新增項目</span>
                   <ChevronRight className="h-4 w-4" />
                 </div>
               </div>
             </div>
-
-            <div className="flex sm:hidden mt-4 mb-[-0.5rem] ml-auto items-center justify-between">
-              {systemMode === "base" &&
-                <div className={`mr-auto px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm hover:shadow-lg hover:scale-105`}
-                  onClick={() => setSystemMode("meal")}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span>今日點餐管理</span>
-                </div>
-              }
-              {systemMode === "meal" &&
-                <div className={`sm:ml-auto mr-2 px-4 py-2 ${activeMenuItem?.bgColor} text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2 shadow-sm hover:shadow-lg hover:scale-105`}
-                  onClick={() => setSystemMode("base")}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span>回系統概況</span>
-                </div>
-              }
+            <div className="mt-3 overflow-x-auto">
+              <div className="flex gap-1 px-6 lg:px-8" style={{ minWidth: 'max-content' }}>
+                {subMenuItems.map((item) => {
+                  const isActive = systemMode === item.id;
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => setSystemMode(item.id)}
+                      className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all duration-200 rounded-t-lg
+                        ${isActive
+                          ? 'text-orange-600 bg-orange-50 border-orange-500'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border-transparent'
+                        }
+                      `}
+                    >
+                      {React.createElement(item.icon, {
+                        className: `h-4 w-4 shrink-0 ${isActive ? 'text-orange-500' : 'text-gray-400'}`
+                      })}
+                      <span>{item.name}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
+
+          {/* Page Content */}
           {systemMode === "base" &&
             <div className="px-6 lg:px-8 py-6">
-              {/* Stats Overview */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl border border-blue-100 p-5 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-3">
@@ -289,7 +445,6 @@ const AdminMealOrder = () => {
                 </div>
               </div>
 
-              {/* Content Table */}
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
                   <h3 className="text-lg font-semibold text-slate-900">項目列表</h3>
@@ -313,9 +468,7 @@ const AdminMealOrder = () => {
                               <span className="text-sm font-medium text-gray-900">{item.name}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            {getStatusBadge(item.status)}
-                          </td>
+                          <td className="px-6 py-4">{getStatusBadge(item.status)}</td>
                           <td className="px-6 py-4">
                             <span className="text-sm text-gray-600">{item.date}</span>
                           </td>
@@ -333,136 +486,147 @@ const AdminMealOrder = () => {
               </div>
             </div>
           }
-          {systemMode === "meal" &&
+
+          {systemMode === "today-order" &&
+
             <div className="px-6 lg:px-8 py-6">
-              <div className="mb-8 max-w-2xl">
+              <div className="mx-auto mb-8 max-w-2xl">
                 <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
                   <div>
-                    <div className="
-                      inline-block
-                      bg-[rgb(255,239,234)]
-                      border
-                      border-[rgba(224,92,42,0.25)]
-                      text-[rgb(84,39,24)]
-                      text-xs
-                      px-[14px]
-                      py-1
-                      rounded-full
-                      font-medium
-                    ">📅 {today.date}　{today.day}</div>
+                    <div className="inline-block bg-[rgb(255,239,234)] border border-[rgba(224,92,42,0.25)] text-[rgb(84,39,24)] text-xs px-[14px] py-1 rounded-full font-medium">
+                      📅 {today.date}　{today.day}
+                    </div>
                   </div>
-                  {/* <div id='abc'>
-                    <div>
-                      今日點餐總覽 <span>switch</span>
-                    </div>
-                    <div>
-                      餐點啟用狀態 <span>switch</span>
-                    </div>
-                    <div>
-                      飲料啟用狀態 <span>switch</span>
-                    </div>
-                    <div>
-                      點餐收費值日生 (座號) <span><input type="number" /></span>
-                    </div>
-                    <div>
-                      飲料揪團網址 <span><input type="text" /></span>
-                    </div>
-                    <div>
-                      餐點種類 <span><select></select></span>
-                    </div>
-                    <div>
-                      總體餐點次數 <span><input type="number" /></span>
-                    </div>
-                  </div> */}
-                  <div className=" mt-6 space-y-5 text-sm ">
-                    {/* 標題 */}
+                  <div className="mt-6 space-y-5 text-sm">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-base font-semibold text-gray-800">
-                        今日點餐設定
-                      </h3>
-                      <span className="text-xs text-gray-400">
-                        今日有效
-                      </span>
+                      <h3 className="text-base font-semibold text-gray-800">今日點餐設定</h3>
+                      <span className="text-xs text-gray-400">今日有效</span>
                     </div>
 
-                    {/* 設定清單 */}
                     <div className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
-                      {/* 今日點餐總覽 */}
-                      <div className="flex items-center justify-between px-4 py-3">
-                        <span className="text-gray-700">今日點餐總覽</span>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" className="sr-only peer" />
-                          <div className=" w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-orange-500 transition-colors"></div>
-                          <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                        </label>
+                      <div className="space-y-3">
+                        {/* 今日點餐總覽 */}
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <span className="text-gray-700">今日點餐總覽</span>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox"
+                              className="sr-only peer"
+                              checked={isOrderOverview}
+                              // onChange={() => setIsOrderOverview(!isOrderOverview)}
+                              onChange={() => handleOrderOverview(!isOrderOverview)}
+                            />
+                            <div className="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-orange-500 transition-colors"></div>
+                            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                            <span className="ml-3 text-sm text-gray-700 peer-checked:hidden">關閉</span>
+                            <span className="ml-3 text-sm text-gray-700 hidden peer-checked:inline">啟用</span>
+                          </label>
+                        </div>
+
+                        {/* 餐點啟用狀態 */}
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <span className="text-gray-700">餐點啟用狀態</span>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox"
+                              className="sr-only peer"
+                              checked={isOrderable}
+                              onChange={() => handleIsMealActive(!isOrderable)}
+                            />
+                            <div className="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-orange-500 transition-colors"></div>
+                            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                            <span className="ml-3 text-sm text-gray-700 peer-checked:hidden">關閉</span>
+                            <span className="ml-3 text-sm text-gray-700 hidden peer-checked:inline">啟用</span>
+                          </label>
+                        </div>
+
+                        {/* 飲料啟用狀態 */}
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <span className="text-gray-700">飲料啟用狀態</span>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox"
+                              className="sr-only peer"
+                              checked={isBubbleTeaOrderable}
+                              onChange={() => handleIsDrinkActive(!isBubbleTeaOrderable)}
+                            />
+                            <div className="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-orange-500 transition-colors"></div>
+                            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                            <span className="ml-3 text-sm text-gray-700 peer-checked:hidden">關閉</span>
+                            <span className="ml-3 text-sm text-gray-700 hidden peer-checked:inline">啟用</span>
+                          </label>
+                        </div>
                       </div>
 
-                      {/* 餐點啟用狀態 */}
-                      <div className="flex items-center justify-between px-4 py-3">
-                        <span className="text-gray-700">餐點啟用狀態</span>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" className="sr-only peer" />
-                          <div className=" w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-orange-500 transition-colors"></div>
-                          <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                        </label>
-                      </div>
-
-                      {/* 飲料啟用狀態 */}
-                      <div className="flex items-center justify-between px-4 py-3">
-                        <span className="text-gray-700">飲料啟用狀態</span>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" className="sr-only peer" />
-                          <div className=" w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-orange-500 transition-colors"></div>
-                          <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                        </label>
-                      </div>
-
-                      {/* 點餐收費值日生 */}
                       <div className="flex items-center justify-between px-4 py-3">
                         <span className="text-gray-700">點餐收費值日生（座號）</span>
                         <input
                           type="number"
+                          value={chargedSeatNumber}
                           min={1}
                           max={29}
                           step={1}
-                          defaultValue={25}
-                          placeholder="例：25"
                           className="w-20 rounded-md border border-gray-300 px-2 py-1 text-right focus:border-orange-400 focus:outline-none"
-
+                          onChange={(e) => {
+                            let value = Number(e.target.value);
+                            if (isNaN(value)) return;
+                            if (value < 1) value = 1;
+                            if (value > 29) value = 29;
+                            setChargedSeatNumber(value);
+                          }}
+                          onBlur={() => {
+                            updateChargedSeatNumber(chargedSeatNumber);
+                          }}
                         />
                       </div>
 
-                      {/* 飲料揪團網址 */}
-                      <div className="flex items-center justify-between px-4 py-3">
-                        <span className="text-gray-700">飲料揪團網址：</span>
+                      <div className="flex items-center justify-between px-4 py-3 gap-3">
+                        <span className="text-gray-700 shrink-0">飲料揪團網址：</span>
                         <input
                           type="text"
-                          className="flex-1 rounded-md border border-gray-300 px-2 py-1 text-xs focus:border-orange-400 focus:outline-none"
+                          value={bubbleteaOrderURL}
+                          className="flex-1 min-w-0 rounded-md border border-gray-300 px-2 py-1 text-xs focus:border-orange-400 focus:outline-none"
                           placeholder="貼上連結"
+                          onChange={(e) => {
+                            let value = e.target.value;
+                            setBubbleteaOrderURL(value);
+                          }}
+                          onBlur={() => {
+                            updateBubbleteaOrderURL(bubbleteaOrderURL);
+                          }}
                         />
                       </div>
 
-                      {/* 餐點種類 */}
                       <div className="flex items-center justify-between px-4 py-3">
                         <span className="text-gray-700">餐點種類</span>
-                        <select className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-orange-400 focus:outline-none">
+                        <select className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-orange-400 focus:outline-none"
+                          value={orderType}
+                          onChange={(e) => {
+                            let value = e.target.value;
+                            updateOrderType(value);
+                          }}
+                        >
                           <option value="1">午餐</option>
                           <option value="2">晚餐</option>
                         </select>
                       </div>
 
-                      {/* 總體餐點次數 */}
                       <div className="flex items-center justify-between px-4 py-3">
                         <span className="text-gray-700">總體餐點次數</span>
-                        <span className='ml-auto'>
+                        <span className="ml-auto flex items-center">
                           第<input
                             type="number"
-                            min={1}
-                            max={10}
-                            step={1}
-                            defaultValue={1}
-                            className="w-10 rounded-md border border-gray-300 mx-1 px-2 py-1 text-right focus:border-orange-400 focus:outline-none"
-                          /> 輪點餐
+                            value={orderRound}
+                            min={1} max={10} step={1} defaultValue={1}
+                            className="min-w-10 rounded-md border border-gray-300 mx-1 px-2 py-1 text-right focus:border-orange-400 focus:outline-none"
+                            onChange={(e) => {
+                              let value = Number(e.target.value);
+                              if (isNaN(value)) return;
+                              if (value < 1) value = 1;
+                              if (value > 10) value = 10;
+                              setOrderRound(value);
+                            }}
+                            onBlur={() => {
+                              updateOrderRound(orderRound);
+                            }}
+                          />輪點餐
                         </span>
                       </div>
                     </div>
@@ -471,6 +635,7 @@ const AdminMealOrder = () => {
               </div>
             </div>
           }
+
         </main>
       </div>
     </div>

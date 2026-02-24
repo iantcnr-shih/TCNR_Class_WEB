@@ -89,8 +89,8 @@ export default function MealOrder() {
   const [grandTotal, setGrandTotal] = useState(0);
   const [grandBubbleteaTotal, setGrandBubbleteaTotal] = useState(0);
   const [sortConfig, setSortConfig] = useState(null);
-  const [isOrderable, setIsOrderable] = useState(true);
-  const [isBubbleTeaOrderable, setIsBubbleTeaOrderable] = useState(true);
+  const [isOrderable, setIsOrderable] = useState(false);
+  const [isBubbleTeaOrderable, setIsBubbleTeaOrderable] = useState(false);
   const [chargedSeatNumber, setChargedSeatNumber] = useState("");
   const [bubbleteaOrderURL, setBubbleteaOrderURL] = useState("");
   const [selectBubbleTea, setSelectBubbleTea] = useState("");
