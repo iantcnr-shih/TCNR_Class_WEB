@@ -1,3 +1,5 @@
+import { getReviewsApi, addReviewApi } from "@/api/reviews.api";
+
 // 簡單記憶體資料庫（重整會清空）
 let _db = [];
 
@@ -42,7 +44,17 @@ function ensureSeed({ food_id = null } = {}) {
 /**
  * ✅ 新介面：一次拿全部 reviews（給 MealOrder 啟動時用）
  */
-export function getReviewsMock() {
+export async function getReviewsMock({ shop_id, food_id = null } = {}) {
+  // ✅ 優先用後端
+  if (shop_id) {
+    try {
+      return await getReviewsApi({ shop_id, food_id });
+    } catch (e) {
+      console.warn("getReviewsApi failed, fallback mock:", e);
+    }
+  }
+
+  // fallback mock（維持你原本行為）
   ensureSeed({ food_id: null });
   return Promise.resolve([..._db]);
 }
@@ -50,10 +62,17 @@ export function getReviewsMock() {
 /**
  * ✅ 新介面：新增評論（給 MealOrder.handleAddReview 用）
  */
-export function addReviewMock(payload) {
-  if (!payload?.shop_id) {
-    return Promise.reject(new Error("shop_id is required"));
+export async function addReviewMock(payload) {
+  // ✅ 優先用後端
+  try {
+    const created = await addReviewApi(payload);
+    return created;
+  } catch (e) {
+    console.warn("addReviewApi failed, fallback mock:", e);
   }
+
+  // fallback mock：你原本的行為
+  if (!payload?.shop_id) return Promise.reject(new Error("shop_id is required"));
 
   const shop_id = Number(payload.shop_id);
   const food_id = payload.food_id == null ? null : Number(payload.food_id);
