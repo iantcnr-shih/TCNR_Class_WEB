@@ -16,6 +16,8 @@ const AdminMealOrder = () => {
   const [orderType, setOrderType] = useState("1");
   const [orderRound, setOrderRound] = useState(1);
 
+  const [allshops, setAllshops] = useState([]);
+  const [thisdayshop, setThisdayshop] = useState();
 
   const fetchManagerControl = async () => {
     try {
@@ -46,6 +48,10 @@ const AdminMealOrder = () => {
         if (order_round) {
           setOrderRound(Number(order_round.c_value));
         }
+        let thisday_shop_id = controls.find(item => item.c_title === "thisday_shop_id");
+        if (thisday_shop_id) {
+          setThisdayshop(Number(thisday_shop_id.c_value));
+        }
       }
     } catch (error) {
       console.log("getManagerControl error:", error);
@@ -54,6 +60,18 @@ const AdminMealOrder = () => {
 
   useEffect(() => {
     fetchManagerControl()
+    const fetchAllShops = async () => {
+      try {
+        const res = await api.get('/api/getAllShops');
+        if (res.status === 200) {
+          const selectshops = res.data.AllShops.filter(shop=>!(shop.shop_id == 4 || shop.shop_id == 5))
+          setAllshops(selectshops)
+        }
+      } catch (error) {
+        console.log("getShops error:", error);
+      }
+    }
+    fetchAllShops();
   }, [])
 
   const subMenuItems = [
@@ -282,6 +300,21 @@ const AdminMealOrder = () => {
     }
   }, [isOrderable, isBubbleTeaOrderable])
 
+  const updateThisdayshop = async (value) => {
+    try {
+      const res = await api.post('/api/updateThisdayshop', {
+        thisday_shop_id: value,
+      });
+      if (res.status === 200) {
+        fetchManagerControl();
+      } else {
+        console.error('更新失敗', res.data.message);
+      }
+    } catch (err) {
+      console.error('更新狀態失敗:', err);
+    }
+  };
+
   const updateChargedSeatNumber = async (value) => {
     try {
       const res = await api.post('/api/updateChargedSeatNumber', {
@@ -311,7 +344,7 @@ const AdminMealOrder = () => {
       console.error('更新狀態失敗:', err);
     }
   };
-  
+
   const updateOrderType = async (value) => {
     try {
       const res = await api.post('/api/updateOrderType', {
@@ -554,6 +587,23 @@ const AdminMealOrder = () => {
                           </label>
                         </div>
                       </div>
+                      <div className="flex items-center justify-between px-4 py-3">
+                        <span className="text-gray-700">今日餐點店家</span>
+                        <select className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-orange-400 focus:outline-none"
+                          value={thisdayshop}
+                          onChange={(e) => {
+                            let value = e.target.value;
+                            updateThisdayshop(value);
+                          }}
+                        >
+                          <option value="">請選擇今日餐點店家</option>
+                          {allshops && allshops.map((shop) => {
+                            return (
+                              <option key={shop.shop_id} value={`${shop.shop_id}`}>{shop.shop_name}</option>
+                            )
+                          })}
+                        </select>
+                      </div>
 
                       <div className="flex items-center justify-between px-4 py-3">
                         <span className="text-gray-700">點餐收費值日生（座號）</span>
@@ -614,7 +664,7 @@ const AdminMealOrder = () => {
                           第<input
                             type="number"
                             value={orderRound}
-                            min={1} max={10} step={1} defaultValue={1}
+                            min={1} max={10} step={1}
                             className="min-w-10 rounded-md border border-gray-300 mx-1 px-2 py-1 text-right focus:border-orange-400 focus:outline-none"
                             onChange={(e) => {
                               let value = Number(e.target.value);

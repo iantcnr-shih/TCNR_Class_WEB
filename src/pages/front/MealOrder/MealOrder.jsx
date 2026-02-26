@@ -2,32 +2,6 @@ import { useState, useEffect } from "react";
 import ReviewSection from "@/components/reviews/ReviewSection";
 import { getOrderHistoryMock, getReviewsMock, addReviewMock } from "@/api/reviews.mock";
 import api from "@/api/axios";
-/* ─── DATA ─────────────────────────────────────────────────────────── */
-
-const drinkOptions = [
-  { name: "紅茶", price: 25 },
-  { name: "綠茶", price: 25 },
-  { name: "咖啡", price: 45 },
-  { name: "豆漿", price: 30 },
-];
-
-const storeReviews = [
-  { name: "八方雲集", rating: 4.5, comment: "鍋貼很酥脆，湯品大碗好喝" },
-  { name: "米撰雞腿壩王", rating: 4.2, comment: "雞腿炸得很酥，鹹香好吃" },
-  { name: "五棧燒鵝", rating: 3.8, comment: "港式燒鵝便當為招牌必點" },
-];
-const mealReviews = [
-  { name: "雞腿飯", rating: 4.7, comment: "雞腿夠大塊，飯Q彈" },
-  { name: "排骨飯", rating: 4.3, comment: "醬汁入味，推薦" },
-  { name: "牛肉麵", rating: 4.0, comment: "湯頭濃郁，牛肉軟嫩" },
-];
-const orderHistory = [
-  { date: "2026-02-19", item: "雞腿飯 + 紅茶", amount: 115, status: "已完成" },
-  { date: "2026-02-18", item: "排骨飯 + 綠茶", amount: 105, status: "已完成" },
-  { date: "2026-02-17", item: "素食便當 + 豆漿", amount: 105, status: "已完成" },
-  { date: "2026-02-14", item: "牛肉麵 + 咖啡", amount: 145, status: "已取消" },
-];
-
 /* ─── LOOKUP MAPS ───────────────────────────────────────────────────── */
 
 const statusBadge = {
@@ -82,9 +56,11 @@ export default function MealOrder() {
   const [quantityOptions, setQuantityOptions] = useState([]);
   const [orderType, setOrderType] = useState("1");
   const [orderRound, setOrderRound] = useState(1);
+  const [defaultOrderRound, setDefaultOrderRound] = useState();
 
   const [userorders, setUserorders] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [selectorders, setSelectorders] = useState([]);
   const [shopSummary, setShopSummary] = useState([]);
   const [grandTotal, setGrandTotal] = useState(0);
   const [grandBubbleteaTotal, setGrandBubbleteaTotal] = useState(0);
@@ -106,6 +82,7 @@ export default function MealOrder() {
   const [reviewTarget, setReviewTarget] = useState("shop");
   const [reviewShopId, setReviewShopId] = useState("");
   const [reviewFoodId, setReviewFoodId] = useState("");
+  const [orderroundlists, setOrderroundlists] = useState([]);
 
   const storeReviewList = reviews.filter(r => r.food_id == null);
   const mealReviewList = reviews.filter(r => r.food_id != null);
@@ -124,7 +101,6 @@ export default function MealOrder() {
         .map(o => [o.food_id, { food_id: o.food_id, food_name: o.food_name, shop_id: o.shop_id }])
     ).values()
   );
-
 
   const checkIsOrderable = async () => {
     try {
@@ -166,6 +142,18 @@ export default function MealOrder() {
     }
   }
 
+  const checkdefaultshops = async () => {
+    try {
+      const res = await api.get('/api/getShops');
+      if (res.status === 200) {
+        return res.data.shops;
+      }
+    } catch (error) {
+      console.log("getManagerControl error:", error);
+      return false;
+    }
+  }
+
   const handleAddReview = async (payload) => {
     if (!payload?.shop_id) {
       alert("請先選擇店家");
@@ -199,11 +187,18 @@ export default function MealOrder() {
 
   const handleSendOrder = async () => {
     const is_Orderable = await checkIsOrderable();
+    const defaultshops = await checkdefaultshops();
     if (!is_Orderable) return alert("今日已收單，如需訂餐請洽班代")
-    if (!seatNumber) return alert("座號不可空白");
+    if (seatNumber == null || seatNumber === "") return alert("座號不可空白");
     if (!shopId) return alert("請選擇店家");
     if (!categoryId) return alert("請選擇餐點類別");
     if (!foodId) return alert("請選擇餐點");
+    if (!defaultshops.some(shop => shop.shop_id == shopId)) {
+      alert("今日已更改菜單, 請重新訂購");
+      window.location.reload();
+      return
+    }
+
     try {
       const res = await api.post('/api/addorder', {
         order_date: today.date,
@@ -214,14 +209,19 @@ export default function MealOrder() {
         quantity: quantity,
         user_ip: userIP
       });
-      if (res.status === 200) {
+      console.log(999,res)
+      if (res.data.success === true) {
         alert("新增餐點成功");
         location.reload();
+      } else if (res.data.message === "order_round_error") {
+        alert(`系統變更點餐次數 [第${res.data.orderRound}輪點餐], 請重新點餐`);
+        window.location.reload();
       } else {
-        alert("新增餐點失敗");
+        alert("新增餐點失敗, 請重新點餐");
+        window.location.reload();
       }
     } catch (err) {
-      alert("新增餐點失敗");
+      alert("系統忙碌中，新增餐點失敗");
       console.error(err);
     }
   }
@@ -289,7 +289,7 @@ export default function MealOrder() {
     });
 
     // 更新訂單列表
-    setOrders(sorted);
+    setSelectorders(sorted);
   };
 
   const tabs = [["service", "🍱", "訂餐服務"], ["review", "⭐", "餐點評價"], ["history", "📋", "歷史紀錄"]];
@@ -423,7 +423,27 @@ export default function MealOrder() {
       content: (
         <>
           <div className="bg-white border border-gray-200 rounded-xl px-8 py-7 mb-6 shadow-sm">
-            <div className="text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">今日訂單列表<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span></div>
+            <div className="text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">今日訂單列表<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span>
+              {orderroundlists && orderroundlists.length > 1 && (
+                <span>
+                  第{" "}
+                  <label>
+                    <select
+                      className="p-2"
+                      value={orderRound}
+                      onChange={(e) => setOrderRound(e.target.value)}
+                    >
+                      {orderroundlists.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.option}
+                        </option>
+                      ))}
+                    </select>
+                  </label>{" "}
+                  輪點餐
+                </span>
+              )}
+            </div>
             {userorders.length === 0 ? (
               <div className="text-center px-10 text-gray-400 text-sm">尚無訂單</div>
             ) : (
@@ -444,7 +464,7 @@ export default function MealOrder() {
                       <tr key={o.order_id} className="border-b border-gray-200 hover:bg-[#FFF8F7] transition-colors duration-150">
                         <td className="px-4 py-2 text-[rgb(44,26,26)]"><span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-900/10 text-[rgb(139,26,46)] font-bold text-[13px]">{o.seat_number}</span></td>
                         <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.shop_name}</td>
-                        <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.food_name}</td>
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.food_name} {o.remark}</td>
                         <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.quantity}{o.food_id <= 13 ? "顆" : "份"}</td>
                         <td className="px-4 py-2 text-[rgb(44,26,26)]">${o.quantity * o.price}</td>
                         <td className="px-4 py-2 text-[rgb(44,26,26)]">
@@ -643,8 +663,28 @@ export default function MealOrder() {
       content: (
         <>
           <div className="bg-white border border-gray-200 rounded-xl px-8 py-7 mb-6 shadow-sm">
-            <div className="text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">今日訂單列表<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span></div>
-            {orders.length === 0 ? (
+            <div className="text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">今日訂單列表<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span>
+              {orderroundlists && orderroundlists.length > 1 && (
+                <span>
+                  第{" "}
+                  <label>
+                    <select
+                      className="p-2"
+                      value={orderRound}
+                      onChange={(e) => setOrderRound(e.target.value)}
+                    >
+                      {orderroundlists.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.option}
+                        </option>
+                      ))}
+                    </select>
+                  </label>{" "}
+                  輪點餐
+                </span>
+              )}
+            </div>
+            {selectorders.length === 0 ? (
               <div className="text-center p-10 text-gray-400 text-sm">尚無訂單</div>
             ) : (
               <div className="overflow-x-auto">
@@ -668,13 +708,13 @@ export default function MealOrder() {
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.map(o => (
+                    {selectorders.map(o => (
                       <tr key={o.order_id} className="border-b border-gray-200 hover:bg-[#FFF8F7] transition-colors duration-150"
                         onClick={() => userorderssummery(o.seat_number)}
                       >
                         <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]"><span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-900/10 text-[rgb(139,26,46)] text-[13px]">{o.seat_number}</span></td>
                         <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">{o.shop_name}</td>
-                        <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">{o.food_name}</td>
+                        <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">{o.food_name} {o.remark}</td>
                         <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">{o.quantity}{o.food_id <= 13 ? "顆" : "份"}</td>
                         <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">${o.quantity * o.price}</td>
                         <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">
@@ -713,7 +753,7 @@ export default function MealOrder() {
               </div>
             )}
 
-            {orders.length > 0 && (
+            {selectorders.length > 0 && (
               <>
                 <div className="mt-8 h-[1px] bg-[rgb(100,57,48)]"></div>
                 <div className="flex flex-wrap gap-2.5 mt-2 pt-5">
@@ -893,32 +933,6 @@ export default function MealOrder() {
             return Number(a.seat_number) - Number(b.seat_number);
           });
           setOrders(sortedData);
-
-          let shopTotals = {};   // 分組
-          let grand_total = 0;    // 全部總額
-
-          orders_list.forEach((element) => {
-            const subtotal = Number(element.quantity) * Number(element.price);
-
-            // 累加全部
-            grand_total += subtotal;
-
-            // 如果這家店還沒出現
-            if (!shopTotals[element.shop_name]) {
-              shopTotals[element.shop_name] = 0;
-            }
-
-            // 累加該店
-            shopTotals[element.shop_name] += subtotal;
-          });
-
-          // 🔥 轉成陣列
-          let shopArray = Object.entries(shopTotals).map(([shop, total]) => ({
-            shop_name: shop,
-            total: total
-          }));
-          setShopSummary(shopArray);
-          setGrandTotal(grand_total);
         }
       } catch (error) {
         console.log("getShops error:", error);
@@ -984,6 +998,7 @@ export default function MealOrder() {
           let order_round = controls.find(item => item.c_title === "order_round");
           if (order_round) {
             setOrderRound(Number(order_round.c_value));
+            setDefaultOrderRound(Number(order_round.c_value));
           }
         }
       } catch (error) {
@@ -1004,10 +1019,53 @@ export default function MealOrder() {
 
   useEffect(() => {
     if (seatNumber !== "" && orders.length > 0) {
-      const user_order = orders.filter(order => order.seat_number == seatNumber);
+      const user_all_order = orders.filter(order => order.seat_number == seatNumber);
+      let order_round_lists = Array.from(
+        new Set(user_all_order.map(order => order.order_round))
+      ).map(order_round => ({
+        value: order_round,
+        option: order_round
+      }));
+      if (defaultOrderRound && !order_round_lists.some(item => item.value == defaultOrderRound)) {
+        order_round_lists.push({
+          value: defaultOrderRound,
+          option: defaultOrderRound
+        });
+      }
+      const user_order = user_all_order.filter(order => order.order_round == orderRound);
+      const select_orders = orders.filter(order => order.order_round == orderRound);
+      setOrderroundlists(order_round_lists);
       setUserorders(user_order);
+      setSelectorders(select_orders);
+
+
+      let shopTotals = {};   // 分組
+      let grand_total = 0;    // 全部總額
+
+      select_orders.forEach((element) => {
+        const subtotal = Number(element.quantity) * Number(element.price);
+
+        // 累加全部
+        grand_total += subtotal;
+
+        // 如果這家店還沒出現
+        if (!shopTotals[element.shop_name]) {
+          shopTotals[element.shop_name] = 0;
+        }
+
+        // 累加該店
+        shopTotals[element.shop_name] += subtotal;
+      });
+
+      // 🔥 轉成陣列
+      let shopArray = Object.entries(shopTotals).map(([shop, total]) => ({
+        shop_name: shop,
+        total: total
+      }));
+      setShopSummary(shopArray);
+      setGrandTotal(grand_total);
     }
-  }, [seatNumber, orders])
+  }, [seatNumber, orders, orderRound, defaultOrderRound])
 
   useEffect(() => {
     if (seatNumber !== "" && bubbleteaOrders.length > 0) {
@@ -1062,7 +1120,7 @@ export default function MealOrder() {
     if (!foodId) { setQuantityOptions([]); return; }
     const fid = parseInt(foodId);
     let opts = [];
-    if (fid === 6 || fid === 13) {
+    if (fid === 6 || fid === 12 || fid === 13) {
       for (let i = 1; i <= 7; i++) opts.push({ val: i * 2, label: `${i * 2}顆` });
     } else if (fid < 13) {
       for (let i = 1; i <= 15; i++) opts.push({ val: i, label: `${i}顆` });
@@ -1111,7 +1169,7 @@ export default function MealOrder() {
         is_paid: newIsPaid,
       });
       if (res.status === 200) {
-        setOrders(prev => prev.map(o =>
+        setSelectorders(prev => prev.map(o =>
           o.order_id === order_id ? { ...o, is_paid: is_paid === 1 ? 0 : 1 } : o
         ));
       }
@@ -1140,8 +1198,10 @@ export default function MealOrder() {
     const is_Orderable = await checkBubbleTeaIsOrderable();
     if (is_Orderable && bubbleteaOrderURL !== "") {
       window.open(bubbleteaOrderURL, "_blank");
-    } else {
+    } else if (!is_Orderable) {
       alert("今日已收單，如需訂餐請洽班代")
+    } else {
+      alert("飲料揪團尚未開啟，如需訂餐請洽班代")
     }
   }
 

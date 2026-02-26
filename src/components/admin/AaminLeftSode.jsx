@@ -1,5 +1,5 @@
 // export default Navbar;
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, TrendingUp, Clock, CheckCircle, ArrowRightCircle, LogOut } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import api from "@/api/axios";
@@ -7,6 +7,7 @@ import api from "@/api/axios";
 function AaminLeftSode() {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
+    const [activeMenu, setActiveMenu] = useState('');
     const menuItems = [
         { id: 'latest-news', name: '最新資訊', icon: Newspaper, url: '/admin/news', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' },
         { id: 'meal-order', name: '餐飲管理', icon: Utensils, url: '/admin/meal-order', color: 'orange', bgColor: 'bg-orange-500', lightBg: 'bg-orange-50', textColor: 'text-orange-600' },
@@ -19,112 +20,6 @@ function AaminLeftSode() {
         { id: 'go-user', name: '前往使用者頁面', icon: ArrowRightCircle, url: '/', color: 'bg-yellow-500', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-yellow-500' },
         { id: 'logout', name: '登出', icon: LogOut, url: 'logout', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' }
     ];
-
-    const [activeMenu, setActiveMenu] = useState('latest-news');
-    const getContentForMenu = (menuId) => {
-        const content = {
-            'latest-news': {
-                title: '最新資訊',
-                description: '系統動態與重要通知',
-                items: [
-                    { name: '系統更新通知', status: 'new', date: '2024-02-15' },
-                    { name: '重要公告', status: 'important', date: '2024-02-14' },
-                    { name: '活動資訊', status: 'normal', date: '2024-02-13' },
-                    { name: '政策更新', status: 'normal', date: '2024-02-12' },
-                    { name: '維護通知', status: 'normal', date: '2024-02-11' },
-                    { name: '功能上線', status: 'new', date: '2024-02-10' }
-                ]
-            },
-            'meal-order': {
-                title: '餐飲管理',
-                description: '餐點訂購與飲食安排',
-                items: [
-                    { name: '今日菜單', status: 'active', date: '2024-02-15' },
-                    { name: '訂餐記錄', status: 'normal', date: '2024-02-15' },
-                    { name: '飲食偏好設定', status: 'normal', date: '2024-02-14' },
-                    { name: '營養分析', status: 'normal', date: '2024-02-13' },
-                    { name: '供應商管理', status: 'normal', date: '2024-02-12' },
-                    { name: '費用統計', status: 'normal', date: '2024-02-11' }
-                ]
-            },
-            'environment': {
-                title: '環境管理',
-                description: '環境清潔與維護',
-                items: [
-                    { name: '清潔排程', status: 'active', date: '2024-02-15' },
-                    { name: '環境檢查', status: 'normal', date: '2024-02-14' },
-                    { name: '設備維護', status: 'normal', date: '2024-02-13' },
-                    { name: '物資管理', status: 'normal', date: '2024-02-12' },
-                    { name: '品質評估', status: 'normal', date: '2024-02-11' },
-                    { name: '改善建議', status: 'normal', date: '2024-02-10' }
-                ]
-            },
-            'class-meeting': {
-                title: '班務會議',
-                description: '會議安排與記錄',
-                items: [
-                    { name: '會議日程', status: 'active', date: '2024-02-15' },
-                    { name: '會議記錄', status: 'normal', date: '2024-02-14' },
-                    { name: '待辦事項', status: 'important', date: '2024-02-13' },
-                    { name: '決議追蹤', status: 'normal', date: '2024-02-12' },
-                    { name: '參會人員', status: 'normal', date: '2024-02-11' },
-                    { name: '會議室預約', status: 'normal', date: '2024-02-10' }
-                ]
-            },
-            'tech-forum': {
-                title: '知識論壇',
-                description: '技術交流與知識分享',
-                items: [
-                    { name: '熱門話題', status: 'active', date: '2024-02-15' },
-                    { name: '我的文章', status: 'normal', date: '2024-02-14' },
-                    { name: '收藏內容', status: 'normal', date: '2024-02-13' },
-                    { name: '專家問答', status: 'normal', date: '2024-02-12' },
-                    { name: '學習資源', status: 'normal', date: '2024-02-11' },
-                    { name: '技術分享', status: 'new', date: '2024-02-10' }
-                ]
-            },
-            'data-analysis': {
-                title: '數據分析',
-                description: '數據統計與分析報表',
-                items: [
-                    { name: '數據儀表板', status: 'active', date: '2024-02-15' },
-                    { name: '統計報表', status: 'normal', date: '2024-02-14' },
-                    { name: '趨勢分析', status: 'normal', date: '2024-02-13' },
-                    { name: '績效指標', status: 'normal', date: '2024-02-12' },
-                    { name: '預測模型', status: 'normal', date: '2024-02-11' },
-                    { name: '數據匯出', status: 'normal', date: '2024-02-10' }
-                ]
-            },
-            'ai': {
-                title: 'AI 應用',
-                description: '人工智慧與機器學習',
-                items: [
-                    { name: '模型訓練', status: 'active', date: '2024-02-15' },
-                    { name: '預測分析', status: 'normal', date: '2024-02-14' },
-                    { name: 'AI 工具', status: 'new', date: '2024-02-13' },
-                    { name: '智能推薦', status: 'normal', date: '2024-02-12' },
-                    { name: '自動化流程', status: 'normal', date: '2024-02-11' },
-                    { name: '效能優化', status: 'normal', date: '2024-02-10' }
-                ]
-            },
-            'team': {
-                title: '團隊開發',
-                description: '團隊協作與專案管理',
-                items: [
-                    { name: '專案列表', status: 'active', date: '2024-02-15' },
-                    { name: '任務分配', status: 'important', date: '2024-02-14' },
-                    { name: '團隊成員', status: 'normal', date: '2024-02-13' },
-                    { name: '進度追蹤', status: 'normal', date: '2024-02-12' },
-                    { name: '協作工具', status: 'normal', date: '2024-02-11' },
-                    { name: '績效評估', status: 'normal', date: '2024-02-10' }
-                ]
-            }
-        };
-        return content[menuId];
-    };
-
-    const currentContent = getContentForMenu(activeMenu);
-    const activeMenuItem = menuItems.find(item => item.id === activeMenu);
 
     const logout = async () => {
         try {
@@ -141,6 +36,13 @@ function AaminLeftSode() {
             navigate("/");
         }
     };
+
+    useEffect(() => {
+        const path = location.pathname;
+        const currentMenu = menuItems.find(item => path.includes(item.url));
+        if (currentMenu) { setActiveMenu(currentMenu.id); }
+    }, [location.pathname]);
+
     return (
         <div className="flex">
             <aside
