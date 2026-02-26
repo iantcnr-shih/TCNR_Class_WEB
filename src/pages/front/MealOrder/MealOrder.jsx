@@ -209,7 +209,6 @@ export default function MealOrder() {
         quantity: quantity,
         user_ip: userIP
       });
-      console.log(999,res)
       if (res.data.success === true) {
         alert("新增餐點成功");
         location.reload();
@@ -898,7 +897,6 @@ export default function MealOrder() {
       try {
         const res = await api.get('/api/user');
         let user = res.data;
-        user.role = "admin";
         setUser(user);
       } catch (error) {
         console.log("user error:", error);
@@ -1032,6 +1030,7 @@ export default function MealOrder() {
           option: defaultOrderRound
         });
       }
+      order_round_lists.sort((a, b) => a.value - b.value);
       const user_order = user_all_order.filter(order => order.order_round == orderRound);
       const select_orders = orders.filter(order => order.order_round == orderRound);
       setOrderroundlists(order_round_lists);

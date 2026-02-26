@@ -6,6 +6,7 @@ const AdminMealOrder = () => {
 
   const [systemMode, setSystemMode] = useState("base");
   const [today, setToday] = useState([]);
+  const [user, setUser] = useState(null);
   const [userIP, setUserIP] = useState("");
   const [seatNumber, setSeatNumber] = useState("");
   const [chargedSeatNumber, setChargedSeatNumber] = useState();
@@ -64,7 +65,7 @@ const AdminMealOrder = () => {
       try {
         const res = await api.get('/api/getAllShops');
         if (res.status === 200) {
-          const selectshops = res.data.AllShops.filter(shop=>!(shop.shop_id == 4 || shop.shop_id == 5))
+          const selectshops = res.data.AllShops.filter(shop => !(shop.shop_id == 4 || shop.shop_id == 5))
           setAllshops(selectshops)
         }
       } catch (error) {
@@ -235,6 +236,17 @@ const AdminMealOrder = () => {
       }
     };
     fetchUserIP();
+    const fetchUser = async () => {
+      try {
+        const res = await api.get('/api/user');
+        let user = res.data;
+        setUser(user);
+      } catch (error) {
+        console.log("user error:", error);
+        setUser(null);
+      }
+    };
+    fetchUser();
   }, []);
 
   useEffect(() => {
@@ -524,164 +536,174 @@ const AdminMealOrder = () => {
 
             <div className="px-6 lg:px-8 py-6">
               <div className="mx-auto mb-8 max-w-2xl">
-                <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
-                  <div>
-                    <div className="inline-block bg-[rgb(255,239,234)] border border-[rgba(224,92,42,0.25)] text-[rgb(84,39,24)] text-xs px-[14px] py-1 rounded-full font-medium">
-                      📅 {today.date}　{today.day}
+                {/* {(seatNumber == "0" || seatNumber == "2" || seatNumber == "25") ? ( */}
+                {(user?.user && user.user.roles.includes("admin")) ? (
+                  <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
+                    <div>
+                      <div className="inline-block bg-[rgb(255,239,234)] border border-[rgba(224,92,42,0.25)] text-[rgb(84,39,24)] text-xs px-[14px] py-1 rounded-full font-medium">
+                        📅 {today.date}　{today.day}
+                      </div>
                     </div>
-                  </div>
-                  <div className="mt-6 space-y-5 text-sm">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-base font-semibold text-gray-800">今日點餐設定</h3>
-                      <span className="text-xs text-gray-400">今日有效</span>
-                    </div>
+                    <div className="mt-6 space-y-5 text-sm">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-base font-semibold text-gray-800">今日點餐設定</h3>
+                        <span className="text-xs text-gray-400">今日有效</span>
+                      </div>
 
-                    <div className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
-                      <div className="space-y-3">
-                        {/* 今日點餐總覽 */}
+                      <div className="divide-y divide-gray-100 rounded-lg border border-gray-100 bg-white">
+                        <div className="space-y-3">
+                          {/* 今日點餐總覽 */}
+                          <div className="flex items-center justify-between px-4 py-3">
+                            <span className="text-gray-700">今日點餐總覽</span>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox"
+                                className="sr-only peer"
+                                checked={isOrderOverview}
+                                // onChange={() => setIsOrderOverview(!isOrderOverview)}
+                                onChange={() => handleOrderOverview(!isOrderOverview)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-orange-500 transition-colors"></div>
+                              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                              <span className="ml-3 text-sm text-gray-700 peer-checked:hidden">關閉</span>
+                              <span className="ml-3 text-sm text-gray-700 hidden peer-checked:inline">啟用</span>
+                            </label>
+                          </div>
+
+                          {/* 餐點啟用狀態 */}
+                          <div className="flex items-center justify-between px-4 py-3">
+                            <span className="text-gray-700">餐點啟用狀態</span>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox"
+                                className="sr-only peer"
+                                checked={isOrderable}
+                                onChange={() => handleIsMealActive(!isOrderable)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-orange-500 transition-colors"></div>
+                              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                              <span className="ml-3 text-sm text-gray-700 peer-checked:hidden">關閉</span>
+                              <span className="ml-3 text-sm text-gray-700 hidden peer-checked:inline">啟用</span>
+                            </label>
+                          </div>
+
+                          {/* 飲料啟用狀態 */}
+                          <div className="flex items-center justify-between px-4 py-3">
+                            <span className="text-gray-700">飲料啟用狀態</span>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox"
+                                className="sr-only peer"
+                                checked={isBubbleTeaOrderable}
+                                onChange={() => handleIsDrinkActive(!isBubbleTeaOrderable)}
+                              />
+                              <div className="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-orange-500 transition-colors"></div>
+                              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                              <span className="ml-3 text-sm text-gray-700 peer-checked:hidden">關閉</span>
+                              <span className="ml-3 text-sm text-gray-700 hidden peer-checked:inline">啟用</span>
+                            </label>
+                          </div>
+                        </div>
                         <div className="flex items-center justify-between px-4 py-3">
-                          <span className="text-gray-700">今日點餐總覽</span>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox"
-                              className="sr-only peer"
-                              checked={isOrderOverview}
-                              // onChange={() => setIsOrderOverview(!isOrderOverview)}
-                              onChange={() => handleOrderOverview(!isOrderOverview)}
-                            />
-                            <div className="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-orange-500 transition-colors"></div>
-                            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                            <span className="ml-3 text-sm text-gray-700 peer-checked:hidden">關閉</span>
-                            <span className="ml-3 text-sm text-gray-700 hidden peer-checked:inline">啟用</span>
-                          </label>
+                          <span className="text-gray-700">今日餐點店家</span>
+                          <select className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-orange-400 focus:outline-none"
+                            value={thisdayshop}
+                            onChange={(e) => {
+                              let value = e.target.value;
+                              updateThisdayshop(value);
+                            }}
+                          >
+                            <option value="">請選擇今日餐點店家</option>
+                            {allshops && allshops.map((shop) => {
+                              return (
+                                <option key={shop.shop_id} value={`${shop.shop_id}`}>{shop.shop_name}</option>
+                              )
+                            })}
+                          </select>
                         </div>
 
-                        {/* 餐點啟用狀態 */}
                         <div className="flex items-center justify-between px-4 py-3">
-                          <span className="text-gray-700">餐點啟用狀態</span>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox"
-                              className="sr-only peer"
-                              checked={isOrderable}
-                              onChange={() => handleIsMealActive(!isOrderable)}
-                            />
-                            <div className="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-orange-500 transition-colors"></div>
-                            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                            <span className="ml-3 text-sm text-gray-700 peer-checked:hidden">關閉</span>
-                            <span className="ml-3 text-sm text-gray-700 hidden peer-checked:inline">啟用</span>
-                          </label>
-                        </div>
-
-                        {/* 飲料啟用狀態 */}
-                        <div className="flex items-center justify-between px-4 py-3">
-                          <span className="text-gray-700">飲料啟用狀態</span>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox"
-                              className="sr-only peer"
-                              checked={isBubbleTeaOrderable}
-                              onChange={() => handleIsDrinkActive(!isBubbleTeaOrderable)}
-                            />
-                            <div className="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-orange-500 transition-colors"></div>
-                            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-                            <span className="ml-3 text-sm text-gray-700 peer-checked:hidden">關閉</span>
-                            <span className="ml-3 text-sm text-gray-700 hidden peer-checked:inline">啟用</span>
-                          </label>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between px-4 py-3">
-                        <span className="text-gray-700">今日餐點店家</span>
-                        <select className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-orange-400 focus:outline-none"
-                          value={thisdayshop}
-                          onChange={(e) => {
-                            let value = e.target.value;
-                            updateThisdayshop(value);
-                          }}
-                        >
-                          <option value="">請選擇今日餐點店家</option>
-                          {allshops && allshops.map((shop) => {
-                            return (
-                              <option key={shop.shop_id} value={`${shop.shop_id}`}>{shop.shop_name}</option>
-                            )
-                          })}
-                        </select>
-                      </div>
-
-                      <div className="flex items-center justify-between px-4 py-3">
-                        <span className="text-gray-700">點餐收費值日生（座號）</span>
-                        <input
-                          type="number"
-                          value={chargedSeatNumber}
-                          min={1}
-                          max={29}
-                          step={1}
-                          className="w-20 rounded-md border border-gray-300 px-2 py-1 text-right focus:border-orange-400 focus:outline-none"
-                          onChange={(e) => {
-                            let value = Number(e.target.value);
-                            if (isNaN(value)) return;
-                            if (value < 1) value = 1;
-                            if (value > 29) value = 29;
-                            setChargedSeatNumber(value);
-                          }}
-                          onBlur={() => {
-                            updateChargedSeatNumber(chargedSeatNumber);
-                          }}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between px-4 py-3 gap-3">
-                        <span className="text-gray-700 shrink-0">飲料揪團網址：</span>
-                        <input
-                          type="text"
-                          value={bubbleteaOrderURL}
-                          className="flex-1 min-w-0 rounded-md border border-gray-300 px-2 py-1 text-xs focus:border-orange-400 focus:outline-none"
-                          placeholder="貼上連結"
-                          onChange={(e) => {
-                            let value = e.target.value;
-                            setBubbleteaOrderURL(value);
-                          }}
-                          onBlur={() => {
-                            updateBubbleteaOrderURL(bubbleteaOrderURL);
-                          }}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between px-4 py-3">
-                        <span className="text-gray-700">餐點種類</span>
-                        <select className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-orange-400 focus:outline-none"
-                          value={orderType}
-                          onChange={(e) => {
-                            let value = e.target.value;
-                            updateOrderType(value);
-                          }}
-                        >
-                          <option value="1">午餐</option>
-                          <option value="2">晚餐</option>
-                        </select>
-                      </div>
-
-                      <div className="flex items-center justify-between px-4 py-3">
-                        <span className="text-gray-700">總體餐點次數</span>
-                        <span className="ml-auto flex items-center">
-                          第<input
+                          <span className="text-gray-700">點餐收費值日生（座號）</span>
+                          <input
                             type="number"
-                            value={orderRound}
-                            min={1} max={10} step={1}
-                            className="min-w-10 rounded-md border border-gray-300 mx-1 px-2 py-1 text-right focus:border-orange-400 focus:outline-none"
+                            value={chargedSeatNumber}
+                            min={1}
+                            max={29}
+                            step={1}
+                            className="w-20 rounded-md border border-gray-300 px-2 py-1 text-right focus:border-orange-400 focus:outline-none"
                             onChange={(e) => {
                               let value = Number(e.target.value);
                               if (isNaN(value)) return;
                               if (value < 1) value = 1;
-                              if (value > 10) value = 10;
-                              setOrderRound(value);
+                              if (value > 29) value = 29;
+                              setChargedSeatNumber(value);
                             }}
                             onBlur={() => {
-                              updateOrderRound(orderRound);
+                              updateChargedSeatNumber(chargedSeatNumber);
                             }}
-                          />輪點餐
-                        </span>
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between px-4 py-3 gap-3">
+                          <span className="text-gray-700 shrink-0">飲料揪團網址：</span>
+                          <input
+                            type="text"
+                            value={bubbleteaOrderURL}
+                            className="flex-1 min-w-0 rounded-md border border-gray-300 px-2 py-1 text-xs focus:border-orange-400 focus:outline-none"
+                            placeholder="貼上連結"
+                            onChange={(e) => {
+                              let value = e.target.value;
+                              setBubbleteaOrderURL(value);
+                            }}
+                            onBlur={() => {
+                              updateBubbleteaOrderURL(bubbleteaOrderURL);
+                            }}
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <span className="text-gray-700">餐點種類</span>
+                          <select className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-orange-400 focus:outline-none"
+                            value={orderType}
+                            onChange={(e) => {
+                              let value = e.target.value;
+                              updateOrderType(value);
+                            }}
+                          >
+                            <option value="1">午餐</option>
+                            <option value="2">晚餐</option>
+                          </select>
+                        </div>
+
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <span className="text-gray-700">總體餐點次數</span>
+                          <span className="ml-auto flex items-center">
+                            第<input
+                              type="number"
+                              value={orderRound}
+                              min={1} max={10} step={1}
+                              className="min-w-10 rounded-md border border-gray-300 mx-1 px-2 py-1 text-right focus:border-orange-400 focus:outline-none"
+                              onChange={(e) => {
+                                let value = Number(e.target.value);
+                                if (isNaN(value)) return;
+                                if (value < 1) value = 1;
+                                if (value > 10) value = 10;
+                                setOrderRound(value);
+                              }}
+                              onBlur={() => {
+                                updateOrderRound(orderRound);
+                              }}
+                            />輪點餐
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
+                    <div className='w-full text-center text-red-500 font-bold'>
+                      本功能需管理權限，請洽系統管理員
+                    </div>
+                  </div>
+                )}
+
               </div>
             </div>
           }
