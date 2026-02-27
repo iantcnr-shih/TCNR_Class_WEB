@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 
 // Layout Component
 const FrontLayout = () => {
+  
   return (
     <>
       <div className="w-screen ">
