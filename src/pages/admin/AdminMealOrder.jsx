@@ -2,7 +2,92 @@ import React, { useState, useEffect, use } from 'react';
 import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, ChevronLeft, TrendingUp, Clock, CheckCircle, ClipboardList, SlidersHorizontal, ShoppingCart } from 'lucide-react';
 import api from "@/api/axios";
 
+
+const mockOrders = [
+  { id: "ORD-2025-0001", customer: "林小明", email: "ming@example.com", product: "MacBook Pro 14\"", amount: 68900, status: "completed", date: "2025-02-25", items: 1 },
+  { id: "ORD-2025-0002", customer: "王美華", email: "hua@example.com", product: "iPhone 16 Pro + AirPods", amount: 42500, status: "processing", date: "2025-02-26", items: 2 },
+  { id: "ORD-2025-0003", customer: "張大偉", email: "wei@example.com", product: "iPad Air M2", amount: 21900, status: "shipped", date: "2025-02-26", items: 1 },
+  { id: "ORD-2025-0004", customer: "陳雅婷", email: "ting@example.com", product: "Apple Watch Ultra 2", amount: 29900, status: "pending", date: "2025-02-27", items: 1 },
+  { id: "ORD-2025-0005", customer: "李建宏", email: "hung@example.com", product: "Mac Mini M4 Pro", amount: 38900, status: "cancelled", date: "2025-02-24", items: 1 },
+  { id: "ORD-2025-0006", customer: "吳佩珊", email: "shan@example.com", product: "AirPods Pro 2 x3", amount: 20700, status: "processing", date: "2025-02-27", items: 3 },
+  { id: "ORD-2025-0007", customer: "黃志遠", email: "yuan@example.com", product: "Magic Keyboard + Mouse", amount: 6800, status: "completed", date: "2025-02-23", items: 2 },
+  { id: "ORD-2025-0008", customer: "趙雪梅", email: "mei@example.com", product: "HomePod 2", amount: 9900, status: "shipped", date: "2025-02-25", items: 1 },
+];
+
+const STATUS_CONFIG = {
+  completed: { label: "已完成", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  processing: { label: "處理中", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  shipped: { label: "已出貨", color: "bg-violet-100 text-violet-700 border-violet-200" },
+  pending: { label: "待確認", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  cancelled: { label: "已取消", color: "bg-rose-100 text-rose-700 border-rose-200" },
+};
+
+const FILTER_OPTIONS = [
+  { value: "all", label: "全部" },
+  { value: "pending", label: "待確認" },
+  { value: "processing", label: "處理中" },
+  { value: "shipped", label: "已出貨" },
+  { value: "completed", label: "已完成" },
+  { value: "cancelled", label: "已取消" },
+];
+
+const stats = [
+  { label: "總訂單數", value: "128", sub: "+12 本週", accent: "text-slate-800" },
+  { label: "處理中", value: "24", sub: "需要處理", accent: "text-blue-600" },
+  { label: "本月營收", value: "NT$ 1.2M", sub: "+8.3% vs 上月", accent: "text-emerald-600" },
+  { label: "取消率", value: "2.4%", sub: "-0.6% vs 上月", accent: "text-rose-500" },
+];
+
+
 const AdminMealOrder = () => {
+
+  // AI生成
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [selected, setSelected] = useState([]);
+  const [sortBy, setSortBy] = useState("date");
+  const [sortDir, setSortDir] = useState("desc");
+  const [showModal, setShowModal] = useState(false);
+
+  const filtered = mockOrders
+    .filter((o) => {
+      const matchSearch =
+        o.id.toLowerCase().includes(search.toLowerCase()) ||
+        o.customer.includes(search) ||
+        o.product.toLowerCase().includes(search.toLowerCase());
+      const matchFilter = filter === "all" || o.status === filter;
+      return matchSearch && matchFilter;
+    })
+    .sort((a, b) => {
+      let av = sortBy === "amount" ? a.amount : a.date;
+      let bv = sortBy === "amount" ? b.amount : b.date;
+      if (av < bv) return sortDir === "asc" ? -1 : 1;
+      if (av > bv) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  const allSelected = filtered.length > 0 && filtered.every((o) => selected.includes(o.id));
+
+  const toggleAll = () => {
+    if (allSelected) setSelected([]);
+    else setSelected(filtered.map((o) => o.id));
+  };
+
+  const toggleOne = (id) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  const toggleSort = (col) => {
+    if (sortBy === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortBy(col); setSortDir("desc"); }
+  };
+
+  const SortIcon = ({ col }) => (
+    <span className={`ml-1 text-xs ${sortBy === col ? "text-slate-700" : "text-slate-300"}`}>
+      {sortBy === col ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
+    </span>
+  );
+
+  //
 
   const [systemMode, setSystemMode] = useState("base");
   const [today, setToday] = useState([]);
@@ -16,6 +101,10 @@ const AdminMealOrder = () => {
   const [bubbleteaOrderURL, setBubbleteaOrderURL] = useState("");
   const [orderType, setOrderType] = useState("1");
   const [orderRound, setOrderRound] = useState(1);
+
+  const [allorders, setAllorders] = useState([]);
+  const [facus, setFacus] = useState();
+
 
   const [allshops, setAllshops] = useState([]);
   const [thisdayshop, setThisdayshop] = useState();
@@ -60,7 +149,6 @@ const AdminMealOrder = () => {
   }
 
   useEffect(() => {
-    fetchManagerControl()
     const fetchAllShops = async () => {
       try {
         const res = await api.get('/api/getAllShops');
@@ -72,8 +160,30 @@ const AdminMealOrder = () => {
         console.log("getShops error:", error);
       }
     }
+
+    const fetchGetAlloders = async () => {
+      try {
+        const res = await api.get('/api/GetAlloders');;
+        if (res.status === 200) {
+          const all_order_lists = res.data.Allorders
+
+          const sortedOrders = all_order_lists.sort((a, b) => {
+            return Number(a.seat_number) - Number(b.seat_number);
+          });
+
+          setAllorders(sortedOrders);
+        }
+      } catch (error) {
+        console.log("getShops error:", error);
+      }
+    }
+
     fetchAllShops();
+    fetchManagerControl();
+    fetchGetAlloders();
   }, [])
+
+
 
   const subMenuItems = [
     { id: 'base', name: '主選單', icon: ClipboardList },
@@ -253,6 +363,7 @@ const AdminMealOrder = () => {
     if (userIP && userIP !== "未知") {
       const lastSegment = userIP.split('.').pop();
       const seatNo = parseInt(lastSegment) - 1;
+      console.log(99999999999999, seatNo)
       setSeatNumber(seatNo);
     }
   }, [userIP]);
@@ -704,6 +815,168 @@ const AdminMealOrder = () => {
                   </div>
                 )}
 
+              </div>
+            </div>
+          }
+
+          {systemMode === "order-management" &&
+
+            <div className="px-6 lg:px-8 py-6">
+              <div className="mx-auto mb-8 max-w-6xl">
+                <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
+
+
+
+
+                  {/* Controls */}
+                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <div className="flex flex-col sm:flex-row gap-3 p-4 border-b border-slate-100">
+                      {/* Search */}
+                      <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+                        <input
+                          type="text"
+                          placeholder="搜尋訂單編號、客戶名稱、商品..."
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                          className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-50"
+                        />
+                      </div>
+                      {/* Filter tabs */}
+                      <div className="flex gap-1 flex-wrap">
+                        {FILTER_OPTIONS.map((f) => (
+                          <button
+                            key={f.value}
+                            onClick={() => setFilter(f.value)}
+                            className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors ${filter === f.value
+                              ? "bg-slate-900 text-white"
+                              : "text-slate-600 hover:bg-slate-100"
+                              }`}
+                          >
+                            {f.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Bulk action bar */}
+                    {selected.length > 0 && (
+                      <div className="flex items-center gap-3 px-4 py-2.5 bg-blue-50 border-b border-blue-100 text-sm fade-in">
+                        <span className="text-blue-700 font-medium">已選 {selected.length} 筆</span>
+                        <button className="text-blue-600 hover:text-blue-800 underline underline-offset-2">標記出貨</button>
+                        <button className="text-rose-500 hover:text-rose-700 underline underline-offset-2">取消訂單</button>
+                        <button onClick={() => setSelected([])} className="ml-auto text-slate-400 hover:text-slate-600">✕ 清除</button>
+                      </div>
+                    )}
+
+                    {/* Table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-slate-100 text-xs text-slate-500 uppercase tracking-wide">
+                            <th className="px-4 py-3 text-left w-10">
+                              <input type="checkbox" className="checkbox-custom" checked={allSelected} onChange={toggleAll} />
+                            </th>
+                            <th className="px-4 py-3 text-left font-medium">座號</th>
+                            <th className="px-4 py-3 text-left font-medium">店家</th>
+                            <th className="px-4 py-3 text-left font-medium">餐點</th>
+                            <th className="px-4 py-3 text-left font-medium">數量</th>
+                            <th className="px-4 py-3 text-left font-medium">金額</th>
+                            <th className="px-4 py-3 text-left font-medium">付款</th>
+                            <th className="px-4 py-3 text-left font-medium">備註</th>
+                            <th className="px-4 py-3 text-left font-medium">功能</th>
+                            {/* <th
+                              className="px-4 py-3 text-left font-medium cursor-pointer hover:text-slate-800 select-none"
+                              onClick={() => toggleSort("amount")}
+                            >
+                              金額 <SortIcon col="amount" />
+                            </th>
+                            <th className="px-4 py-3 text-left font-medium">狀態</th>
+                            <th
+                              className="px-4 py-3 text-left font-medium cursor-pointer hover:text-slate-800 select-none"
+                              onClick={() => toggleSort("date")}
+                            >
+                              日期 <SortIcon col="date" />
+                            </th>
+                            <th className="px-4 py-3 text-left font-medium">操作</th> */}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {allorders.map((order) => {
+                            if (Number(order.order_id) === facus) {
+                              return (
+                                <tr key={order.order_id} className='odd:bg-red-50 even:bg-slate-50 hover:bg-blue-500 transition-colors duration-150'>
+                                  <td className="px-4 py-3 text-left w-10">
+                                    <input type="checkbox" className="checkbox-custom" />
+                                  </td>
+                                  <td className="px-4 py-3 text-left font-medium">{order.seat_number}</td>
+                                  <td className="px-4 py-3 text-left font-medium">{order.shop_name || "未知"}</td>
+                                  <td className="px-4 py-3 text-left font-medium">{order.food_name}</td>
+                                  <td className="px-4 py-3 text-left font-medium">{order.quantity}</td>
+                                  <td className="px-4 py-3 text-left font-medium">{Number(order.price) * order.quantity}</td>
+                                  <td className="px-4 py-3 text-left font-medium">{order.is_paid === 1 ? "已付款" : "未付款"}</td>
+                                  <td className="px-4 py-3 text-left font-medium">{order.remark}</td>
+                                  <td className="flex px-4 py-3 text-left font-medium gap-2">
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-blue-100 hover:border-blue-400 hover:shadow-sm active:scale-95 transition-all duration-150 cursor-pointer"
+                                      onClick={() => setFacus(order.order_id)}
+                                    >
+                                      ✏️ 儲存
+                                    </div>
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:border-red-400 hover:shadow-sm active:scale-95 transition-all duration-150 cursor-pointer"
+                                      onClick={() => setFacus()}
+                                    >
+                                      🗑️ 取消
+                                    </div>
+                                  </td>
+                                </tr>
+                              )
+                            }
+                            else {
+                              return (
+                                <tr key={order.order_id} className='odd:bg-red-50 even:bg-slate-50 hover:bg-blue-500 transition-colors duration-150'>
+                                  <td className="px-4 py-3 text-left w-10">
+                                    <input type="checkbox" className="checkbox-custom" />
+                                  </td>
+                                  <td className="px-4 py-3 text-left font-medium">{order.seat_number}</td>
+                                  <td className="px-4 py-3 text-left font-medium">{order.shop_name || "未知"}</td>
+                                  <td className="px-4 py-3 text-left font-medium">{order.food_name}</td>
+                                  <td className="px-4 py-3 text-left font-medium">{order.quantity}</td>
+                                  <td className="px-4 py-3 text-left font-medium">{Number(order.price) * order.quantity}</td>
+                                  <td className="px-4 py-3 text-left font-medium">{order.is_paid === 1 ? "已付款" : "未付款"}</td>
+                                  <td className="px-4 py-3 text-left font-medium">{order.remark}</td>
+                                  <td className="flex px-4 py-3 text-left font-medium gap-2">
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 hover:border-blue-400 hover:shadow-sm active:scale-95 transition-all duration-150 cursor-pointer"
+                                      onClick={() => setFacus(order.order_id)}
+                                    >
+                                      ✏️ 編輯
+                                    </div>
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:border-red-400 hover:shadow-sm active:scale-95 transition-all duration-150 cursor-pointer">
+                                      🗑️ 刪除
+                                    </div>
+                                  </td>
+                                </tr>
+                              )
+                            }
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 text-xs text-slate-500">
+                      <span>顯示 {filtered.length} / {mockOrders.length} 筆</span>
+                      <div className="flex gap-1">
+                        <button className="px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-40">‹ 上頁</button>
+                        <button className="px-2.5 py-1 rounded bg-slate-900 text-white">1</button>
+                        <button className="px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-50">2</button>
+                        <button className="px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-50">下頁 ›</button>
+                      </div>
+                    </div>
+                  </div>
+
+
+
+                </div>
               </div>
             </div>
           }
