@@ -155,35 +155,30 @@ export default function MealOrder() {
   }
 
   const handleAddReview = async (payload) => {
-    if (!payload?.shop_id) {
-      alert("請先選擇店家");
-      return;
-    }
+  if (!payload?.shop_id) return alert("請先選擇店家");
 
-    const normalized = {
-      ...payload,
-      target: payload?.target ?? (payload?.food_id != null ? "food" : "shop"),
-      shop_id: Number(payload.shop_id),
-      food_id: payload.food_id == null ? null : Number(payload.food_id),
-    };
-
-    if (normalized.target === "food" && !normalized.food_id) {
-      alert("請選擇餐點");
-      return;
-    }
-
-    if (normalized.target === "shop") {
-      normalized.food_id = null;
-    }
-
-    try {
-      const newReview = await addReviewMock(normalized);
-      setReviews((prev) => [newReview, ...prev]);
-    } catch (e) {
-      console.error(e);
-      alert("新增評論失敗");
-    }
+  const normalized = {
+    ...payload,
+    target: payload?.target ?? (payload?.food_id != null ? "food" : "shop"),
+    shop_id: Number(payload.shop_id),
+    food_id: payload.food_id == null ? null : Number(payload.food_id),
   };
+
+  if (normalized.target === "food" && !normalized.food_id) return alert("請選擇餐點");
+  if (normalized.target === "shop") normalized.food_id = null;
+
+  try {
+    const res = await api.post("/api/reviews", normalized);
+
+    // 後端回傳格式：{ data: { ...review } }
+    const created = res.data.data;
+
+    setReviews((prev) => [created, ...prev]);
+  } catch (e) {
+    console.error(e);
+    alert("新增評論失敗");
+  }
+};
 
   const handleSendOrder = async () => {
     const is_Orderable = await checkIsOrderable();
@@ -852,28 +847,48 @@ export default function MealOrder() {
   ];
 
   useEffect(() => {
-    const boot = async () => {
-      const [historyRes, rs] = await Promise.all([
-        getOrderHistoryMock(),
-        getReviewsMock(),
-      ]);
+  const boot = async () => {
+    const historyRes = await getOrderHistoryMock();
 
-      // 兼容兩種可能：
-      // 1) 舊版：historyRes 是陣列（只給 history tab）
-      // 2) 新版：historyRes 是 { history: [], orderItems: [] }
-      if (Array.isArray(historyRes)) {
-        setOrderHistory(historyRes);
-        setOrderItems([]); // 暫時空，等調整 mock
-      } else {
-        setOrderHistory(historyRes?.history ?? []);
-        setOrderItems(historyRes?.orderItems ?? []);
-      }
+    if (Array.isArray(historyRes)) {
+      setOrderHistory(historyRes);
+      setOrderItems([]);
+    } else {
+      setOrderHistory(historyRes?.history ?? []);
+      setOrderItems(historyRes?.orderItems ?? []);
+    }
 
-      setReviews(rs);
-    };
+    setReviews([]); // reviews 等選店家再載
+  };
 
     boot();
   }, []);
+
+  useEffect(() => {
+  let ignore = false;
+
+  const load = async () => {
+    if (!reviewShopId) {
+      setReviews([]);
+      return;
+    }
+
+    setReviews([]); // 先清掉舊店家的評論，避免殘影
+    try {
+      const rs = await getReviewsMock({ shop_id: Number(reviewShopId) });
+      if (!ignore) setReviews(rs);
+    } catch (e) {
+      console.error(e);
+      if (!ignore) setReviews([]);
+    }
+  };
+
+  load();
+
+  return () => {
+    ignore = true;
+  };
+}, [reviewShopId]);
 
 
 
