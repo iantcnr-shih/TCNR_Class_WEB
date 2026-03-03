@@ -1,5 +1,5 @@
-import Banner from "@/components/Banner";
-import Features from "@/components/Features";
+import Banner from "@/components/front/Banner";
+import Features from "@/components/front/Features";
 
 // Main HomePage Component
 const Home = () => {

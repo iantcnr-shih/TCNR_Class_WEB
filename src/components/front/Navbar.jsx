@@ -1,7 +1,9 @@
 // export default Navbar;
 import React, { useState, useEffect, useRef } from 'react';
+import { useUser } from "@/components/front/UserProvider";
 import { Menu, X, LogIn, LogOut, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart3, Brain, ChevronDown, User, Users, ArrowRightCircle, Newspaper, LayoutDashboard, BookOpen, Code2, ShieldCheck, TrendingUp, Megaphone, GitBranch, Mail, UserCircle } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import api from "@/api/axios";
 
 // Navbar Component
@@ -14,7 +16,7 @@ const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
 
-    const [user, setUser] = useState(null);
+    const { user, setUser } = useUser();
     const [showMenu, setShowMenu] = useState(false);
     const [openMenu, setOpenMenu] = useState(null);
 
@@ -110,17 +112,26 @@ const Navbar = () => {
     ];
 
     const menuItems = [
-        { name: "個人資料", path: "/profile", roles: ["admin", "student"] },
+        { name: "個人資料", path: "/profile", roles: ["admin", "student", ""] },
         { name: "管理專區", path: "/admin", roles: ["admin"] },
-        { name: "登出", action: "logout", roles: ["admin", "student"] },
+        { name: "登出", action: "logout", roles: ["admin", "student", ""] },
     ];
 
     const logout = async () => {
         try {
             await api.post("/api/logout");   // 如果後端有做 token 作廢
-
+            await Swal.fire({
+                title: "登出成功",
+                icon: "success",
+                confirmButtonText: "確定",
+            });
         } catch (err) {
             console.error(err);
+            await Swal.fire({
+                title: "登出失敗",
+                icon: "error",
+                confirmButtonText: "確定",
+            });
         } finally {
             // 不管 API 成功或失敗，都清除前端登入狀態
             localStorage.removeItem("token");
@@ -130,22 +141,6 @@ const Navbar = () => {
             navigate("/login");   // 🔥 導回登入頁
         }
     };
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const res = await api.get('/api/user');
-                let user = res.data;
-                user.role = "admin";
-                setUser(user);
-            } catch (error) {
-                console.log("user error:", error);
-                setUser(null);
-            }
-        };
-        fetchUser();
-    }, []);
-
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -189,7 +184,7 @@ const Navbar = () => {
     return (
         <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-200">
             <div className="mx-auto px-4 sm:px-6 py-3 lg:py-0 lg:px-8 
-bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
+                bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                 <div className='flex'>
                     {/* Logo */}
                     <div className="flex items-center p-1">
@@ -241,12 +236,8 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
 
                     {/* Mobile menu button */}
                     <div className="flex ml-auto items-center hidden lg:block text-[rgb(247,237,230)] p-3">
-                        {!user ? (
+                        {!user?.auth ? (
                             <>
-                                <span className='mx-1 px-2 py-1 hover:text-[rgb(124,44,58)] hover:bg-[rgb(247,237,230)] rounded-md'
-                                    onClick={() => navigate("/admin")}
-                                >管理專區</span>
-                                |
                                 <span className='mx-1 px-2 py-1 hover:text-[rgb(124,44,58)] hover:bg-[rgb(247,237,230)] rounded-md'
                                     onClick={() => navigate("/register")}
                                 >註冊</span>
@@ -262,14 +253,13 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                     onClick={() => setShowMenu(!showMenu)}
                                     className="flex items-center gap-2 cursor-pointer"
                                 >
-                                    <div className="w-15 h-9 rounded-full bg-gradient-to-br from-[rgb(206,21,104)] to-[rgb(186,62,0)] text-white flex items-center justify-center font-bold">
-                                        {/* {user.user_name?.charAt(0).toUpperCase()} */}
-                                        <User className="h-6 w-8 text-white" />
+                                    <div className="w-15 h-9 rounded-full bg-gradient-to-br from-[rgb(206,21,104)] to-[rgb(187,86,36)] text-white flex items-center justify-center font-bold">
+                                        {user?.user?.user_name && user.user.user_name.trim() !== "" ? (
+                                            <span>{user.user.user_name.slice(-2)}</span> // ✅ 只取末兩字
+                                        ) : (
+                                            <User className="h-6 w-8 text-white" />
+                                        )}
                                     </div>
-
-                                    <span className="hidden md:block">
-                                        {user.user_name}
-                                    </span>
                                 </div>
 
                                 {/* Dropdown with animation */}
@@ -281,7 +271,7 @@ bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b]">
                                     `}
                                 >
                                     {menuItems
-                                        .filter(item => item.roles.includes(user.role))
+                                        .filter(item => item.roles.includes("") || item.roles.some(role => user?.user?.roles?.includes(role)))
                                         .map(item => (
                                             <div
                                                 key={item.name}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from 'lucide-react';
 import api from "@/api/axios";
@@ -86,6 +86,20 @@ function Register() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await api.get("/api/user");
+        if (res.data.auth) {
+          navigate("/");
+        }
+      } catch (err) {
+
+      }
+    };
+    fetchUser();
+  }, []);
 
   return (
     <div className="w-screen min-h-screen bg-gradient-to-b from-[rgb(255,255,255)] to-[#5e1f2b] flex justify-center items-center p-5">

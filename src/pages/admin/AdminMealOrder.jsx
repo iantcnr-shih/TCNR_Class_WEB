@@ -1,4 +1,5 @@
 import React, { useState, useEffect, use } from 'react';
+import { useAdminUser } from "@/components/admin/AdminUserProvider";
 import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, ChevronLeft, TrendingUp, Clock, CheckCircle, ClipboardList, SlidersHorizontal, ShoppingCart } from 'lucide-react';
 import api from "@/api/axios";
 
@@ -91,7 +92,7 @@ const AdminMealOrder = () => {
 
   const [systemMode, setSystemMode] = useState("base");
   const [today, setToday] = useState([]);
-  const [user, setUser] = useState(null);
+  const { user, setUser } = useAdminUser();
   const [userIP, setUserIP] = useState("");
   const [seatNumber, setSeatNumber] = useState("");
   const [chargedSeatNumber, setChargedSeatNumber] = useState();
@@ -331,32 +332,32 @@ const AdminMealOrder = () => {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-    const fetchUserIP = async () => {
-      try {
-        const res = await api.get("/api/getUserIP");
-        if (res.status === 200) {
-          if (Array.isArray(today) && today.length === 0) {
-            setToday(res.data.today);
-          }
-          setUserIP(res.data.user_ip);
-        }
-      } catch (err) {
-        console.error(err);
-        setUserIP("未知");
-      }
-    };
-    fetchUserIP();
-    const fetchUser = async () => {
-      try {
-        const res = await api.get('/api/user');
-        let user = res.data;
-        setUser(user);
-      } catch (error) {
-        console.log("user error:", error);
-        setUser(null);
-      }
-    };
-    fetchUser();
+    // const fetchUserIP = async () => {
+    //   try {
+    //     const res = await api.get("/api/getUserIP");
+    //     if (res.status === 200) {
+    //       if (Array.isArray(today) && today.length === 0) {
+    //         setToday(res.data.today);
+    //       }
+    //       setUserIP(res.data.user_ip);
+    //     }
+    //   } catch (err) {
+    //     console.error(err);
+    //     setUserIP("未知");
+    //   }
+    // };
+    // fetchUserIP();
+    // const fetchUser = async () => {
+    //   try {
+    //     const res = await api.get('/api/user');
+    //     let user = res.data;
+    //     setUser(user);
+    //   } catch (error) {
+    //     console.log("user error:", error);
+    //     setUser(null);
+    //   }
+    // };
+    // fetchUser();
   }, []);
 
   useEffect(() => {

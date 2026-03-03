@@ -1,4 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useUser } from "@/components/front/UserProvider";
+import Swal from "sweetalert2";
 
 /* ═══════════════════════════════════════════════════════════════════════
    DATA
@@ -19,20 +21,20 @@ const initialProfile = {
 };
 
 const activityLog = [
-  { icon: "💬", text: "在知識論壇發表《React Server Components 使用時機》", time: "2 小時前",  color: "blue"    },
-  { icon: "✅", text: "完成 Week 5 作業：Hooks 深入實作",                   time: "1 天前",   color: "emerald" },
-  { icon: "🏆", text: "積分排行榜第 1 名，連續登入 14 天",                  time: "1 天前",   color: "orange"  },
-  { icon: "📋", text: "出席第一次班務會議並完成選舉投票",                    time: "9 天前",   color: "red"     },
-  { icon: "🎓", text: "完成課程報到，帳號已啟用",                            time: "33 天前",  color: "gray"    },
+  { icon: "💬", text: "在知識論壇發表《React Server Components 使用時機》", time: "2 小時前", color: "blue" },
+  { icon: "✅", text: "完成 Week 5 作業：Hooks 深入實作", time: "1 天前", color: "emerald" },
+  { icon: "🏆", text: "積分排行榜第 1 名，連續登入 14 天", time: "1 天前", color: "orange" },
+  { icon: "📋", text: "出席第一次班務會議並完成選舉投票", time: "9 天前", color: "red" },
+  { icon: "🎓", text: "完成課程報到，帳號已啟用", time: "33 天前", color: "gray" },
 ];
 
 const badges = [
-  { icon: "🔥", label: "連續 14 天",  desc: "每日登入",     earned: true  },
-  { icon: "🥇", label: "排行第 1",    desc: "積分榜冠軍",   earned: true  },
-  { icon: "💬", label: "活躍貢獻者",  desc: "發文 10 篇+",  earned: true  },
-  { icon: "✅", label: "全勤學員",    desc: "出席率 100%",  earned: true  },
-  { icon: "🚀", label: "Demo Day",    desc: "展示專案",      earned: false },
-  { icon: "🎯", label: "結業認證",    desc: "完成課程",      earned: false },
+  { icon: "🔥", label: "連續 14 天", desc: "每日登入", earned: true },
+  { icon: "🥇", label: "排行第 1", desc: "積分榜冠軍", earned: true },
+  { icon: "💬", label: "活躍貢獻者", desc: "發文 10 篇+", earned: true },
+  { icon: "✅", label: "全勤學員", desc: "出席率 100%", earned: true },
+  { icon: "🚀", label: "Demo Day", desc: "展示專案", earned: false },
+  { icon: "🎯", label: "結業認證", desc: "完成課程", earned: false },
 ];
 
 const avatarOptions = ["👨‍💻", "🧑‍💻", "👩‍💻", "🧑‍🎨", "👨‍🎨", "👩‍🎨", "🦊", "🐼", "🐸", "🦁", "🐙", "🚀"];
@@ -44,11 +46,11 @@ const skillOptions = ["React", "Vue", "Angular", "Node.js", "Express", "TypeScri
 ═══════════════════════════════════════════════════════════════════════ */
 
 const activityDot = {
-  blue:    "bg-blue-500",
+  blue: "bg-blue-500",
   emerald: "bg-emerald-500",
-  orange:  "bg-orange-500",
-  red:     "bg-red-500",
-  gray:    "bg-gray-400",
+  orange: "bg-orange-500",
+  red: "bg-red-500",
+  gray: "bg-gray-400",
 };
 
 const PageHeader = ({ title, subtitle }) => (
@@ -105,27 +107,29 @@ function Toast({ msg, onDone }) {
    PAGE: 個人資料
 ═══════════════════════════════════════════════════════════════════════ */
 export default function Profile() {
-  const [tab, setTab] = useState("profile");
+  const { user } = useUser();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [tab, setTab] = useState("baseinfo");
   const [profile, setProfile] = useState(initialProfile);
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft]     = useState(initialProfile);
-  const [toast, setToast]     = useState(null);
+  const [draft, setDraft] = useState(initialProfile);
+  const [toast, setToast] = useState(null);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [newSkill, setNewSkill] = useState("");
-  const [pwForm, setPwForm]   = useState({ current: "", next: "", confirm: "" });
+  const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
   const [notifications, setNotifications] = useState({
-    forum:    true,
-    course:   true,
-    meeting:  false,
-    career:   true,
-    email:    false,
+    forum: true,
+    course: true,
+    meeting: false,
+    career: true,
+    email: false,
   });
 
   const tabs = [
-    ["profile",  "👤", "基本資料"],
+    ["baseinfo", "👤", "基本資料"],
     ["activity", "📋", "活動紀錄"],
-    ["badges",   "🏆", "成就徽章"],
-    ["settings", "⚙️",  "帳號設定"],
+    ["badges", "🏆", "成就徽章"],
+    ["settings", "⚙️", "帳號設定"],
   ];
 
   const showToast = (msg) => {
@@ -166,65 +170,99 @@ export default function Profile() {
     showToast("密碼已更新");
   };
 
+  useEffect(() => {
+    if (!isAuthorized) {
+      Swal.fire({
+        icon:"info",
+        title: "請輸入密碼授權",
+        input: "password",
+        inputPlaceholder: "Password",
+        inputAttributes: {
+          autocapitalize: "off",
+          autocomplete: "current-password",
+        },
+        showCancelButton: true,
+        confirmButtonText: "驗證",
+        showLoaderOnConfirm: true,
+        preConfirm: async (password) => {
+          try {
+            const res = await api.post("/verify-password", { password });
+            return res.data;
+          } catch (error) {
+            Swal.showValidationMessage(
+              error.response?.data?.message || "驗證失敗"
+            );
+          }
+        },
+        allowOutsideClick: () => !Swal.isLoading(),
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // 驗證成功
+          setIsAuthorized(true); // 將 state 設為已授權
+          Swal.fire("驗證成功", "你已經通過密碼驗證", "success");
+        }
+      });
+    }
+  }, [isAuthorized]);
+
   return (
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen" style={{ fontFamily: "'Noto Sans TC', 'Microsoft JhengHei', sans-serif" }}>
       {toast && <Toast msg={toast} />}
 
       <PageHeader title="個人資料" subtitle="管理你的帳號資訊、查看學習成就與偏好設定" />
-
-      {/* Profile hero card */}
-      <Card className="p-5 md:p-6 mb-5">
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 md:gap-6">
-          {/* Avatar */}
-          <div className="relative flex-shrink-0">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-red-50 ring-4 ring-red-100 flex items-center justify-center text-4xl md:text-5xl cursor-pointer select-none"
-              onClick={() => editing && setShowAvatarPicker(p => !p)}>
-              {draft.avatar}
+      {isAuthorized && (
+        <Card className="p-5 md:p-6 mb-5">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 md:gap-6">
+            {/* Avatar */}
+            <div className="relative flex-shrink-0">
+              <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-red-50 ring-4 ring-red-100 flex items-center justify-center text-4xl md:text-5xl cursor-pointer select-none"
+                onClick={() => editing && setShowAvatarPicker(p => !p)}>
+                {draft.avatar}
+              </div>
+              {editing && (
+                <div onClick={() => setShowAvatarPicker(p => !p)}
+                  className="absolute -bottom-1 -right-1 w-7 h-7 bg-red-800 rounded-full text-white text-xs flex items-center justify-center shadow-md cursor-pointer hover:bg-red-900 transition-colors">
+                  ✏️
+                </div>
+              )}
             </div>
-            {editing && (
-              <div onClick={() => setShowAvatarPicker(p => !p)}
-                className="absolute -bottom-1 -right-1 w-7 h-7 bg-red-800 rounded-full text-white text-xs flex items-center justify-center shadow-md cursor-pointer hover:bg-red-900 transition-colors">
-                ✏️
+
+            {/* Avatar picker */}
+            {showAvatarPicker && editing && (
+              <div className="absolute z-20 mt-24 ml-0 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 grid grid-cols-6 gap-2 w-64">
+                {avatarOptions.map(a => (
+                  <div key={a} onClick={() => { setDraft(d => ({ ...d, avatar: a })); setShowAvatarPicker(false); }}
+                    className={`text-2xl p-1.5 rounded-xl hover:bg-red-50 transition-colors cursor-pointer ${draft.avatar === a ? "bg-red-100 ring-2 ring-red-400" : ""}`}>
+                    {a}
+                  </div>
+                ))}
               </div>
             )}
-          </div>
 
-          {/* Avatar picker */}
-          {showAvatarPicker && editing && (
-            <div className="absolute z-20 mt-24 ml-0 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 grid grid-cols-6 gap-2 w-64">
-              {avatarOptions.map(a => (
-                <div key={a} onClick={() => { setDraft(d => ({ ...d, avatar: a })); setShowAvatarPicker(false); }}
-                  className={`text-2xl p-1.5 rounded-xl hover:bg-red-50 transition-colors cursor-pointer ${draft.avatar === a ? "bg-red-100 ring-2 ring-red-400" : ""}`}>
-                  {a}
-                </div>
-              ))}
+            {/* Info */}
+            <div className="flex-1 text-center sm:text-left min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap justify-center sm:justify-start">
+                <p className="text-xl md:text-2xl font-black text-gray-900">{profile.name}</p>
+                <span className="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold self-center">{profile.role}</span>
+                <span className="bg-orange-100 text-orange-700 text-xs px-2.5 py-1 rounded-full font-bold self-center">{profile.cohort}</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">{user?.auth?.email ?? ""}</p>
+              <p className="text-sm text-gray-600 mt-2 leading-relaxed max-w-md">{profile.bio}</p>
+              <div className="flex flex-wrap gap-1.5 mt-3 justify-center sm:justify-start">
+                {profile.skills.map(s => (
+                  <span key={s} className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-md font-medium">{s}</span>
+                ))}
+              </div>
             </div>
-          )}
 
-          {/* Info */}
-          <div className="flex-1 text-center sm:text-left min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap justify-center sm:justify-start">
-              <p className="text-xl md:text-2xl font-black text-gray-900">{profile.name}</p>
-              <span className="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold self-center">{profile.role}</span>
-              <span className="bg-orange-100 text-orange-700 text-xs px-2.5 py-1 rounded-full font-bold self-center">{profile.cohort}</span>
-            </div>
-            <p className="text-sm text-gray-500 mt-1">{profile.email}</p>
-            <p className="text-sm text-gray-600 mt-2 leading-relaxed max-w-md">{profile.bio}</p>
-            <div className="flex flex-wrap gap-1.5 mt-3 justify-center sm:justify-start">
-              {profile.skills.map(s => (
-                <span key={s} className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-md font-medium">{s}</span>
-              ))}
-            </div>
-          </div>
-
-          {/* Edit button */}
-          <div className="flex-shrink-0">
-            {!editing
-              ? <div onClick={() => { setDraft(profile); setEditing(true); }}
+            {/* Edit button */}
+            <div className="flex-shrink-0">
+              {!editing
+                ? <div onClick={() => { setDraft(profile); setEditing(true); }}
                   className="bg-red-800 hover:bg-red-900 text-white text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors whitespace-nowrap">
                   ✏️ 編輯資料
                 </div>
-              : <div className="flex gap-2">
+                : <div className="flex gap-2">
                   <div onClick={handleSave}
                     className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors">
                     儲存
@@ -234,20 +272,24 @@ export default function Profile() {
                     取消
                   </div>
                 </div>
-            }
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div className="flex gap-6 mt-5 pt-5 border-t border-gray-100 flex-wrap">
-          {[["14", "連續登入天數"], ["98", "積分"], ["5", "論壇發文"], ["87%", "作業完成率"]].map(([val, label]) => (
-            <div key={label}>
-              <p className="text-xl md:text-2xl font-black text-red-800">{val}</p>
-              <p className="text-xs text-gray-400 font-medium">{label}</p>
+              }
             </div>
-          ))}
-        </div>
-      </Card>
+          </div>
+
+          {/* Stats row */}
+          <div className="flex gap-6 mt-5 pt-5 border-t border-gray-100 flex-wrap">
+            {[["14", "連續登入天數"], ["98", "積分"], ["5", "論壇發文"], ["87%", "作業完成率"]].map(([val, label]) => (
+              <div key={label}>
+                <p className="text-xl md:text-2xl font-black text-red-800">{val}</p>
+                <p className="text-xs text-gray-400 font-medium">{label}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Profile hero card */}
+
 
       {/* Tabs */}
       <div className="flex gap-1 mb-5 border-b border-gray-200 overflow-x-auto">
@@ -261,7 +303,7 @@ export default function Profile() {
       </div>
 
       {/* ── 基本資料 ─────────────────────────────────────────── */}
-      {tab === "profile" && (
+      {tab === "baseinfo" ? isAuthorized ? (
         <div className="space-y-5 max-w-3xl">
           <Card className="p-5 md:p-6">
             <SectionTitle icon="👤" title="個人資訊" />
@@ -339,6 +381,14 @@ export default function Profile() {
             </div>
           </Card>
         </div>
+      ) : (
+        <Card className="p-5 md:p-6 max-w-3xl">
+          <div className='w-full text-center text-red-500 font-bold'>
+            本功能需使用者授權
+          </div>
+        </Card>
+      ) : (
+        <></>
       )}
 
       {/* ── 活動紀錄 ─────────────────────────────────────────── */}
@@ -394,7 +444,7 @@ export default function Profile() {
       )}
 
       {/* ── 帳號設定 ─────────────────────────────────────────── */}
-      {tab === "settings" && (
+      {tab === "settings" ? isAuthorized ? (
         <div className="max-w-3xl space-y-5">
           {/* 修改密碼 */}
           <Card className="p-5 md:p-6">
@@ -418,11 +468,11 @@ export default function Profile() {
             <SectionTitle icon="🔔" title="通知偏好" />
             <div className="space-y-3">
               {[
-                ["forum",   "💬", "知識論壇",  "有人回覆你的貼文時通知"],
-                ["course",  "📢", "課程公告",  "新公告發布時通知"],
-                ["meeting", "📋", "班務會議",  "會議提醒與議程更新"],
-                ["career",  "💼", "職涯發展",  "新職缺或活動推播"],
-                ["email",   "📧", "Email 通知","將通知同步寄送至 Email"],
+                ["forum", "💬", "知識論壇", "有人回覆你的貼文時通知"],
+                ["course", "📢", "課程公告", "新公告發布時通知"],
+                ["meeting", "📋", "班務會議", "會議提醒與議程更新"],
+                ["career", "💼", "職涯發展", "新職缺或活動推播"],
+                ["email", "📧", "Email 通知", "將通知同步寄送至 Email"],
               ].map(([key, icon, label, desc]) => (
                 <div key={key} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
                   <div className="flex items-center gap-3">
@@ -470,7 +520,14 @@ export default function Profile() {
               </div>
             </div>
           </Card>
-        </div>
+        </div>) : (
+        <Card className="p-5 md:p-6 max-w-3xl">
+          <div className='w-full text-center text-red-500 font-bold'>
+            本功能需使用者授權
+          </div>
+        </Card>
+      ) : (
+        <></>
       )}
     </div>
   );

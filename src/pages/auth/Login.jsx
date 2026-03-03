@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from 'lucide-react';
+import Swal from "sweetalert2";
 import api from "@/api/axios";
 
 function Login() {
@@ -26,6 +26,17 @@ function Login() {
   };
 
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await api.get("/api/user");
+        if (res.data.auth) {
+          navigate("/");
+        }
+      } catch (err) {
+
+      }
+    };
+    fetchUser();
     loadCaptcha();
   }, []);
 
@@ -43,10 +54,17 @@ function Login() {
       // 🔥 ① 先拿 CSRF Cookie（超重要）
       await api.get('/sanctum/csrf-cookie');
       await api.post('/api/login', formData);
-      alert('登入成功！')
-      setError('')
-      // 登入成功可以導向首頁
-      navigate('/')
+      Swal.fire({
+        title: "登入成功",
+        icon: "success",
+        draggable: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setError('');
+          // 登入成功可以導向首頁
+          navigate('/');
+        }
+      });
     } catch (err) {
       const data = err.response?.data;
       if (data?.errors) {
