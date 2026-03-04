@@ -4,7 +4,7 @@ import ReviewSection from "@/components/reviews/ReviewSection";
 import MealOrderService from "@/pages/front/MealOrder/MealOrderService";
 import { getOrderHistoryMock, getReviewsMock, addReviewMock } from "@/api/reviews.mock";
 import api from "@/api/axios";
-
+import ReviewTab from "./tabs/ReviewTab";
 
 /* ─── LOOKUP MAPS ───────────────────────────────────────────────────── */
 
@@ -18,19 +18,6 @@ const statusBadge = {
 
 /* ─── SHARED COMPONENTS ─────────────────────────────────────────────── */
 
-const Stars = ({ rating }) => {
-  const r0 = Number(rating);
-  const r = Number.isFinite(r0) ? Math.max(0, Math.min(5, r0)) : 0;
-  const full = Math.floor(r);
-  const empty = 5 - full;
-  return (
-    <span className="text-amber-400 font-bold text-sm">
-      {"★".repeat(Math.floor(r))}
-      {"☆".repeat(5 - Math.floor(r))}
-      <span className="text-gray-500 ml-1">{r}</span>
-    </span>
-  )
-};
 
 const PageHeader = ({ title, subtitle }) => (
   <div className="mb-4 md:mb-6">
@@ -46,7 +33,6 @@ export default function MealOrder() {
   const [tab, setTab] = useState("service");
   const [user, setUser] = useState(null);
   const [userIP, setUserIP] = useState("");
-  const [expanded, setExpanded] = useState(-1);
 
   const [today, setToday] = useState([]);
   const [seatNumber, setSeatNumber] = useState("");
@@ -82,31 +68,11 @@ export default function MealOrder() {
 
   const [reviews, setReviews] = useState([]);
   // 給 history tab 顯示（date/item/amount/status）
-  const [orderHistory, setOrderHistory] = useState([]);
   // 給評論功能推導可選店家/餐點（shop_id/food_id/shop_name/food_name）
   const [orderItems, setOrderItems] = useState([]);
-  const [reviewTarget, setReviewTarget] = useState("shop");
   const [reviewShopId, setReviewShopId] = useState("");
-  const [reviewFoodId, setReviewFoodId] = useState("");
   const [orderroundlists, setOrderroundlists] = useState([]);
 
-  const storeReviewList = reviews.filter(r => r.food_id == null);
-  const mealReviewList = reviews.filter(r => r.food_id != null);
-  const reviewableShops = Array.from(
-    new Map(
-      orderItems
-        .filter(o => o?.shop_id != null)
-        .map(o => [o.shop_id, { shop_id: o.shop_id, shop_name: o.shop_name }])
-    ).values()
-  );
-
-  const reviewableFoods = Array.from(
-    new Map(
-      orderItems
-        .filter(o => o?.food_id != null)
-        .map(o => [o.food_id, { food_id: o.food_id, food_name: o.food_name, shop_id: o.shop_id }])
-    ).values()
-  );
 
   const checkIsOrderable = async () => {
     try {
@@ -185,7 +151,6 @@ export default function MealOrder() {
       alert("新增評論失敗");
     }
   };
-
   const handleSendOrder = async () => {
     const is_Orderable = await checkIsOrderable();
     const defaultshops = await checkdefaultshops();
@@ -294,127 +259,6 @@ export default function MealOrder() {
 
   const tabs = [["service", "🍱", "訂餐服務"], ["review", "⭐", "餐點評價"], ["history", "📋", "歷史紀錄"]];
 
-  const reviewSections = [
-    {
-      title: "新增評價",
-      icon: "🏪",
-      content: (
-        <div className="text-sm text-gray-500 space-y-3">
-          {/* 先選：評論類型 */}
-          <div className="flex gap-2">
-            <button
-              className={`btn-review px-3 py-1 rounded-full border ${reviewTarget === "shop" ? "btn-review--active" : ""}`}
-              onClick={() => {
-                setReviewTarget("shop");
-                setReviewFoodId("");
-              }}
-            >
-              店家評價
-            </button>
-            <button
-              className={`btn-review px-3 py-1 rounded-full border ${reviewTarget === "food" ? "btn-review--active" : ""}`}
-              onClick={() => setReviewTarget("food")}
-            >
-              餐點評價
-            </button>
-          </div>
-          {/* 再選：店家 */}
-          <div>
-            <div className="text-xs text-gray-500 mb-1">選擇店家（來自點餐紀錄）</div>
-            <select
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white"
-              value={reviewShopId}
-              onChange={(e) => {
-                const nextShopId = e.target.value;
-                setReviewShopId(nextShopId);
-                setReviewFoodId("");
-                // 店家變更就清空餐點
-              }}
-            >
-              <option value="">請選擇店家</option>
-              {reviewableShops.map(s => (
-                <option key={s.shop_id} value={s.shop_id}>{s.shop_name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* 餐點評價才需要選餐點 */}
-          {reviewTarget === "food" && (
-            <div>
-              <div className="text-xs text-gray-500 mb-1">選擇餐點（來自點餐紀錄）</div>
-              <select
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white"
-                value={reviewFoodId}
-                onChange={(e) => setReviewFoodId(e.target.value)}
-                disabled={!reviewShopId}
-              >
-                <option value="">{reviewShopId ? "請選擇餐點" : "請先選店家"}</option>
-                {reviewableFoods
-                  .filter(f => String(f.shop_id) === String(reviewShopId))
-                  .map(f => (
-                    <option key={f.food_id} value={f.food_id}>{f.food_name}</option>
-                  ))}
-              </select>
-            </div>
-          )}
-
-          {/* 送出區：沒有選店家就不顯示 ReviewSection */}
-          {!reviewShopId ? (
-            <div className="text-red-600 font-semibold">請先選擇店家</div>
-          ) : (
-            <ReviewSection
-              shopId={Number(reviewShopId)}
-              foodId={reviewTarget === "food" && reviewFoodId ? Number(reviewFoodId) : null}
-              seatNumber={seatNumber ? String(seatNumber) : null}
-              reviews={reviews}
-              onAddReview={handleAddReview}
-            />
-          )}
-        </div>
-      ),
-    },
-    {
-      title: "店家評價",
-      icon: "🏪",
-      content: storeReviewList.length === 0 ? (
-        <div className="text-gray-400">目前尚無店家評價</div>
-      ) : (
-        storeReviewList.map(r => (
-          <div key={r.review_id} className="bg-gray-50 rounded-xl p-4 mb-3 border border-gray-100">
-            <div className="flex justify-between items-center mb-1 flex-wrap gap-2">
-              <span className="font-bold text-gray-800">
-                {r.user_name ?? `User#${r.user_id}`}
-              </span>
-              <Stars rating={r.rating} />
-            </div>
-            <p className="text-sm text-gray-500">{r.comment}</p>
-          </div>
-        ))
-      ),
-    },
-    {
-      title: "餐點評價",
-      icon: "🍽️",
-      content: mealReviewList.length === 0 ? (
-        <div className="text-gray-400">目前尚無餐點評價</div>
-      ) : (
-        mealReviewList.map(r => (
-          <div key={r.review_id} className="bg-gray-50 rounded-xl p-4 mb-3 border border-gray-100">
-            <div className="flex justify-between items-center mb-1 flex-wrap gap-2">
-              <span className="font-bold text-gray-800">
-                {r.food_name ?? `food#${r.food_id}`}
-              </span>
-              <Stars rating={r.rating} />
-            </div>
-            <p className="text-sm text-gray-500">{r.comment}</p>
-            <div className="text-xs text-gray-400 mt-2">
-              by {r.user_name ?? `User#${r.user_id}`}
-            </div>
-          </div>
-        ))
-      ),
-    },
-  ];
 
   const orderSections = [
     {
@@ -853,23 +697,6 @@ export default function MealOrder() {
   ];
 
   useEffect(() => {
-    const boot = async () => {
-      const historyRes = await getOrderHistoryMock();
-
-      if (Array.isArray(historyRes)) {
-        setOrderHistory(historyRes);
-        setOrderItems([]);
-      } else {
-        setOrderHistory(historyRes?.history ?? []);
-        setOrderItems(historyRes?.orderItems ?? []);
-      }
-
-      setReviews([]); // reviews 等選店家再載
-    };
-    boot();
-  }, []);
-
-  useEffect(() => {
     let ignore = false;
 
     const load = async () => {
@@ -1290,76 +1117,36 @@ export default function MealOrder() {
       {/* 餐點評價 — 1 col on mobile, 2 col on md+ */}
       {
         tab === "review" && (
-          <div className="grid grid-cols-1 gap-5">
-            {reviewSections.map((sec, i) => (
-              <div
-                key={i}
-                className={`max-w-3xl bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all
-      ${expanded === i ? "shadow-lg" : "shadow-sm"}
-    `}
-              >
-                {/* Header */}
-                <div
-                  onClick={() => setExpanded(expanded === i ? -1 : i)}
-                  className={`w-full flex items-center justify-between p-5 text-left transition-colors
-        ${expanded === i ? "bg-amber-50" : "bg-white hover:bg-gray-50"}
-      `}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                      {sec.icon}
-                    </span>
-                    <span className="font-bold text-gray-800">{sec.title}</span>
-                  </div>
-
-                  <span
-                    className={`text-gray-400 transition-transform duration-300
-          ${expanded === i ? "rotate-180" : ""}
-        `}
-                  >
-                    ▾
-                  </span>
-                </div>
-
-                {/* Content */}
-                <div
-                  className={`transition-all duration-300 ease-in-out overflow-hidden
-        ${expanded === i ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}
-      `}
-                >
-                  <div className="p-5 pt-4 border-t border-gray-100">
-                    {sec.content}
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="max-w-6xl">
+            <ReviewTab seatNumber={seatNumber ? String(seatNumber) : null} />
           </div>
         )
       }
 
       {/* 歷史紀錄 — card list on mobile, table on md+ */}
-      {tab === "history" && (
-        <>
+      {
+        tab === "history" && (
+          <>
 
 
-          {user ? (
-            <>
-              <div className="max-w-3xl bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
-                <h3 className="font-bold text-gray-800 mb-5 flex items-center gap-2">
-                  <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">📋</span>
-                  訂餐紀錄
-                </h3>
-                {/* Desktop table view */}
-                <table className="hidden md:table w-full text-sm">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      {["日期", "店家", "餐點內容", "金額", "狀態"].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* {userHistoryOrders.map((row, i) => (
+            {user ? (
+              <>
+                <div className="max-w-3xl bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
+                  <h3 className="font-bold text-gray-800 mb-5 flex items-center gap-2">
+                    <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">📋</span>
+                    訂餐紀錄
+                  </h3>
+                  {/* Desktop table view */}
+                  <table className="hidden md:table w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        {["日期", "店家", "餐點內容", "金額", "狀態"].map(h => (
+                          <th key={h} className="text-left px-4 py-3 text-xs font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* {userHistoryOrders.map((row, i) => (
                         <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                           <td className="px-4 py-3 text-gray-400">{row.order_date}</td>
                           <td className="px-4 py-3 font-semibold text-gray-700">{row.shop_name}</td>
@@ -1370,6 +1157,41 @@ export default function MealOrder() {
                           </td>
                         </tr>
                       ))} */}
+                      {userHistoryOrders.map((row, i) => {
+                        const todayStr = today.date;
+                        let badgeText = "";
+
+                        if (row.delete_flag === 1) {
+                          badgeText = "已取消";
+                        } else if (row.order_date?.slice(0, 10) === todayStr) {
+                          badgeText = row.is_paid === 1 ? "已付款" : "未付款";
+                        } else {
+                          badgeText = row.is_paid === 1 ? "已完成" : "未完成";
+                        }
+
+                        return (
+                          <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3 text-gray-400">{row.order_date}</td>
+                            <td className="px-4 py-3 font-semibold text-gray-700">{row.shop_name}</td>
+                            <td className="px-4 py-3 font-semibold text-[rgb(184,79,79)]">{row.food_name}</td>
+                            <td className="px-4 py-3 text-orange-500 font-bold">
+                              NT${row.price * row.quantity}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={`text-xs px-3 py-2 rounded-full font-semibold ${statusBadge[badgeText]
+                                  }`}
+                              >
+                                {badgeText}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {/* Mobile card view */}
+                  <div className="md:hidden space-y-3">
                     {userHistoryOrders.map((row, i) => {
                       const todayStr = today.date;
                       let badgeText = "";
@@ -1383,74 +1205,39 @@ export default function MealOrder() {
                       }
 
                       return (
-                        <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-gray-400">{row.order_date}</td>
-                          <td className="px-4 py-3 font-semibold text-gray-700">{row.shop_name}</td>
-                          <td className="px-4 py-3 font-semibold text-[rgb(184,79,79)]">{row.food_name}</td>
-                          <td className="px-4 py-3 text-orange-500 font-bold">
-                            NT${row.price * row.quantity}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className={`text-xs px-3 py-2 rounded-full font-semibold ${statusBadge[badgeText]
-                                }`}
-                            >
-                              {badgeText}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                {/* Mobile card view */}
-                <div className="md:hidden space-y-3">
-                  {userHistoryOrders.map((row, i) => {
-                    const todayStr = today.date;
-                    let badgeText = "";
-
-                    if (row.delete_flag === 1) {
-                      badgeText = "已取消";
-                    } else if (row.order_date?.slice(0, 10) === todayStr) {
-                      badgeText = row.is_paid === 1 ? "已付款" : "未付款";
-                    } else {
-                      badgeText = row.is_paid === 1 ? "已完成" : "未完成";
-                    }
-
-                    return (
-                      <div key={i} className="border border-gray-100 rounded-xl p-4 bg-gray-50">
-                        <div className="flex justify-between items-start mb-2">
-                          <span className="font-semibold text-sm text-[rgb(61,68,73)]">{row.shop_name}</span>
-                          <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusBadge[badgeText]}`}>{badgeText}</span>
-                        </div>
-                        <div className="flex justify-between items-start mb-2">
-                          <span className="font-semibold pl-2 text-sm text-[rgb(184,79,79)]">{row.food_name}</span>
+                        <div key={i} className="border border-gray-100 rounded-xl p-4 bg-gray-50">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="font-semibold text-sm text-[rgb(61,68,73)]">{row.shop_name}</span>
+                            <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusBadge[badgeText]}`}>{badgeText}</span>
                           </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-400">{row.order_date}</span>
-                          <span className="text-orange-500 font-bold text-sm">NT${row.price * row.quantity}</span>
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="font-semibold pl-2 text-sm text-[rgb(184,79,79)]">{row.food_name}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-400">{row.order_date}</span>
+                            <span className="text-orange-500 font-bold text-sm">NT${row.price * row.quantity}</span>
+                          </div>
                         </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="max-w-4xl bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 transition-shadow">
+                <div className='w-full text-center text-red-500 font-bold'>
+                  本功能需使用權限，請洽系統管理員
+                </div>
+                <div
+                  className="w-full mt-4 text-center text-blue-500 font-bold cursor-pointer transition-all duration-200 hover:text-blue-600 hover:underline"
+                  onClick={() => navigate("/login")}
+                >
+                  前往登入頁面
                 </div>
               </div>
-            </>
-          ) : (
-            <div className="max-w-4xl bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 transition-shadow">
-              <div className='w-full text-center text-red-500 font-bold'>
-                本功能需使用權限，請洽系統管理員
-              </div>
-              <div
-                className="w-full mt-4 text-center text-blue-500 font-bold cursor-pointer transition-all duration-200 hover:text-blue-600 hover:underline"
-                onClick={() => navigate("/login")}
-              >
-                前往登入頁面
-              </div>
-            </div>
-          )}
-        </>
-      )
+            )}
+          </>
+        )
       }
     </div >
   );

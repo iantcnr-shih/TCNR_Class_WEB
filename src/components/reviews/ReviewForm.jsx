@@ -55,7 +55,7 @@ export default function ReviewForm({ onSubmit }) {
         </label>
       </div>
 
-      <button type="submit">送出評論</button>
+      <button type="submit" className="btn-review">送出評論</button>
     </form>
   );
 }

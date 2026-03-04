@@ -8,6 +8,7 @@ export default function ReviewSection ({
     seatNumber = null,
     reviews = [],
     onAddReview,
+    showList = false,
 }) {
     const scopedReviews = useMemo(() => {
         return reviews.filter((r) => {
@@ -37,17 +38,9 @@ export default function ReviewSection ({
 
     return (
        <div>
-        <h2>
-            Reviews (shopID: {shopId}
-            {foodId != null ? `, foodID: ${foodId}` : ""}
-            )
-        </h2>
+      <ReviewForm onSubmit={handleSubmit} />
 
-        <ReviewForm onSubmit={handleSubmit}/>
-
-        {/* 顯示範圍內的評論；若不想在新增區顯示列表，這段可移除 */}
-        <ReviewList reviews={scopedReviews}/>
-
-       </div>
+      {showList && <ReviewList reviews={scopedReviews} />}  {/* ✅ 條件顯示 */}
+    </div>
     )
 }
