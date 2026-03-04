@@ -10,11 +10,12 @@ import api from "@/api/axios";
 
 const statusBadge = {
   已完成: "bg-emerald-100 text-emerald-700",
-  進行中: "bg-orange-100 text-orange-700",
-  待開始: "bg-gray-100 text-gray-600",
-  待確認: "bg-amber-100 text-amber-700",
+  已付款: "bg-blue-100 text-blue-700",
+  未付款: "bg-orange-100 text-orange-700",
+  未完成: "bg-gray-200 text-gray-600",
   已取消: "bg-red-100 text-red-700",
 };
+
 /* ─── SHARED COMPONENTS ─────────────────────────────────────────────── */
 
 const Stars = ({ rating }) => {
@@ -45,7 +46,6 @@ export default function MealOrder() {
   const [tab, setTab] = useState("service");
   const [user, setUser] = useState(null);
   const [userIP, setUserIP] = useState("");
-  const [orderexpanded, setOrderexpanded] = useState(0);
   const [expanded, setExpanded] = useState(-1);
 
   const [today, setToday] = useState([]);
@@ -78,6 +78,7 @@ export default function MealOrder() {
   const [bubbleTeaPrice, setBubbleTeaPrice] = useState();
   const [bubbleteaOrders, setBubbleteaOrders] = useState([]);
   const [userbubbleteaorders, setUserobubbletearders] = useState([]);
+  const [userHistoryOrders, setUserHistoryOrders] = useState([]);
 
   const [reviews, setReviews] = useState([]);
   // 給 history tab 顯示（date/item/amount/status）
@@ -865,7 +866,6 @@ export default function MealOrder() {
 
       setReviews([]); // reviews 等選店家再載
     };
-
     boot();
   }, []);
 
@@ -901,6 +901,7 @@ export default function MealOrder() {
         const res = await api.get("/api/getUserIP");
         if (res.status === 200) {
           if (Array.isArray(today) && today.length === 0) {
+            console.log(9999, res.data.today)
             setToday(res.data.today);  // 設置今天的日期與星期
           }
           setUserIP(res.data.user_ip);
@@ -916,6 +917,7 @@ export default function MealOrder() {
         const res = await api.get('/api/user');
         let user = res.data;
         setUser(user);
+        setSeatNumber(user.user.seat_number)
       } catch (error) {
         console.log("user error:", error);
         setUser(null);
@@ -1025,13 +1027,23 @@ export default function MealOrder() {
   }, []);
 
   useEffect(() => {
-    if (userIP && userIP !== "未知") {
-      // 提取 IP 最後一段數字
-      const lastSegment = userIP.split('.').pop(); // 取得最後一個數字
-      const seatNo = parseInt(lastSegment) - 1;  // 加 1
-      setSeatNumber(seatNo);
+    const fetchGetUserHistoryOrders = async () => {
+      try {
+        const res = await api.get('/api/getUserHistoryOrders', {
+          params: {
+            seat_number: seatNumber || null,
+          }
+        });
+        console.log(778899, res)
+        if (res.status === 200) {
+          setUserHistoryOrders(res.data.user_orders);
+        }
+      } catch (error) {
+        console.log("getUserHistoryOrders error:", error);
+      }
     }
-  }, [userIP])
+    fetchGetUserHistoryOrders();
+  }, [seatNumber])
 
   useEffect(() => {
     if (seatNumber !== "" && orders.length > 0) {
@@ -1274,7 +1286,7 @@ export default function MealOrder() {
           </div>
         </div>
       ) : (<></>)}
-      
+
       {/* 餐點評價 — 1 col on mobile, 2 col on md+ */}
       {
         tab === "review" && (
@@ -1326,64 +1338,119 @@ export default function MealOrder() {
       }
 
       {/* 歷史紀錄 — card list on mobile, table on md+ */}
-      {
-        tab === "history" && (
-          <div className="max-w-3xl bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
-            <h3 className="font-bold text-gray-800 mb-5 flex items-center gap-2">
-              <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">📋</span>
-              訂餐紀錄
-            </h3>
+      {tab === "history" && (
+        <>
 
 
-            {user ? (
-              <>
+          {user ? (
+            <>
+              <div className="max-w-3xl bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-gray-100">
+                <h3 className="font-bold text-gray-800 mb-5 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">📋</span>
+                  訂餐紀錄
+                </h3>
                 {/* Desktop table view */}
                 <table className="hidden md:table w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50">
-                      {["日期", "餐點內容", "金額", "狀態"].map(h => (
+                      {["日期", "店家", "餐點內容", "金額", "狀態"].map(h => (
                         <th key={h} className="text-left px-4 py-3 text-xs font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {orderHistory.map((row, i) => (
-                      <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 text-gray-400">{row.date}</td>
-                        <td className="px-4 py-3 font-semibold text-gray-700">{row.item}</td>
-                        <td className="px-4 py-3 text-orange-500 font-bold">NT${row.amount}</td>
-                        <td className="px-4 py-3">
-                          <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusBadge[row.status]}`}>{row.status}</span>
-                        </td>
-                      </tr>
-                    ))}
+                    {/* {userHistoryOrders.map((row, i) => (
+                        <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-gray-400">{row.order_date}</td>
+                          <td className="px-4 py-3 font-semibold text-gray-700">{row.shop_name}</td>
+                          <td className="px-4 py-3 font-semibold text-gray-700">{row.food_name}</td>
+                          <td className="px-4 py-3 text-orange-500 font-bold">NT${row.price*row.quantity}</td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusBadge[row.status]}`}>{row.delete_flag === 1 ? "已取消" : (row.order_date.slice(0, 10) === today.date ? (row.is_paid === 1 ? "已付款" : "未付款") : (row.is_paid === 1 ? "已完成" : "未完成"))}</span>
+                          </td>
+                        </tr>
+                      ))} */}
+                    {userHistoryOrders.map((row, i) => {
+                      const todayStr = today.date;
+                      let badgeText = "";
+
+                      if (row.delete_flag === 1) {
+                        badgeText = "已取消";
+                      } else if (row.order_date?.slice(0, 10) === todayStr) {
+                        badgeText = row.is_paid === 1 ? "已付款" : "未付款";
+                      } else {
+                        badgeText = row.is_paid === 1 ? "已完成" : "未完成";
+                      }
+
+                      return (
+                        <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-gray-400">{row.order_date}</td>
+                          <td className="px-4 py-3 font-semibold text-gray-700">{row.shop_name}</td>
+                          <td className="px-4 py-3 font-semibold text-[rgb(184,79,79)]">{row.food_name}</td>
+                          <td className="px-4 py-3 text-orange-500 font-bold">
+                            NT${row.price * row.quantity}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`text-xs px-3 py-2 rounded-full font-semibold ${statusBadge[badgeText]
+                                }`}
+                            >
+                              {badgeText}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
                 {/* Mobile card view */}
                 <div className="md:hidden space-y-3">
-                  {orderHistory.map((row, i) => (
-                    <div key={i} className="border border-gray-100 rounded-xl p-4 bg-gray-50">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-semibold text-sm text-gray-800">{row.item}</span>
-                        <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusBadge[row.status]}`}>{row.status}</span>
+                  {userHistoryOrders.map((row, i) => {
+                    const todayStr = today.date;
+                    let badgeText = "";
+
+                    if (row.delete_flag === 1) {
+                      badgeText = "已取消";
+                    } else if (row.order_date?.slice(0, 10) === todayStr) {
+                      badgeText = row.is_paid === 1 ? "已付款" : "未付款";
+                    } else {
+                      badgeText = row.is_paid === 1 ? "已完成" : "未完成";
+                    }
+
+                    return (
+                      <div key={i} className="border border-gray-100 rounded-xl p-4 bg-gray-50">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-semibold text-sm text-[rgb(61,68,73)]">{row.shop_name}</span>
+                          <span className={`text-xs px-2 py-1 rounded-full font-semibold ${statusBadge[badgeText]}`}>{badgeText}</span>
+                        </div>
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-semibold pl-2 text-sm text-[rgb(184,79,79)]">{row.food_name}</span>
+                          </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-gray-400">{row.order_date}</span>
+                          <span className="text-orange-500 font-bold text-sm">NT${row.price * row.quantity}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-400">{row.date}</span>
-                        <span className="text-orange-500 font-bold text-sm">NT${row.amount}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div>
-                <div>
-                  尚未登入，請先登入會員後查看相關資料。
+                    )
+                  })}
                 </div>
               </div>
-            )}
-          </div>
-        )
+            </>
+          ) : (
+            <div className="max-w-4xl bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 transition-shadow">
+              <div className='w-full text-center text-red-500 font-bold'>
+                本功能需使用權限，請洽系統管理員
+              </div>
+              <div
+                className="w-full mt-4 text-center text-blue-500 font-bold cursor-pointer transition-all duration-200 hover:text-blue-600 hover:underline"
+                onClick={() => navigate("/login")}
+              >
+                前往登入頁面
+              </div>
+            </div>
+          )}
+        </>
+      )
       }
     </div >
   );

@@ -1,6 +1,6 @@
 // export default Navbar;
 import React, { useState, useEffect, useRef } from 'react';
-import { useUser } from "@/components/front/UserProvider";
+import { useUser } from "@/components/auth/UserProvider";
 import { Menu, X, LogIn, LogOut, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart3, Brain, ChevronDown, User, Users, ArrowRightCircle, Newspaper, LayoutDashboard, BookOpen, Code2, ShieldCheck, TrendingUp, Megaphone, GitBranch, Mail, UserCircle } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -119,26 +119,16 @@ const Navbar = () => {
 
     const logout = async () => {
         try {
-            await api.post("/api/logout");   // 如果後端有做 token 作廢
-            await Swal.fire({
-                title: "登出成功",
-                icon: "success",
-                confirmButtonText: "確定",
-            });
+            await api.post("/api/logout"); // 呼叫後端登出
+            await Swal.fire({ title: "登出成功", icon: "success", confirmButtonText: "確定" });
         } catch (err) {
             console.error(err);
-            await Swal.fire({
-                title: "登出失敗",
-                icon: "error",
-                confirmButtonText: "確定",
-            });
+            await Swal.fire({ title: "登出失敗", icon: "error", confirmButtonText: "確定" });
         } finally {
-            // 不管 API 成功或失敗，都清除前端登入狀態
-            localStorage.removeItem("token");
+            localStorage.removeItem("auth_token");
             setUser(null);
             delete api.defaults.headers.common["Authorization"];
-
-            navigate("/login");   // 🔥 導回登入頁
+            navigate("/login");
         }
     };
 
@@ -384,6 +374,8 @@ const Navbar = () => {
                             .filter((item) => {
                                 if (item.name === "登入" && user) return false;
                                 if (item.name === "登出" && !user) return false;
+                                if (item.name === "個人資料" && (!user || !user.auth)) return false;
+                                if (item.name === "前往管理專區" && (!user || !user.user?.roles?.includes("admin"))) return false;
                                 return true;
                             }).map((item, index) => {
                                 const Icon = item.icon;

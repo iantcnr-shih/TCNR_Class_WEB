@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "@/components/front/Navbar";
 import Footer from "@/components/front/Footer";
-import { useUser } from "@/components/front/UserProvider";
+import { useUser } from "@/components/auth/UserProvider";
 import React, { useState, useEffect } from 'react';
 import Swal from "sweetalert2";
 import api from "@/api/axios";
@@ -19,8 +19,14 @@ const FrontLayout = () => {
         if (!res.data.user?.seat_number && !path.includes("profile")) {
           Swal.fire({
             icon: "warning",
-            text: "尚未設定座號",
-            footer: `<a href='${import.meta.env.BASE_URL}profile'>前往設定</a>`
+            html: `<div class="text-xl">該帳號尚未設定座號</div><br/>
+                   <div class="inline-block cursor-pointer text-[rgb(43,131,226)] font-medium transition-all duration-200 hover:underline hover:text-[rgb(34,108,187)] hover:translate-x-0.5"
+                    onclick="location.href='profile'"
+                   >
+                       前往設定
+                   </div>`,
+            showConfirmButton: false, // ❌ 不顯示 OK
+            allowOutsideClick: true,  // 可以點外面關閉
           });
         }
       } catch (err) {

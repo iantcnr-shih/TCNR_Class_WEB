@@ -30,7 +30,6 @@ function AaminLeftSode() {
             localStorage.removeItem("token");
             setUser(null);
             delete api.defaults.headers.common["Authorization"];
-
             navigate("/");
         }
     };

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAdminUser } from "@/components/admin/AdminUserProvider";
 import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, TrendingUp, Clock, CheckCircle, ArrowRightCircle, LogIn, LogOut } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import api from "@/api/axios";
 
 // Navbar Component
@@ -31,7 +32,7 @@ const AdminNavbar = () => {
     const AdminMenuItems = [
         { name: "個人資料", path: "/profile", roles: ["admin", "student"] },
         { name: "前往使用者頁面", path: "/", roles: ["admin"] },
-        { name: "登出", action: "logout", roles: ["admin", "student"] },
+        { name: "登出", action: "logout", roles: [""] },
     ];
 
 
@@ -45,6 +46,11 @@ const AdminNavbar = () => {
             });
         } catch (err) {
             console.error(err);
+            await Swal.fire({
+                title: "登出失敗",
+                icon: "error",
+                confirmButtonText: "確定",
+            });
         } finally {
             // 不管 API 成功或失敗，都清除前端登入狀態
             localStorage.removeItem("token");
@@ -198,7 +204,7 @@ const AdminNavbar = () => {
                                                 `}
                                             >
                                                 {AdminMenuItems
-                                                    .filter(item => item.roles.some(role => user.user.roles.includes(role)))
+                                                    .filter(item => item.roles.includes("") || item.roles.some(role => user?.user?.roles?.includes(role)))
                                                     .map(item => (
                                                         <div
                                                             key={item.name}

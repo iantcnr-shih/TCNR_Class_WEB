@@ -364,7 +364,6 @@ const AdminMealOrder = () => {
     if (userIP && userIP !== "未知") {
       const lastSegment = userIP.split('.').pop();
       const seatNo = parseInt(lastSegment) - 1;
-      console.log(99999999999999, seatNo)
       setSeatNumber(seatNo);
     }
   }, [userIP]);

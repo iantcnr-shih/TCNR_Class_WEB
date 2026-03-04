@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { AdminUserProvider } from "@/components/admin/AdminUserProvider";
 import AdminLayout from "@/layouts/AdminLayout";
-import ManagerLayout from "@/layouts/ManagerLayout";
 import AdminHome from "@/pages/admin/AdminHome";
 import AdminNews from "@/pages/admin/AdminNews";
 import AdminMealOrder from "@/pages/admin/AdminMealOrder";
@@ -11,7 +10,8 @@ import AdminTechForum from "@/pages/admin/AdminTechForum";
 import AdminDataAnalysis from "@/pages/admin/AdminDataAnalysis";
 import AdminAi from "@/pages/admin/AdminAi";
 import AdminDevTeam from "@/pages/admin/AdminDevTeam";
-import { UserProvider } from "@/components/front/UserProvider";
+import { UserProvider } from "@/components/auth/UserProvider";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import FrontLayout from "@/layouts/FrontLayout";
 import Home from "@/pages/front/Home";
 import Profile from "@/pages/front/Profile/Profile";
@@ -29,6 +29,7 @@ import Terms from "@/pages/front/Terms/Terms";
 import Privacy from "@/pages/front/Privacy/Privacy";
 import Lunch from "@/pages/front/Lunch";
 import Login from "@/pages/auth/Login";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
 import Register from "@/pages/auth/Register";
 
 
@@ -61,7 +62,13 @@ function App() {
           </UserProvider>
         }>
           <Route index element={<Home />} />
-          <Route path="profile" element={<Profile />} />
+          {/* <Route path="profile" element={<Profile />} /> */}
+          <Route path="profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+          />
           <Route path="job-info" element={<JobInfo />} />
           <Route path="campus-news" element={<CampusNews />} />
           <Route path="meal-order" element={<MealOrder />} />
@@ -78,6 +85,7 @@ function App() {
         </Route>
 
         <Route path="/login" element={<Login />} />
+        <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/register" element={<Register />} />
 
         {/* 後台 */}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@/components/front/UserProvider";
+import { useUser } from "@/components/auth/UserProvider";
 import { getOrderHistoryMock, getReviewsMock, addReviewMock } from "@/api/reviews.mock";
 import api from "@/api/axios";
 

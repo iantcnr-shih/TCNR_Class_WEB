@@ -1,29 +1,22 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
+import { RECAPTCHA_SITEKEY } from "@/config";
 import Swal from "sweetalert2";
 import api from "@/api/axios";
 
 function Login() {
+  const recaptchaRef = useRef(null);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     remember: false,
-    captcha: ''
+    captchaToken: ''
   })
 
-  const [captchaUrl, setCaptchaUrl] = useState('');
   const [error, setError] = useState('');
-
-  // 取得 captcha 圖片
-  const loadCaptcha = async () => {
-    const res = await api.get(`/my-captcha/default?ts=${Date.now()}`, {
-      responseType: 'blob',
-    });
-    const blob = new Blob([res.data], { type: 'image/jpeg' });
-    setCaptchaUrl(URL.createObjectURL(blob));
-  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -37,7 +30,6 @@ function Login() {
       }
     };
     fetchUser();
-    loadCaptcha();
   }, []);
 
   const handleChange = (e) => {
@@ -51,9 +43,23 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      // 🔥 ① 先拿 CSRF Cookie（超重要）
-      await api.get('/sanctum/csrf-cookie');
-      await api.post('/api/login', formData);
+      if (!formData.captchaToken) {
+        Swal.fire({
+          title: "請完成安全驗證",
+          icon: "warning",
+        });
+        return;
+      }
+      const res = await api.post('/api/login', {
+        email: formData.email,
+        password: formData.password,
+        remember: formData.remember,
+        'g-recaptcha-response': formData.captchaToken, // <- 對應官方token
+      });
+      // 儲存 token
+      localStorage.setItem('auth_token', res.data.token);
+      // 後續 API 帶上 header
+      api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
       Swal.fire({
         title: "登入成功",
         icon: "success",
@@ -75,54 +81,106 @@ function Login() {
       } else {
         setError('登入失敗');
       }
-
       setFormData(prev => ({
         ...prev,
         password: '',
-        captcha: ''
+        captchaToken: ''
       }));
-      loadCaptcha();
+    } finally {
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+      }
     }
-  }
-
-
-  const handleForgotPassword = (e) => {
-    e.preventDefault()
-    alert('忘記密碼功能尚未實作')
-  }
-
-  const handleSignup = (e) => {
-    e.preventDefault()
-    alert('註冊功能尚未實作')
   }
 
   const handleSocialLogin = (provider) => {
     alert(`${provider} 登入功能尚未實作`)
   }
 
+  // Brand gradients via inline style (Tailwind JIT not available at runtime)
+  const brandGrad = { background: "linear-gradient(160deg, #9f3a4b 0%, #4a1220 100%)" };
   return (
-    <div className="w-screen min-h-screen bg-gradient-to-b from-[rgb(255,255,255)] to-[#5e1f2b] flex justify-center items-center p-5">
-      <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-md w-full animate-fadeIn">
-        {/* Header */}
-        <div className="bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b] px-8 py-10 text-center text-white relative">
-          {/* Home Button */}
-          {/* <div
-            onClick={() => navigate('/')}
-            className="absolute top-3 left-3 px-4 py-1 bg-white/20 hover:bg-white/30 
-                     rounded-lg text-white text-sm font-medium transition-all duration-300
-                     backdrop-blur-sm border border-white/30"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </div> */}
-          <div className="text-4xl lg:text-7xl font-semibold mb-2">TCNR Class</div>
-          <p className="text-sm opacity-90">歡迎回來，請登入您的帳號</p>
+    <div className="min-h-screen w-screen flex flex-col md:flex-row bg-[rgb(255,249,252)]">
+
+      {/* ── LEFT PANEL ─────────────────────────────────────────── */}
+      <div
+        style={brandGrad}
+        className={`relative overflow-hidden flex flex-col justify-between w-full md:w-5/12 md:max-w-[360px] md:min-h-screen
+          p-4 md:px-12 md:py-14 transition-all duration-700 opacity-100 translate-x-0
+        `}
+      >
+        {/* Decorative circles */}
+        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-white opacity-5 pointer-events-none" />
+        <div className="absolute bottom-10 -left-16 w-48 h-48 rounded-full bg-white opacity-5 pointer-events-none" />
+        <div className="absolute top-1/2 right-8 w-32 h-32 rounded-full bg-rose-200 opacity-10 pointer-events-none" />
+
+        {/* Brand mark */}
+        <div className="relative z-10 items-center gap-3">
+          <div className='flex gap-3'>
+            <div className="w-12 h-12 bg-gradient-to-br from-[#FC801C] to-[#BB496B] rounded-lg flex items-center justify-center transition-transform duration-300 ease-in-out hover:scale-110 hover:shadow-lg hover:brightness-110"
+              onClick={() => {
+                navigate("/");
+                window.scrollTo({
+                  top: 0,
+                  behavior: "smooth"
+                });
+              }}
+            >
+              <span className="text-white font-bold text-2xl">AI</span>
+            </div>
+            <span className="flex items-center justify-center text-white text-xl font-medium tracking-widest uppercase" style={{ opacity: 0.75 }}>
+              TCNR Class
+            </span>
+          </div>
+          <div className='flex w-full mt-5 hidden md:block'>
+            <div className='mx-auto'>
+              <span className='text-3xl font-bold text-white'>登入</span>
+              <p className="text-md text-[rgba(255,255,255,0.6)]">
+                歡迎回來，請登入您的帳號
+              </p>
+            </div>
+          </div>
         </div>
 
+        {/* Hero — desktop only */}
+        <div className="relative z-10 hidden md:block">
+          <div className="w-10 h-0.5 mb-6" style={{ background: "rgba(255,255,255,0.3)" }} />
+          <h1 className="text-white text-4xl lg:text-5xl leading-tight mb-5"
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontWeight: 600 }}>
+            學習，從<br />
+            <em style={{ fontStyle: "italic", color: "rgba(255,220,210,0.9)" }}>這裡</em>開始。
+          </h1>
+          <p className="text-sm leading-relaxed max-w-xs" style={{ color: "rgba(255,255,255,0.55)" }}>
+            專為學員打造的線上學習平台，精心設計每一堂課程，陪伴你踏上成長之旅。
+          </p>
+        </div>
+
+        {/* Footer dots — desktop */}
+        <div className="relative z-10 hidden md:flex items-center gap-3">
+          <div className="flex gap-1.5 items-center">
+            <div className="w-5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.8)" }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.25)" }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.25)" }} />
+          </div>
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>© 2026 TCNR Class</span>
+        </div>
+
+        {/* Mobile sub-title */}
+        <div className='flex px-3'>
+          <p className="relative z-10 md:hidden text-md text-[rgba(255,255,255,0.6)] mt-3 md:mt-5">
+            歡迎回來，請登入您的帳號
+          </p>
+          <span className='flex items-center justify-center ml-auto text-2xl text-[rgba(255,255,255,0.6)] mt-3 md:mt-5" md:hidden'>登入</span>
+        </div>
+      </div>
+
+      {/* ── RIGHT PANEL ────────────────────────────────────────── */}
+      <div className={`flex-1 flex items-center justify-center px-3 py-2 sm:px-5 transition-all duration-700 delay-150 opacity-100 translate-x-0`}>
         {/* Form */}
-        <form onSubmit={handleSubmit} className="px-8 py-10">
+        <form onSubmit={handleSubmit} className="w-full max-w-md px-6 py-8">
           {/* Email */}
           <div className="mb-6">
-            <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block mb-2 text-md md:text-sm font-medium text-gray-700">
               電子郵件
             </label>
             <input
@@ -133,15 +191,15 @@ function Login() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm
-                       focus:border-[#9f3a4b] focus:ring-4 focus:ring-[#9f3a4b]/10 
-                       outline-none transition-all duration-300 placeholder-gray-400"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-md md:text-sm
+                        focus:border-[#9f3a4b] focus:ring-4 focus:ring-[#9f3a4b]/10
+                        outline-none transition-all duration-300 placeholder-gray-400"
             />
           </div>
 
           {/* Password */}
           <div className="mb-6">
-            <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block mb-2 text-md md:text-sm font-medium text-gray-700">
               密碼
             </label>
             <input
@@ -152,83 +210,77 @@ function Login() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm
-                       focus:border-[#9f3a4b] focus:ring-4 focus:ring-[#9f3a4b]/10 
-                       outline-none transition-all duration-300 placeholder-gray-400"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-md md:text-sm
+                        focus:border-[#9f3a4b] focus:ring-4 focus:ring-[#9f3a4b]/10
+                        outline-none transition-all duration-300 placeholder-gray-400"
             />
           </div>
 
           {/* Captcha */}
           <div className="mb-6">
-            <label htmlFor="captcha" className="block mb-2 text-sm font-medium text-gray-700">
-              驗證碼
+            <label htmlFor="captcha" className="block mb-2 text-md md:text-sm font-medium text-gray-700">
+              安全驗證
             </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="text"
-                id="captcha"
-                name="captcha"
-                placeholder="請輸入驗證碼"
-                value={formData.captcha}
-                onChange={handleChange}
-                required
-                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg text-sm
-                         focus:border-[#9f3a4b] focus:ring-4 focus:ring-[#9f3a4b]/10 
-                         outline-none transition-all duration-300 placeholder-gray-400"
-              />
-
-              {captchaUrl && (
-                <div>
-                  <img
-                    src={captchaUrl}
-                    onClick={loadCaptcha}
-                    className="cursor-pointer select-none h-12 w-auto"
-                    alt="captcha"
-                  />
-                </div>
-              )}
+            <div className='flex w-full'>
+              <div className="mr-auto md:scale-90 origin-top-left">
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey={RECAPTCHA_SITEKEY}
+                  onChange={(token) => setFormData(prev => ({ ...prev, captchaToken: token }))}
+                />
+              </div>
             </div>
           </div>
 
           {/* Remember Me */}
-          <div className="flex items-center mb-5">
-            <input
-              type="checkbox"
-              id="remember"
-              name="remember"
-              checked={formData.remember}
-              onChange={handleChange}
-              className="w-4 h-4 cursor-pointer accent-[#9f3a4b]"
-            />
-            <label htmlFor="remember" className="ml-2 text-sm text-gray-600 cursor-pointer">
-              記住我
-            </label>
-          </div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center ml-2 mb-2">
+              <label className="inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  name="remember"
+                  checked={formData.remember}
+                  onChange={handleChange}
+                  className={`w-5 h-5 rounded-sm border-2 border-gray-300 appearance-none checked:bg-[#9f3a4b] checked:border-[#9f3a4b] relative flex-shrink-0
+                              before:content-[''] before:absolute before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2
+                              before:w-2 before:h-3 before:border-b-2 before:border-r-2 before:border-white before:rotate-45 before:hidden
+                              checked:before:block transition-all
+                            `}
+                />
+                <span className="ml-2 text-md md:text-sm text-gray-600 select-none">記住我</span>
+              </label>
+            </div>
 
-          {/* Forgot Password */}
-          <div className="text-right mb-6">
-            <div
-              onClick={handleForgotPassword}
-              className="text-sm text-[#9f3a4b] hover:text-[#5e1f2b] transition-colors duration-300"
-            >
-              忘記密碼？
+            {/* Forgot Password */}
+            <div className="text-right mr-2 mb-2">
+              <div
+                onClick={()=> navigate("/forgotpassword")}
+                className="text-md md:text-sm text-[#9f3a4b] hover:text-[#5e1f2b] transition-colors duration-300"
+              >
+                忘記密碼？
+              </div>
             </div>
           </div>
 
           {/* Error Message */}
-          {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
+          {error &&
+            <div className='flex w-full'>
+              <p className="mx-auto text-red-500 mb-4 text-sm">{error}</p>
+            </div>
+          }
 
           {/* Login Button */}
           <button
             type="submit"
-            className="w-full py-3.5 bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b] text-white 
-                     rounded-lg font-semibold text-base shadow-lg shadow-[#9f3a4b]/40
-                     hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#9f3a4b]/50
-                     active:translate-y-0 transition-all duration-300"
+            className="w-full py-3.5 bg-gradient-to-b from-[#9f3a4b] to-[#5e1f2b] text-white
+                      rounded-lg font-semibold text-base shadow-lg shadow-[#9f3a4b]/40
+                      hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#9f3a4b]/50
+                      active:translate-y-0 transition-all duration-300"
           >
             登入
           </button>
-          <div className="relative my-8">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200"></div>
             </div>
@@ -242,7 +294,7 @@ function Login() {
             <div
               onClick={() => handleSocialLogin('Google')}
               className="flex-1 text-center text-xl py-3 border-2 border-gray-200 rounded-lg font-medium text-sm
-                       hover:border-[#9f3a4b] hover:bg-gray-50 transition-all duration-300 bg-[rgb(225,231,236)]"
+                        hover:border-[#9f3a4b] hover:bg-gray-50 transition-all duration-300 bg-[rgb(225,231,236)]"
             >
               Google
             </div>
@@ -250,26 +302,26 @@ function Login() {
               type="button"
               onClick={() => handleSocialLogin('GitHub')}
               className="flex-1 text-center text-xl py-3 border-2 border-gray-200 rounded-lg font-medium text-sm
-                       hover:border-[#9f3a4b] hover:bg-gray-50 transition-all duration-300 bg-[rgb(225,231,236)]"
+                        hover:border-[#9f3a4b] hover:bg-gray-50 transition-all duration-300 bg-[rgb(225,231,236)]"
             >
               GitHub
             </div>
           </div>
 
           {/* Signup Link */}
-          <div className="text-center text-sm text-gray-600">
+          <div className="text-center text-md md:text-sm text-gray-600">
             還沒有帳號？
             <div
               onClick={() => navigate("/register")}
               className="ml-1 text-[#9f3a4b] font-semibold hover:text-[#5e1f2b] 
-                       transition-colors duration-300"
+                        transition-colors duration-300"
             >
               立即註冊
             </div>
           </div>
         </form>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
 export default Login;
