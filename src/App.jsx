@@ -27,6 +27,8 @@ import Privacy from "@/pages/front/Privacy/Privacy";
 import Lunch from "@/pages/front/Lunch";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
+import ShopReviewSummary from "@/pages/front/Reviews/ShopReviewSummary";
+import ShopReviewDetail from "@/pages/front/Reviews/ShopReviewDetail";
 
 
 import { useEffect } from "react";
@@ -100,6 +102,13 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/reviews/shops" element={<FrontLayout />}>
+  <Route index element={<ShopReviewSummary />} />
+</Route>
+
+<Route path="/reviews/shops/:shopId" element={<FrontLayout />}>
+  <Route index element={<ShopReviewDetail />} />
+</Route>
 
         {/* 後台 */}
         <Route path="/admin" element={<AdminLayout />}>
