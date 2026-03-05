@@ -11,7 +11,7 @@ const AdminDevTeam = () => {
     { id: 'tech-forum', name: '知識論壇', icon: MessageSquare, url: '#tech-forum', color: 'cyan', bgColor: 'bg-cyan-500', lightBg: 'bg-cyan-50', textColor: 'text-cyan-600' },
     { id: 'data-analysis', name: '數據分析', icon: BarChart3, url: '#data-analysis', color: 'indigo', bgColor: 'bg-indigo-500', lightBg: 'bg-indigo-50', textColor: 'text-indigo-600' },
     { id: 'ai', name: 'AI 應用', icon: Brain, url: '#ai', color: 'pink', bgColor: 'bg-pink-500', lightBg: 'bg-pink-50', textColor: 'text-pink-600' },
-    { id: 'team', name: '團隊開發', icon: Users, url: '#team', color: 'teal', bgColor: 'bg-teal-500', lightBg: 'bg-teal-50', textColor: 'text-teal-600' },
+    { id: 'team', name: '開發團隊', icon: Users, url: '#team', color: 'teal', bgColor: 'bg-teal-500', lightBg: 'bg-teal-50', textColor: 'text-teal-600' },
   ];
 
   const getContentForMenu = (menuId) => {
@@ -101,7 +101,7 @@ const AdminDevTeam = () => {
         ]
       },
       'team': {
-        title: '團隊開發',
+        title: '開發團隊',
         description: '團隊協作與專案管理',
         items: [
           { name: '專案列表', status: 'active', date: '2024-02-15' },

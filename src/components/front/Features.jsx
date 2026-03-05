@@ -63,7 +63,7 @@ const Features = () => {
     },
     {
       icon: Users,
-      title: '團隊開發',
+      title: '開發團隊',
       description: '建立專業人脈網絡，促進跨界合作交流',
       iconColor: 'text-[#BB496B]',
       iconBg: 'bg-pink-50',

@@ -39,11 +39,11 @@ const PageHeader = ({ title, subtitle }) => (
   </div>
 );
 
-/* ─── 團隊開發 ──────────────────────────────────────────────────────── */
+/* ─── 開發團隊 ──────────────────────────────────────────────────────── */
 export default function DevTeam() {
   return (
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
-      <PageHeader title="團隊開發" subtitle="建立專業人脈網絡，促進跨界合作交流" />
+      <PageHeader title="開發團隊" subtitle="建立專業人脈網絡，促進跨界合作交流" />
 
       {/* 1 col → 2 col → 3 col */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">

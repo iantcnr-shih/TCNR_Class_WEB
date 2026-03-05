@@ -25,7 +25,9 @@ const badges = [
   { icon: "🎯", label: "結業認證", desc: "完成課程", earned: false },
 ];
 
-const avatarOptions = ["👨‍💻", "🧑‍💻", "👩‍💻", "🧑‍🎨", "👨‍🎨", "👩‍🎨", "🦊", "🐼", "🐸", "🦁", "🐙", "🚀"];
+const avatarOptions = [ "🦊", "🐼", "🐸", "🦁", "🐙", "🚀", "🌸", "🧪", "🗄️", "🤖", "⚡", "✨", "🐳", "🎭", "🔧",
+  "🧠", "📱", "🎯", "🛡️", "🌊", "☁️", "🖌️", "⚙️", "📊", "🌈", "🎮", "🔢", "🔐", "🏗️", "🎨", "🎪", "🤯", "❄️", "🌱"
+];
 
 // const skillOptions = ["React", "Vue", "Angular", "Node.js", "Express", "TypeScript", "JavaScript", "Python", "PostgreSQL", "MongoDB", "Docker", "AWS", "Git", "Figma", "GraphQL", "Redis"];
 
@@ -78,6 +80,39 @@ const InputField = ({ label, value, onChange, type = "text", placeholder, disabl
   </div>
 );
 
+const SelectField = ({
+  label,
+  value,
+  onChange,
+  options = [],
+  disabled,
+  placeholder = "請選擇"
+}) => (
+  <div>
+    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+      {label}
+    </label>
+
+    <select
+      value={value}
+      onChange={onChange}
+      disabled={disabled}
+      className={`w-full border rounded-xl px-4 py-2.5 text-sm transition-all outline-none
+        ${disabled
+          ? "bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed"
+          : "border-gray-200 focus:border-red-400 focus:ring-2 focus:ring-red-100 text-gray-800"}`}
+    >
+      <option value="">{placeholder}</option>
+
+      {options.map(opt => (
+        <option key={opt.id} value={opt.id}>
+          {opt.position_name}
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
 /* ═══════════════════════════════════════════════════════════════════════
    TOAST
 ═══════════════════════════════════════════════════════════════════════ */
@@ -119,6 +154,7 @@ export default function Profile() {
     email: false,
   });
   const [skillOptions, setSkillOptions] = useState([]);
+  const [positionList, setPositionList] = useState([]);
 
   // 避免未儲存更新頁面
   const hasUnsavedChanges = avatarEditing || profileEditing || skillEditing;
@@ -148,7 +184,6 @@ export default function Profile() {
       showLoaderOnConfirm: true,
       preConfirm: async () => {
         try {
-          await api.get("/sanctum/csrf-cookie");
           const res = await api.post("/api/user/updateprofile", { profiledata });
 
           if (!res.data?.success) {
@@ -188,7 +223,6 @@ export default function Profile() {
       showLoaderOnConfirm: true,
       preConfirm: async () => {
         try {
-          await api.get("/sanctum/csrf-cookie");
           const res = await api.post("/api/user/updateUserSkills", { skillsdata });
 
           if (!res.data?.success) {
@@ -212,6 +246,25 @@ export default function Profile() {
         title: "儲存成功",
         icon: "success",
       });
+    }
+  }
+
+  const handleUserAvatarSave = async (avatar) => {
+    try {
+      const res = await api.post("/api/user/updateAvatar", { avatar });
+      if (!res.data?.success) {
+        throw new Error(res.data?.message || "儲存失敗");
+      }
+
+      setProfile({...profile, avatar: res.data.avatar || ""});
+
+      Swal.fire({
+        title: "頭像儲存成功",
+        icon: "success",
+      });
+    } catch (error) {
+      console.log(745,error)
+      Swal.showValidationMessage(error.message || "儲存發生錯誤");
     }
   }
 
@@ -318,8 +371,6 @@ export default function Profile() {
     if (!trimmedSkill) return;
 
     try {
-      await api.get("/sanctum/csrf-cookie");
-
       // 送到後端新增技能
       const res = await api.post("/api/skills/add", { skill_name: trimmedSkill });
 
@@ -378,8 +429,6 @@ export default function Profile() {
     }
 
     try {
-      await api.get("/sanctum/csrf-cookie"); // 如果你用 Laravel Sanctum
-
       const res = await api.post("/api/user/updatePassword", {
         current_password: pwForm.current,
         new_password: pwForm.next,
@@ -390,15 +439,25 @@ export default function Profile() {
         throw new Error(res.data.message || "更新密碼失敗");
       }
 
-      Swal.fire({
+      await Swal.fire({
         title: "密碼更新成功",
+        html: `<div class="text-red-500 text-md">系統即將為您登出，請使用新的設定密碼重新登入</div>`,
         icon: "success",
       });
-      // 清空表單
+      // 4️⃣ 清空表單
       setPwForm({ current: "", next: "", confirm: "" });
+
+      // 5️⃣ 呼叫登出 API（失敗也不影響流程）
+      await api.post("/api/logoutAll").catch(() => { });
+
+      // 6️⃣ 清除前端登入資訊，導向登入頁
+      localStorage.removeItem("auth_token");
+      delete api.defaults.headers.common["Authorization"];
+      navigate("/login");
     } catch (error) {
       Swal.fire({
         title: "更新密碼發生錯誤",
+        text: error.response?.data?.message || error.message || "更新密碼失敗",
         icon: "error",
       });
     }
@@ -487,6 +546,18 @@ export default function Profile() {
       }
     }
     fetchGetSkills();
+    const fetchGetPositions = async () => {
+      try {
+        const res = await api.get("/api/GetPositions");
+        if (res.status === 200) {
+          const positions = res.data.AllPositions
+          setPositionList(positions)
+        }
+      } catch (error) {
+        console.log("getSkills error:", error);
+      }
+    }
+    fetchGetPositions();
   }, [])
 
   useEffect(() => {
@@ -648,22 +719,22 @@ export default function Profile() {
             <div className="relative flex-shrink-0">
               <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-red-50 ring-4 ring-red-100 flex items-center justify-center text-4xl md:text-5xl cursor-pointer select-none"
                 onClick={() => avatarEditing && setShowAvatarPicker(p => !p)}>
-                👨‍💻
+                {profile.avatar || "👨‍💻"}
               </div>
-              {avatarEditing && (
-                <div onClick={() => setShowAvatarPicker(p => !p)}
-                  className="absolute -bottom-1 -right-1 w-7 h-7 bg-red-800 rounded-full text-white text-xs flex items-center justify-center shadow-md cursor-pointer hover:bg-red-900 transition-colors">
-                  ✏️
-                </div>
-              )}
+              {/* {avatarEditing && ( */}
+              <div onClick={() => setShowAvatarPicker(p => !p)}
+                className="absolute -bottom-1 -right-1 w-7 h-7 bg-red-800 rounded-full text-white text-xs flex items-center justify-center shadow-md cursor-pointer hover:bg-red-900 transition-colors">
+                ✏️
+              </div>
+              {/* )} */}
             </div>
 
             {/* Avatar picker */}
-            {showAvatarPicker && avatarEditing && (
-              <div className="absolute z-20 mt-24 ml-0 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 grid grid-cols-6 gap-2 w-64">
+            {showAvatarPicker && (
+              <div className="absolute z-20 mt-26 ml-0 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 grid grid-cols-8 gap-2 w-96">
                 {avatarOptions.map(a => (
-                  <div key={a} onClick={() => { setDraft(d => ({ ...d, avatar: a })); setShowAvatarPicker(false); }}
-                    className={`text-2xl p-1.5 rounded-xl hover:bg-red-50 transition-colors cursor-pointer ${draft.avatar === a ? "bg-red-100 ring-2 ring-red-400" : ""}`}>
+                  <div key={a} onClick={() => { setDraft(d => ({ ...d, avatar: a })); handleUserAvatarSave(a); setShowAvatarPicker(false); }}
+                    className={`flex items-center justify-center text-2xl p-1.5 rounded-xl hover:bg-red-50 transition-colors cursor-pointer ${draft.avatar === a ? "bg-red-100 ring-2 ring-red-400" : ""}`}>
                     {a}
                   </div>
                 ))}
@@ -762,22 +833,7 @@ export default function Profile() {
                   } value={draft.user_name}
                     onChange={e => setDraft(d => ({ ...d, user_name: e.target.value }))} disabled={!profileEditing} required />
                   <InputField label="英文姓名" value={draft.user_en_name}
-                    onChange={e => setDraft(d => ({ ...d, nickname: e.target.value }))} disabled={!profileEditing} />
-                  <InputField label={
-                    <span>
-                      <span className="text-red-500">*</span> 座號
-                    </span>
-                  } value={draft.seat_number} readOnly
-                    onClick={() => {
-                      if (profileEditing)
-                        Swal.fire({
-                          icon: "warning",
-                          title: "座號不可變更，如需變更請洽系統管理員",
-                        })
-                    }}
-                    disabled={!profileEditing} required />
-                  <InputField label="暱稱" value={draft.user_nick_name}
-                    onChange={e => setDraft(d => ({ ...d, nickname: e.target.value }))} disabled={!profileEditing} />
+                    onChange={e => setDraft(d => ({ ...d, user_en_name: e.target.value }))} disabled={!profileEditing} />
                   <InputField
                     label={
                       <span>
@@ -797,8 +853,36 @@ export default function Profile() {
                         })
                     }}
                   />
+                  <InputField label={
+                    <span>
+                      <span className="text-red-500">*</span> 座號
+                    </span>
+                  } value={draft.seat_number} readOnly
+                    onClick={() => {
+                      if (profileEditing)
+                        Swal.fire({
+                          icon: "warning",
+                          title: "座號不可變更，如需變更請洽系統管理員",
+                        })
+                    }}
+                    disabled={!profileEditing} required />
+                  <InputField label="暱稱" value={draft.user_nick_name}
+                    onChange={e => setDraft(d => ({ ...d, nickname: e.target.value }))} disabled={!profileEditing} />
+                  <InputField label="個人簡介" value={draft.user_title}
+                    onChange={e => setDraft(d => ({ ...d, user_title: e.target.value }))} disabled={!profileEditing} />
+                  <SelectField label="開發主力" value={draft.position_id} options={positionList}
+                    onChange={e =>
+                      setDraft(d => ({
+                        ...d,
+                        position_id: Number(e.target.value)
+                      }))
+                    }
+                    disabled={!profileEditing}
+                  />
                   <InputField label="電話" value={draft.phone}
                     onChange={e => setDraft(d => ({ ...d, phone: e.target.value }))} disabled={!profileEditing} />
+
+
                   <InputField label="GitHub" value={draft.github}
                     onChange={e => setDraft(d => ({ ...d, github: e.target.value }))} disabled={!profileEditing} placeholder="github.com/your-username" />
                   <InputField label="LinkedIn" value={draft.linkedin}

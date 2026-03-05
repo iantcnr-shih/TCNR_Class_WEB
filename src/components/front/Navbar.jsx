@@ -1,7 +1,7 @@
 // export default Navbar;
 import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from "@/components/auth/UserProvider";
-import { Menu, X, LogIn, LogOut, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart3, Brain, ChevronDown, User, Users, ArrowRightCircle, Newspaper, LayoutDashboard, BookOpen, Code2, ShieldCheck, TrendingUp, Megaphone, GitBranch, Mail, UserCircle } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart3, Brain, ChevronDown, User, Users, ArrowRightCircle, Newspaper, LayoutDashboard, BookOpen, Code2, ShieldCheck, TrendingUp, Megaphone, GitBranch, Mail, UserCircle, ClipboardList, GraduationCap } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import api from "@/api/axios";
@@ -26,18 +26,26 @@ const Navbar = () => {
             icon: Briefcase,
             url: '#news',
             dropdown: [
-                { name: '職涯發展', url: '/job-info' },
-                { name: '課程公告', url: '/campus-news' },
+                { name: '職涯發展', icon: TrendingUp, url: '/job-info' },
+                { name: '課程公告', icon: BookOpen, url: '/campus-news' },
+            ]
+        },
+        {
+            name: '班務資訊',
+            icon: ClipboardList,
+            url: '#class',
+            dropdown: [
+                { name: '環境管理', icon: Sparkles, url: '/environment' },
+                { name: '班務會議', icon: Calendar, url: '/class-meeting' },
             ]
         },
         { name: '訂餐管理', icon: Utensils, url: '/meal-order' },
-        { name: '環境管理', icon: Sparkles, url: '/environment' },
-        { name: '班務會議', icon: Calendar, url: '/class-meeting' },
         { name: '知識論壇', icon: MessageSquare, url: '/tech-forum' },
 
         { name: '數據分析', icon: BarChart3, url: '/data-analysis' },
         { name: 'AI 應用', icon: Brain, url: '/ai' },
-        { name: '團隊開發', icon: Users, url: '/dev-team' },
+        { name: '班級成員', icon: Users, url: '/class-members' },
+        { name: '開發團隊', icon: GraduationCap, url: '/dev-team' },
         { name: '登入', icon: LogIn, url: '/login' },
         { name: '登出', icon: LogIn, url: 'logout' },
     ];
@@ -50,7 +58,7 @@ const Navbar = () => {
             color: 'text-[rgb(194,37,37)]',
             dropdown: [
                 { name: '職涯發展', icon: TrendingUp, color: 'text-orange-600', url: '/job-info' },
-                { name: '課程公告', icon: Megaphone, color: 'text-emerald-600', url: '/campus-news' },
+                { name: '課程公告', icon: BookOpen, color: 'text-emerald-600', url: '/campus-news' },
             ]
         },
         {
@@ -71,6 +79,7 @@ const Navbar = () => {
             url: '#resources',
             color: 'text-teal-600',
             dropdown: [
+                { name: '班級成員', icon: Users, color: 'text-orange-600', url: '/class-members' },
                 { name: '數據分析', icon: BarChart3, color: 'text-blue-600', url: '/data-analysis' },
                 { name: 'AI 應用', icon: Brain, color: 'text-orange-600', url: '/ai' },
             ]
@@ -81,7 +90,7 @@ const Navbar = () => {
             url: '#about',
             color: 'text-pink-600',
             dropdown: [
-                { name: '團隊開發', icon: GitBranch, color: 'text-cyan-600', url: '/dev-team' },
+                { name: '開發團隊', icon: GitBranch, color: 'text-cyan-600', url: '/dev-team' },
                 { name: '聯繫我們', icon: Mail, color: 'text-cyan-600', url: '/contact' },
             ]
         },
@@ -327,7 +336,7 @@ const Navbar = () => {
                                                     {item.dropdown.map((subItem) => (
                                                         <div
                                                             key={subItem.name}
-                                                            className="block px-4 py-2.5 text-sm text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md"
+                                                            className="flex px-4 py-2.5 text-sm text-[rgb(252,238,238)] hover:text-[rgb(98,32,32)] hover:bg-[rgb(252,238,238)] transition-colors rounded-md"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 if (subItem.url && subItem.url.startsWith("#")) {
@@ -343,6 +352,7 @@ const Navbar = () => {
                                                             }}
 
                                                         >
+                                                            {subItem.icon && <subItem.icon className="w-4 h-4 mr-2" />}
                                                             {subItem.name}
                                                         </div>
                                                     ))}

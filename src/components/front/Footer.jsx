@@ -16,10 +16,11 @@ const Footer = () => {
       { name: 'AI 應用', url: '/ai' },
     ],
     about: [
+      { name: '班級成員', url: '/class-members' },
       { name: '開發團隊', url: '/dev-team' },
       { name: '聯繫我們', url: '/contact' },
-      { name: '使用條款', url: '/terms' },
-      { name: '隱私政策', url: '/privacy' },
+      // { name: '使用條款', url: '/terms' },
+      // { name: '隱私政策', url: '/privacy' },
     ],
   };
 
@@ -157,7 +158,38 @@ const Footer = () => {
           <div className="flex flex-col justify-between items-center text-sm text-slate-500">
             <div className="mb-4">
               <div className="mt-3 w-full flex">
-                <div className="mx-auto text-slate-500">© 2026 TCNR Class. All Rights Reserved.</div>
+                {/* <div className="mx-auto text-slate-500">© 2026 TCNR Class. All Rights Reserved.</div> */}
+                <div className="mx-auto text-slate-500">
+                  <div className="mx-auto text-slate-500">
+                    © 2026 TCNR Class. All Rights Reserved.
+                    <span className="mx-2">|</span>
+                    <span
+                      className="hover:text-white cursor-pointer"
+                      onClick={() => {
+                        navigate("/terms");
+                        window.scrollTo({
+                          top: 0,
+                          behavior: "smooth"
+                        });
+                      }}
+                    >
+                      使用條款
+                    </span>
+                    <span className="mx-2">|</span>
+                    <span
+                      className="hover:text-white cursor-pointer"
+                      onClick={() => {
+                        navigate("/privacy");
+                        window.scrollTo({
+                          top: 0,
+                          behavior: "smooth"
+                        });
+                      }}
+                    >
+                      隱私政策
+                    </span>
+                  </div>
+                </div>
               </div>
               <div className="w-full flex">
                 <div className="mx-auto text-slate-500">Developed by Ian, Billy, Tako</div>

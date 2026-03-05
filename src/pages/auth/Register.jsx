@@ -73,9 +73,6 @@ function Register() {
     }
     setLoading(true);
     try {
-      // 🔥 先取得 csrf-cookie
-      await api.get("/sanctum/csrf-cookie");
-
       await api.post("/api/register", {
         email: formData.email,
         password: formData.password,
@@ -229,11 +226,11 @@ function Register() {
               type="password"
               id="password"
               name="password"
-              placeholder="請輸入密碼（至少 8 個字元）"
+              placeholder="請輸入密碼（至少 4 個字元）"
               value={formData.password}
               onChange={handleChange}
               required
-              minLength={8}
+              minLength={4}
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-md md:text-sm
                         focus:border-[#9f3a4b] focus:ring-4 focus:ring-[#9f3a4b]/10 
                         outline-none transition-all duration-300 placeholder-gray-400"
@@ -253,7 +250,7 @@ function Register() {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              minLength={8}
+              minLength={4}
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-md md:text-sm
                         focus:border-[#9f3a4b] focus:ring-4 focus:ring-[#9f3a4b]/10 
                         outline-none transition-all duration-300 placeholder-gray-400"

@@ -23,7 +23,7 @@ const AdminNavbar = () => {
         { id: 'tech-forum', name: '知識論壇', icon: MessageSquare, url: '/admin/tech-forum', color: 'cyan', bgColor: 'bg-cyan-500', lightBg: 'bg-cyan-50', textColor: 'text-cyan-600' },
         { id: 'data-analysis', name: '數據分析', icon: BarChart3, url: '/admin/data-analysis', color: 'indigo', bgColor: 'bg-indigo-500', lightBg: 'bg-indigo-50', textColor: 'text-indigo-600' },
         { id: 'ai', name: 'AI 應用', icon: Brain, url: '/admin/ai', color: 'pink', bgColor: 'bg-pink-500', lightBg: 'bg-pink-50', textColor: 'text-pink-600' },
-        { id: 'team', name: '團隊開發', icon: Users, url: '/dev-team', color: 'teal', bgColor: 'bg-teal-500', lightBg: 'bg-teal-50', textColor: 'text-teal-600' },
+        { id: 'team', name: '開發團隊', icon: Users, url: '/dev-team', color: 'teal', bgColor: 'bg-teal-500', lightBg: 'bg-teal-50', textColor: 'text-teal-600' },
         { id: 'go-user', name: '前往使用者頁面', icon: ArrowRightCircle, url: '/', color: 'bg-yellow-500', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-yellow-500' },
         { id: 'login', name: '登入', icon: LogIn, url: '/login', color: 'green', bgColor: 'bg-green-500', lightBg: 'bg-green-50', textColor: 'text-green-600' },
         { id: 'logout', name: '登出', icon: LogOut, url: 'logout', color: 'blue', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', textColor: 'text-blue-600' }
@@ -197,7 +197,7 @@ const AdminNavbar = () => {
                                         </div>
                                         {showAdminMenu &&
                                             <div className={`
-                                                    absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50 border
+                                                    absolute right-0 mt-2 w-48 bg-gradient-to-br from-blue-100 to-blue-50 shadow-lg rounded-lg py-2 z-50
                                                     transition-all duration-300 ease-out transform origin-top-right
                                                     ${AdminMenuItems ? "opacity-100 scale-100 translate-y-0"
                                                     : "opacity-0 scale-95 -translate-y-2 pointer-events-none"}

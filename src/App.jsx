@@ -23,6 +23,7 @@ import ClassMeeting from "@/pages/front/ClassMeeting/ClassMeeting";
 import TechForum from "@/pages/front/TechForum/TechForum";
 import DataAnalysis from "@/pages/front/DataAnalysis/DataAnalysis";
 import Ai from "@/pages/front/Ai/Ai";
+import ClassMembers from "@/pages/front/ClassMembers/ClassMembers";
 import DevTeam from "@/pages/front/DevTeam/DevTeam";
 import Contact from "@/pages/front/Contact/Contact";
 import Terms from "@/pages/front/Terms/Terms";
@@ -79,6 +80,7 @@ function App() {
           <Route path="tech-forum" element={<TechForum />} />
           <Route path="data-analysis" element={<DataAnalysis />} />
           <Route path="ai" element={<Ai />} />
+          <Route path="class-members" element={<ClassMembers />} />
           <Route path="dev-team" element={<DevTeam />} />
           <Route path="contact" element={<Contact />} />
           <Route path="terms" element={<Terms />} />
