@@ -125,7 +125,6 @@ const AdminMealOrder = () => {
           setOrderRound(Number(order_round.c_value));
         }
         let thisday_shop_id = controls.find(item => item.c_title === "thisday_shop_id");
-        console.log(8888,thisday_shop_id)
         if (thisday_shop_id) {
           setThisdayshop(Number(thisday_shop_id.c_value));
         }

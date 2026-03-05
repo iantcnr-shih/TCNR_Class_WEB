@@ -973,7 +973,6 @@ export default function MealOrderService() {
   }
   const togglebubbleteaPaid = async (bubbletea_order_id, is_paid) => {
     try {
-      console.log(9999,bubbletea_order_id)
       const newIsPaid = is_paid === 1 ? 0 : 1;
       const res = await api.post('/api/bubbleteaorderpaid', {
         bubbletea_order_id: bubbletea_order_id,

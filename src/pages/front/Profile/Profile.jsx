@@ -263,7 +263,6 @@ export default function Profile() {
         icon: "success",
       });
     } catch (error) {
-      console.log(745,error)
       Swal.showValidationMessage(error.message || "儲存發生錯誤");
     }
   }

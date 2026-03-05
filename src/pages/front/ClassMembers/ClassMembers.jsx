@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import api from "@/api/axios";
 
 
-const ROLES = ["全部", "前端開發", "後端開發", "全端開發", "Figma UI/UX", "Python","資料庫", "行動開發", "資安"];
+// const ROLES = ["全部", "前端開發", "後端開發", "全端開發", "Figma UI/UX", "Python","資料庫", "行動開發", "資安"];
 
 const colorMap = {
     red: { ring: "ring-red-200", bg: "bg-red-50", text: "text-red-700", badge: "bg-red-100 text-red-700" },
@@ -44,7 +44,7 @@ export default function ClassMembers() {
     const [search, setSearch] = useState("");
     const [activeRole, setActiveRole] = useState("全部");
     const [classMembers, setClassMembers] = useState([]);
-
+    const [positionList, setPositionList] = useState([]);
 
     /* ─── Member Card ──────────────────────────────────────────────────── */
     const MemberCard = ({ member, index }) => {
@@ -147,6 +147,18 @@ export default function ClassMembers() {
             }
         }
         fetchGetAllStudents();
+        const fetchGetPositions = async () => {
+            try {
+                const res = await api.get("/api/GetPositions");
+                if (res.status === 200) {
+                    const positions = res.data.AllPositions
+                    setPositionList(positions)
+                }
+            } catch (error) {
+                console.log("getSkills error:", error);
+            }
+        }
+        fetchGetPositions();
     }, [])
 
     return (
@@ -183,17 +195,26 @@ export default function ClassMembers() {
                 </div>
 
                 {/* Role filter — scrollable row */}
-                <div className="flex gap-1.5 overflow-x-auto pb-1 sm:pb-0 flex-shrink-0">
-                    {ROLES.map(role => (
+                <div className="flex flex-wrap gap-1.5 pb-1 sm:pb-0">
+                    <div
+                        onClick={() => setActiveRole("全部")}
+                        className={`flex flex-shrink-0 items-center justify-center cursor-pointer text-xs px-3 md:px-4 py-2 rounded-lg font-semibold transition-all duration-150 ${activeRole === "全部"
+                                ? "bg-red-500 text-white shadow-sm"
+                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            }`}
+                    >
+                        全部
+                    </div>
+                    {positionList.map(position => (
                         <div
-                            key={role}
-                            onClick={() => setActiveRole(role)}
-                            className={`flex flex-shrink-0 items-center justify-center cursor-pointer text-xs px-3 md:px-4 py-2 rounded-lg font-semibold transition-all duration-150 ${activeRole === role
+                            key={position.id}
+                            onClick={() => setActiveRole(position.position_name)}
+                            className={`flex flex-shrink-0 items-center justify-center cursor-pointer text-xs px-3 md:px-4 py-2 rounded-lg font-semibold transition-all duration-150 ${activeRole === position.position_name
                                 ? "bg-red-500 text-white shadow-sm"
                                 : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                                 }`}
                         >
-                            {role}
+                            {position.position_name}
                         </div>
                     ))}
                 </div>
