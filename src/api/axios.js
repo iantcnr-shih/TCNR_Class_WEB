@@ -2,8 +2,9 @@ import axios from "axios"
 
 export const api = axios.create({
   // baseURL: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000",
-  // baseURL: import.meta.env.VITE_API_BASE_URL || "http://192.168.12.106:8000",
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://10.140.241.130:8000",
+  // baseURL: import.meta.env.VITE_API_BASE_URL || "http://192.168.12.106:8000/TCNR_CLASS_API",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://lohas.idv.tw/TCNR_CLASS_API",
+  // baseURL: import.meta.env.VITE_API_BASE_URL || "http://10.140.241.130:8000",
   headers: {
     "Accept": "application/json",       // Laravel API 通常要這個
     "X-Requested-With": "XMLHttpRequest", // 保留
