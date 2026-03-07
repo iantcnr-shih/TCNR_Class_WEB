@@ -94,7 +94,10 @@ function Login() {
   }
 
   const handleSocialLogin = (provider) => {
-    alert(`${provider} 登入功能尚未實作`)
+    Swal.fire({
+      title: `${provider} 登入功能尚未實作`,
+      icon: "warning",
+    });
   }
 
   // Brand gradients via inline style (Tailwind JIT not available at runtime)
@@ -255,7 +258,7 @@ function Login() {
             {/* Forgot Password */}
             <div className="text-right mr-2 mb-2">
               <div
-                onClick={()=> navigate("/forgotpassword")}
+                onClick={() => navigate("/forgotpassword")}
                 className="text-md md:text-sm text-[#9f3a4b] hover:text-[#5e1f2b] transition-colors duration-300"
               >
                 忘記密碼？

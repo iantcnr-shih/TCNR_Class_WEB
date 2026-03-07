@@ -30,7 +30,7 @@ const AdminNavbar = () => {
     ];
 
     const AdminMenuItems = [
-        { name: "個人資料", path: "/profile", roles: ["admin", "student"] },
+        { name: "會員資料", path: "/profile", roles: ["admin", "student"] },
         { name: "前往使用者頁面", path: "/", roles: ["admin"] },
         { name: "登出", action: "logout", roles: [""] },
     ];
@@ -214,7 +214,10 @@ const AdminNavbar = () => {
                                                                     logout();
                                                                 } else {
                                                                     if (item.path && item.path.startsWith("#")) {
-                                                                        alert("功能尚未實裝, 敬請期待");
+                                                                        Swal.fire({
+                                                                            title: "功能尚未實裝, 敬請期待",
+                                                                            icon: "warning",
+                                                                        });
                                                                     } else {
                                                                         navigate(item.path);
                                                                         window.scrollTo({

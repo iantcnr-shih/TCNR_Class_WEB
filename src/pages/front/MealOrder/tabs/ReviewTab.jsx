@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import api from "@/api/axios";
 import ReviewSection from "@/components/reviews/ReviewSection";
+import Swal from "sweetalert2";
+import api from "@/api/axios";
 
 const Stars = ({ rating }) => {
   const r0 = Number(rating);
@@ -130,7 +131,7 @@ export default function ReviewTab({ seatNumber = null }) {
 
   // 5) 新增評論
   const handleAddReview = async (payload) => {
-    if (!payload?.shop_id) return alert("請先選擇店家");
+    if (!payload?.shop_id) return Swal.fire({ title: "請先選擇店家", icon: "warning", });
 
     const normalized = {
       ...payload,
@@ -140,7 +141,7 @@ export default function ReviewTab({ seatNumber = null }) {
       seat_number: payload.seat_number ?? seatNumber,
     };
 
-    if (normalized.target === "food" && !normalized.food_id) return alert("請選擇餐點");
+    if (normalized.target === "food" && !normalized.food_id) return Swal.fire({ title: "請選擇餐點", icon: "warning", });
     if (normalized.target === "shop") normalized.food_id = null;
 
     try {
@@ -155,11 +156,10 @@ export default function ReviewTab({ seatNumber = null }) {
         setFoodReviews((prev) => [created, ...prev]);
         setActiveListTab("food");
       }
-
-      alert("新增評論成功");
+      Swal.fire({ title: "新增評論成功", icon: "success", });
     } catch (e) {
       console.error(e);
-      alert("新增評論失敗");
+      Swal.fire({ title: "新增評論失敗", icon: "error", });
     }
   };
 

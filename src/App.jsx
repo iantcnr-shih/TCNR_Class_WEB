@@ -3,7 +3,7 @@ import { AdminUserProvider } from "@/components/admin/AdminUserProvider";
 import AdminLayout from "@/layouts/AdminLayout";
 import AdminHome from "@/pages/admin/AdminHome";
 import AdminNews from "@/pages/admin/AdminNews";
-import AdminMealOrder from "@/pages/admin/AdminMealOrder";
+import AdminMealOrder from "@/pages/admin/AdminMealOrder/AdminMealOrder";
 import AdminEnvironment from "@/pages/admin/AdminEnvironment";
 import AdminClassMeeting from "@/pages/admin/AdminClassMeeting";
 import AdminTechForum from "@/pages/admin/AdminTechForum";

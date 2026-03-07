@@ -95,7 +95,7 @@ const Navbar = () => {
             ]
         },
         {
-            name: '個人資料',
+            name: '會員資料',
             icon: UserCircle,
             url: '/profile',
             color: 'text-yellow-600'
@@ -121,7 +121,7 @@ const Navbar = () => {
     ];
 
     const menuItems = [
-        { name: "個人資料", path: "/profile", roles: ["admin", "student", ""] },
+        { name: "會員資料", path: "/profile", roles: ["admin", "student", ""] },
         { name: "管理專區", path: "/admin", roles: ["admin"] },
         { name: "登出", action: "logout", roles: ["admin", "student", ""] },
     ];
@@ -280,7 +280,10 @@ const Navbar = () => {
                                                         logout();
                                                     } else {
                                                         if (item.path && item.path.startsWith("#")) {
-                                                            alert("功能尚未實裝, 敬請期待");
+                                                            Swal.fire({
+                                                                title: "功能尚未實裝, 敬請期待",
+                                                                icon: "warning",
+                                                            });
                                                         } else {
                                                             navigate(item.path);
                                                             window.scrollTo({
@@ -308,7 +311,10 @@ const Navbar = () => {
                                 <div key={item.name} className="relative group"
                                     onClick={() => {
                                         if (item.url && item.url.startsWith("#") && !item.dropdown) {
-                                            alert("功能尚未實裝, 敬請期待");
+                                            Swal.fire({
+                                                title: "功能尚未實裝, 敬請期待",
+                                                icon: "warning",
+                                            });
                                         } else {
                                             navigate(item.url);
                                             window.scrollTo({
@@ -340,7 +346,10 @@ const Navbar = () => {
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 if (subItem.url && subItem.url.startsWith("#")) {
-                                                                    alert("功能尚未實裝, 敬請期待");
+                                                                    Swal.fire({
+                                                                        title: "功能尚未實裝, 敬請期待",
+                                                                        icon: "warning",
+                                                                    });
                                                                 } else {
                                                                     navigate(subItem.url);
                                                                     window.scrollTo({
@@ -384,7 +393,7 @@ const Navbar = () => {
                             .filter((item) => {
                                 if (item.name === "登入" && user) return false;
                                 if (item.name === "登出" && !user) return false;
-                                if (item.name === "個人資料" && (!user || !user.auth)) return false;
+                                if (item.name === "會員資料" && (!user || !user.auth)) return false;
                                 if (item.name === "前往管理專區" && (!user || !user.user?.roles?.includes("admin"))) return false;
                                 return true;
                             }).map((item, index) => {
@@ -451,7 +460,10 @@ const Navbar = () => {
                                                             className="flex items-center gap-3 px-8 py-2 text-sm hover:bg-gray-100"
                                                             onClick={() => {
                                                                 if (subItem.url && subItem.url.startsWith("#")) {
-                                                                    alert("功能尚未實裝, 敬請期待");
+                                                                    Swal.fire({
+                                                                        title: "功能尚未實裝, 敬請期待",
+                                                                        icon: "warning",
+                                                                    });
                                                                 } else {
                                                                     navigate(subItem.url);
                                                                     window.scrollTo({

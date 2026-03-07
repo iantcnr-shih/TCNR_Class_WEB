@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import ReviewSection from "@/components/reviews/ReviewSection";
+import { useUser } from "@/components/auth/UserProvider";
 import MealOrderService from "@/pages/front/MealOrder/MealOrderService";
 import { getOrderHistoryMock, getReviewsMock, addReviewMock } from "@/api/reviews.mock";
 import api from "@/api/axios";
@@ -17,8 +17,6 @@ const statusBadge = {
 };
 
 /* ─── SHARED COMPONENTS ─────────────────────────────────────────────── */
-
-
 const PageHeader = ({ title, subtitle }) => (
   <div className="mb-4 md:mb-6">
     <div className="w-10 h-1 bg-orange-500 rounded-full mb-3" />
@@ -31,34 +29,10 @@ const PageHeader = ({ title, subtitle }) => (
 export default function MealOrder() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("service");
-  const [user, setUser] = useState(null);
-  const [userIP, setUserIP] = useState("");
+  const { user, setUser } = useUser();
 
   const [today, setToday] = useState([]);
   const [seatNumber, setSeatNumber] = useState("");
-  const [shopId, setShopId] = useState("");
-  const [shops, setShops] = useState([]);
-  const [foods, setFoods] = useState([]);
-  const [foodId, setFoodId] = useState("");
-  const [selectedFood, setSelectedFood] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [quantityOptions, setQuantityOptions] = useState([]);
-  const [orderType, setOrderType] = useState("1");
-  const [orderRound, setOrderRound] = useState(1);
-  const [defaultOrderRound, setDefaultOrderRound] = useState();
-
-  const [userorders, setUserorders] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [selectorders, setSelectorders] = useState([]);
-  const [shopSummary, setShopSummary] = useState([]);
-  const [grandTotal, setGrandTotal] = useState(0);
-  const [grandBubbleteaTotal, setGrandBubbleteaTotal] = useState(0);
-  const [isOrderable, setIsOrderable] = useState(false);
-  const [isBubbleTeaOrderable, setIsBubbleTeaOrderable] = useState(false);
-  const [chargedSeatNumber, setChargedSeatNumber] = useState("");
-  const [bubbleteaOrderURL, setBubbleteaOrderURL] = useState("");
-  const [bubbleteaOrders, setBubbleteaOrders] = useState([]);
-  const [userbubbleteaorders, setUserobubbletearders] = useState([]);
   const [userHistoryOrders, setUserHistoryOrders] = useState([]);
   const [userHistoryBubbleteaOrders, setUserHistoryBubbleteaOrders] = useState([]);
   const [orderMode, setOrderMode] = useState("lunch");
@@ -67,7 +41,6 @@ export default function MealOrder() {
   // 給 history tab 顯示（date/item/amount/status）
   // 給評論功能推導可選店家/餐點（shop_id/food_id/shop_name/food_name）
   const [reviewShopId, setReviewShopId] = useState("");
-  const [orderroundlists, setOrderroundlists] = useState([]);
 
   const tabs = [["service", "🍱", "訂餐服務"], ["review", "⭐", "餐點評價"], ["history", "📋", "歷史紀錄"]];
 
@@ -105,126 +78,12 @@ export default function MealOrder() {
           if (Array.isArray(today) && today.length === 0) {
             setToday(res.data.today);  // 設置今天的日期與星期
           }
-          setUserIP(res.data.user_ip);
         }
       } catch (err) {
         console.error(err);
-        setUserIP("未知");
       }
     };
     fetchUserIP();
-    const fetchUser = async () => {
-      try {
-        const res = await api.get('/api/user');
-        let user = res.data;
-        setUser(user);
-        setSeatNumber(user.user.seat_number)
-      } catch (error) {
-        console.log("user error:", error);
-        setUser(null);
-      }
-    };
-    fetchUser();
-    const fetchShops = async () => {
-      try {
-        const res = await api.get('/api/getShops');
-        if (res.status === 200) {
-          setShops(res.data.shops)
-        }
-      } catch (error) {
-        console.log("getShops error:", error);
-      }
-    }
-    fetchShops();
-    const fetchGetOrders = async () => {
-      try {
-        const res = await api.get('/api/getOrders', {
-          params: {
-            seat_number: seatNumber || null,
-            order_date: today.date || null,
-            order_type: orderType,
-            order_round: orderRound,
-          }
-        });
-        if (res.status === 200) {
-          const orders_list = res.data.orders
-          const sortedData = orders_list.sort((a, b) => {
-            return Number(a.seat_number) - Number(b.seat_number);
-          });
-          setOrders(sortedData);
-        }
-      } catch (error) {
-        console.log("getShops error:", error);
-      }
-    }
-    fetchGetOrders()
-    const fetchGetBubbleteaorders = async () => {
-      try {
-        const res = await api.get('/api/getBubbleteaorders', {
-          params: {
-            seat_number: seatNumber || null,
-            order_date: today.date || null,
-          }
-        });
-        if (res.status === 200) {
-          const bubbletea_orders_list = res.data.bubbletea_orders
-          const sortedData = bubbletea_orders_list.sort((a, b) => {
-            return Number(a.seat_number) - Number(b.seat_number);
-          });
-          setBubbleteaOrders(sortedData);
-
-          let grand_bubbletea_total = 0;    // 全部總額
-
-          bubbletea_orders_list.forEach((element) => {
-            const subtotal = Number(element.bubbletea_price);
-
-            // 累加全部
-            grand_bubbletea_total += subtotal;
-          });
-
-          setGrandBubbleteaTotal(grand_bubbletea_total)
-        }
-      } catch (error) {
-        console.log("getBubbleteaorders error:", error);
-      }
-    }
-    fetchGetBubbleteaorders()
-    const fetchManagerControl = async () => {
-      try {
-        const res = await api.get('/api/getManagerControl');
-        if (res.status === 200) {
-          const controls = res.data.controls
-          let is_orderable = controls.find(item => item.c_title === "isOrderable");
-          if (is_orderable) {
-            setIsOrderable(is_orderable.c_value === "Y" ? true : false);
-          }
-          let is_bubbletea_orderable = controls.find(item => item.c_title === "isBubbleTeaOrderable");
-          if (is_bubbletea_orderable) {
-            setIsBubbleTeaOrderable(is_bubbletea_orderable.c_value === "Y" ? true : false);
-          }
-          let bubbletea_orderURL = controls.find(item => item.c_title === "bubble_tea_url");
-          if (bubbletea_orderURL) {
-            setBubbleteaOrderURL(bubbletea_orderURL.c_value);
-          }
-          let charged_seat_number = controls.find(item => item.c_title === "charged_seat_number");
-          if (charged_seat_number) {
-            setChargedSeatNumber(charged_seat_number.c_value);
-          }
-          let order_type = controls.find(item => item.c_title === "order_type");
-          if (order_type) {
-            setOrderType(order_type.c_value);
-          }
-          let order_round = controls.find(item => item.c_title === "order_round");
-          if (order_round) {
-            setOrderRound(Number(order_round.c_value));
-            setDefaultOrderRound(Number(order_round.c_value));
-          }
-        }
-      } catch (error) {
-        console.log("getManagerControl error:", error);
-      }
-    }
-    fetchManagerControl()
   }, []);
 
   const fetchGetUserHistoryOrders = async () => {
@@ -259,81 +118,10 @@ export default function MealOrder() {
   useEffect(() => {
     fetchGetUserHistoryOrders();
     fetchGetUserHistoryBubbleteaOrders();
+    if (user && user?.user?.seat_number) {
+      setSeatNumber(user.user.seat_number)
+    }
   }, [user])
-
-  useEffect(() => {
-    if (seatNumber !== "" && orders.length > 0) {
-      const user_all_order = orders.filter(order => order.seat_number == seatNumber);
-      let order_round_lists = Array.from(
-        new Set(user_all_order.map(order => order.order_round))
-      ).map(order_round => ({
-        value: order_round,
-        option: order_round
-      }));
-      if (defaultOrderRound && !order_round_lists.some(item => item.value == defaultOrderRound)) {
-        order_round_lists.push({
-          value: defaultOrderRound,
-          option: defaultOrderRound
-        });
-      }
-      order_round_lists.sort((a, b) => a.value - b.value);
-      const user_order = user_all_order.filter(order => order.order_round == orderRound);
-      const select_orders = orders.filter(order => order.order_round == orderRound);
-      setOrderroundlists(order_round_lists);
-      setUserorders(user_order);
-      setSelectorders(select_orders);
-
-
-      let shopTotals = {};   // 分組
-      let grand_total = 0;    // 全部總額
-
-      select_orders.forEach((element) => {
-        const subtotal = Number(element.quantity) * Number(element.price);
-
-        // 累加全部
-        grand_total += subtotal;
-
-        // 如果這家店還沒出現
-        if (!shopTotals[element.shop_name]) {
-          shopTotals[element.shop_name] = 0;
-        }
-
-        // 累加該店
-        shopTotals[element.shop_name] += subtotal;
-      });
-
-      // 🔥 轉成陣列
-      let shopArray = Object.entries(shopTotals).map(([shop, total]) => ({
-        shop_name: shop,
-        total: total
-      }));
-      setShopSummary(shopArray);
-      setGrandTotal(grand_total);
-    }
-  }, [seatNumber, orders, orderRound, defaultOrderRound])
-
-  useEffect(() => {
-    if (seatNumber !== "" && bubbleteaOrders.length > 0) {
-      const user_bubbletea_order = bubbleteaOrders.filter(order => order.seat_number == seatNumber);
-      setUserobubbletearders(user_bubbletea_order);
-    }
-  }, [seatNumber, bubbleteaOrders])
-
-  useEffect(() => {
-    if (!foodId) { setQuantityOptions([]); return; }
-    const fid = parseInt(foodId);
-    let opts = [];
-    if (fid === 6 || fid === 12 || fid === 13) {
-      for (let i = 1; i <= 7; i++) opts.push({ val: i * 2, label: `${i * 2}顆` });
-    } else if (fid < 13) {
-      for (let i = 1; i <= 15; i++) opts.push({ val: i, label: `${i}顆` });
-    } else {
-      opts = [{ val: 1, label: "1份" }];
-    }
-    setQuantityOptions(opts);
-    setQuantity(opts[0]?.val || 1);
-    setSelectedFood(foods.find(f => f.food_id === fid) || null);
-  }, [foodId]);
 
   return (
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
@@ -510,7 +298,7 @@ export default function MealOrder() {
                       <thead>
                         <tr className="bg-green-100">
                           {["日期", "餐點內容", "金額", "狀態"].map(h => (
-                            <th key={h} className="text-left px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide border-b border-gray-100">{h}</th>
+                            <th key={h} className="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wide border-b border-gray-100">{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -529,12 +317,12 @@ export default function MealOrder() {
 
                           return (
                             <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                              <td className="px-4 py-3 text-gray-400">{row.order_date}</td>
-                              <td className="px-4 py-3 font-semibold text-[rgb(184,79,79)]">{row.bubbletea_name}</td>
-                              <td className="px-4 py-3 text-orange-500 font-bold">
+                              <td className="px-4 py-3 text-center text-gray-400">{row.order_date}</td>
+                              <td className="px-4 py-3 text-center font-semibold text-[rgb(184,79,79)]">{row.bubbletea_name}</td>
+                              <td className="px-4 py-3 text-center text-orange-500 font-bold">
                                 NT${row.bubbletea_price}
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-4 py-3 text-center">
                                 <span
                                   className={`text-xs px-3 py-2 rounded-full font-semibold ${statusBadge[badgeText]
                                     }`}
@@ -569,7 +357,7 @@ export default function MealOrder() {
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-xs text-gray-400">{row.order_date}</span>
-                              <span className="text-orange-500 font-bold text-sm">NT${row.price}</span>
+                              <span className="text-orange-500 font-bold text-sm">NT${row.bubbletea_price}</span>
                             </div>
                           </div>
                         )

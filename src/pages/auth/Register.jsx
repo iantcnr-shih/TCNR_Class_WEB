@@ -28,7 +28,7 @@ function Register() {
     if (!formData.email) {
       Swal.fire({
         title: "請先輸入電子郵件",
-        icon: "waring",
+        icon: "warning",
       });
       return;
     }

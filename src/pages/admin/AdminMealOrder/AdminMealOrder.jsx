@@ -1,6 +1,8 @@
 import React, { useState, useEffect, use } from 'react';
 import { useAdminUser } from "@/components/admin/AdminUserProvider";
+import RestaurantManager from "@/pages/admin/AdminMealOrder/RestaurantManager";
 import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, ChevronLeft, TrendingUp, Clock, CheckCircle, ClipboardList, SlidersHorizontal, ShoppingCart } from 'lucide-react';
+import Swal from "sweetalert2";
 import api from "@/api/axios";
 
 
@@ -15,14 +17,6 @@ const mockOrders = [
   { id: "ORD-2025-0008", customer: "趙雪梅", email: "mei@example.com", product: "HomePod 2", amount: 9900, status: "shipped", date: "2025-02-25", items: 1 },
 ];
 
-const STATUS_CONFIG = {
-  completed: { label: "已完成", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  processing: { label: "處理中", color: "bg-blue-100 text-blue-700 border-blue-200" },
-  shipped: { label: "已出貨", color: "bg-violet-100 text-violet-700 border-violet-200" },
-  pending: { label: "待確認", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  cancelled: { label: "已取消", color: "bg-rose-100 text-rose-700 border-rose-200" },
-};
-
 const FILTER_OPTIONS = [
   { value: "all", label: "全部" },
   { value: "pending", label: "待確認" },
@@ -31,14 +25,6 @@ const FILTER_OPTIONS = [
   { value: "completed", label: "已完成" },
   { value: "cancelled", label: "已取消" },
 ];
-
-const stats = [
-  { label: "總訂單數", value: "128", sub: "+12 本週", accent: "text-slate-800" },
-  { label: "處理中", value: "24", sub: "需要處理", accent: "text-blue-600" },
-  { label: "本月營收", value: "NT$ 1.2M", sub: "+8.3% vs 上月", accent: "text-emerald-600" },
-  { label: "取消率", value: "2.4%", sub: "-0.6% vs 上月", accent: "text-rose-500" },
-];
-
 
 const AdminMealOrder = () => {
 
@@ -77,9 +63,7 @@ const AdminMealOrder = () => {
 
   const [systemMode, setSystemMode] = useState("base");
   const [today, setToday] = useState([]);
-  const { user, setUser } = useAdminUser();
-  const [userIP, setUserIP] = useState("");
-  const [seatNumber, setSeatNumber] = useState("");
+  const { user } = useAdminUser();
   const [chargedSeatNumber, setChargedSeatNumber] = useState();
   const [isOrderOverview, setIsOrderOverview] = useState(false);
   const [isOrderable, setIsOrderable] = useState(false);
@@ -317,41 +301,20 @@ const AdminMealOrder = () => {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-    // const fetchUserIP = async () => {
-    //   try {
-    //     const res = await api.get("/api/getUserIP");
-    //     if (res.status === 200) {
-    //       if (Array.isArray(today) && today.length === 0) {
-    //         setToday(res.data.today);
-    //       }
-    //       setUserIP(res.data.user_ip);
-    //     }
-    //   } catch (err) {
-    //     console.error(err);
-    //     setUserIP("未知");
-    //   }
-    // };
-    // fetchUserIP();
-    // const fetchUser = async () => {
-    //   try {
-    //     const res = await api.get('/api/user');
-    //     let user = res.data;
-    //     setUser(user);
-    //   } catch (error) {
-    //     console.log("user error:", error);
-    //     setUser(null);
-    //   }
-    // };
-    // fetchUser();
+    const fetchUserIP = async () => {
+      try {
+        const res = await api.get("/api/getUserIP");
+        if (res.status === 200) {
+          if (Array.isArray(today) && today.length === 0) {
+            setToday(res.data.today);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchUserIP();
   }, []);
-
-  useEffect(() => {
-    if (userIP && userIP !== "未知") {
-      const lastSegment = userIP.split('.').pop();
-      const seatNo = parseInt(lastSegment) - 1;
-      setSeatNumber(seatNo);
-    }
-  }, [userIP]);
 
   const handleOrderOverview = async (newState) => {
     try {
@@ -366,7 +329,10 @@ const AdminMealOrder = () => {
     } catch (err) {
       console.error("更新狀態失敗:", err);
       // 可以選擇加提示
-      alert("更新狀態失敗，請稍後再試");
+      Swal.fire({
+        title: "更新狀態失敗，請稍後再試",
+        icon: "error",
+      });
     }
   };
 
@@ -381,7 +347,10 @@ const AdminMealOrder = () => {
     } catch (err) {
       console.error("更新狀態失敗:", err);
       // 可以選擇加提示
-      alert("更新狀態失敗，請稍後再試");
+      Swal.fire({
+        title: "更新狀態失敗，請稍後再試",
+        icon: "error",
+      });
     }
   };
 
@@ -396,7 +365,10 @@ const AdminMealOrder = () => {
     } catch (err) {
       console.error("更新狀態失敗:", err);
       // 可以選擇加提示
-      alert("更新狀態失敗，請稍後再試");
+      Swal.fire({
+        title: "更新狀態失敗，請稍後再試",
+        icon: "error",
+      });
     }
   };
 
@@ -629,7 +601,6 @@ const AdminMealOrder = () => {
           }
 
           {systemMode === "today-order" &&
-
             <div className="px-6 lg:px-8 py-6">
               <div className="mx-auto mb-8 max-w-2xl">
                 {/* {(seatNumber == "0" || seatNumber == "2" || seatNumber == "25") ? ( */}
@@ -804,15 +775,21 @@ const AdminMealOrder = () => {
             </div>
           }
 
-          {systemMode === "order-management" &&
+          {systemMode === "meal-settings" &&
+            (user?.user && user.user.roles.includes("admin") ? (
+              <RestaurantManager />
+            ) : (
+              <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
+                <div className='w-full text-center text-red-500 font-bold'>
+                  本功能需管理權限，請洽系統管理員
+                </div>
+              </div>
+            ))}
 
+          {systemMode === "order-management" &&
             <div className="px-6 lg:px-8 py-6">
               <div className="mx-auto mb-8 max-w-6xl">
                 <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
-
-
-
-
                   {/* Controls */}
                   <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                     <div className="flex flex-col sm:flex-row gap-3 p-4 border-b border-slate-100">
@@ -958,14 +935,10 @@ const AdminMealOrder = () => {
                       </div>
                     </div>
                   </div>
-
-
-
                 </div>
               </div>
             </div>
           }
-
         </main>
       </div>
     </div>

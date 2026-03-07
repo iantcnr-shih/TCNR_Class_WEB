@@ -1,6 +1,9 @@
 import { useNavigate } from "react-router-dom";
+import { useUser } from "@/components/auth/UserProvider";
+import Swal from "sweetalert2";
 // Footer Component
 const Footer = () => {
+  const { user } = useUser();
   const navigate = useNavigate();
   const footerLinks = {
     platform: [
@@ -16,11 +19,10 @@ const Footer = () => {
       { name: 'AI 應用', url: '/ai' },
     ],
     about: [
+      { name: '會員資料', url: '/profile' },
       { name: '班級成員', url: '/class-members' },
       { name: '開發團隊', url: '/dev-team' },
       { name: '聯繫我們', url: '/contact' },
-      // { name: '使用條款', url: '/terms' },
-      // { name: '隱私政策', url: '/privacy' },
     ],
   };
 
@@ -75,7 +77,10 @@ const Footer = () => {
                     <div key={link.name}
                       onClick={() => {
                         if (link.url && link.url.startsWith("#")) {
-                          alert("功能尚未實裝, 敬請期待");
+                          Swal.fire({
+                            title: "功能尚未實裝, 敬請期待",
+                            icon: "warning",
+                          });
                         } else {
                           navigate(link.url);
                           window.scrollTo({
@@ -102,7 +107,10 @@ const Footer = () => {
                       <div key={link.name}
                         onClick={() => {
                           if (link.url && link.url.startsWith("#")) {
-                            alert("功能尚未實裝, 敬請期待");
+                            Swal.fire({
+                              title: "功能尚未實裝, 敬請期待",
+                              icon: "warning",
+                            });
                           } else {
                             navigate(link.url);
                             window.scrollTo({
@@ -126,11 +134,18 @@ const Footer = () => {
                 <div className="text-center">
                   <h3 className="text-white font-semibold mb-4 text-base md:text-lg uppercase tracking-wider">關於我們</h3>
                   <div className="grid grid-cols-2 md:grid-cols-1 gap-x-12 gap-y-4 md:gap-x-6 md:gap-y-1 ">
-                    {footerLinks.about.map((link) => (
+                    {footerLinks.about.filter((link) => {
+                      if (link.name === "會員資料" && (!user || !user.auth)) return false;
+                      return true;
+                    }).map((link) =>
+                    (
                       <div key={link.name}
                         onClick={() => {
                           if (link.url && link.url.startsWith("#")) {
-                            alert("功能尚未實裝, 敬請期待");
+                            Swal.fire({
+                              title: "功能尚未實裝, 敬請期待",
+                              icon: "warning",
+                            });
                           } else {
                             navigate(link.url);
                             window.scrollTo({
@@ -144,7 +159,8 @@ const Footer = () => {
                           {link.name}
                         </div>
                       </div>
-                    ))}
+                    )
+                    )}
                   </div>
                 </div>
               </div>

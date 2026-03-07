@@ -7,7 +7,7 @@ const meetings = [
     agendas: ["班代/學藝 選舉", "打掃區域分配"],
     results: ["起訖日：2026.03.02~2026.03.27", "班代：陳秉霖", "學藝：王琮毓", "區域已依各組線上填寫分配"],
   },
-  { title: "第二次班務會議", date: "未定", status: "待確認", statusColor: "amber",   agendas: ["班代/學藝 選舉", "打掃區域分配"], results: [] },
+  { title: "第二次班務會議", date: "2026-03-19", status: "即將進行", statusColor: "amber",   agendas: ["班代/學藝 選舉", "打掃區域分配"], results: [] },
   { title: "第三次班務會議", date: "未定", status: "待確認", statusColor: "gray",    agendas: ["班代/學藝 選舉", "打掃區域分配"], results: [] },
 ];
 

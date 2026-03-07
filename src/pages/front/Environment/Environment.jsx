@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Swal from "sweetalert2";
 /* ─── DATA ─────────────────────────────────────────────────────────── */
 // const cleanPeriods = [
 //   { label: "第一期", range: "2026-01-19 ～ 2026-02-26", status: "進行中", color: "emerald", areas: ["外掃A區", "教室B區"] },
@@ -9,7 +10,7 @@ const cleanPeriods = [
   {
     label: "第一期",
     range: "2026-01-19 ～ 2026-02-26",
-    status: "進行中",
+    status: "已完成",
     color: "green",
     areas: ["外掃A區", "教室B區"],
     photos: ["/TCNR_Class_WEB/images/1_1.jpg", "/TCNR_Class_WEB/images/1_2.jpg", "/TCNR_Class_WEB/images/1_3.jpg"],
@@ -17,7 +18,7 @@ const cleanPeriods = [
   {
     label: "第二期",
     range: "2026-03-02 ～ 2026-03-27",
-    status: "待開始",
+    status: "進行中",
     color: "orange",
     areas: ["外掃A區", "教室B區"],
     photos: ["/TCNR_Class_WEB/images/2_1.jpg", "/TCNR_Class_WEB/images/2_2.jpg", "/TCNR_Class_WEB/images/2_3.jpg"],
@@ -100,7 +101,10 @@ export default function Environment() {
                 if (p.photos.length > 0) {
                   showPic(p.photos)
                 } else {
-                  alert(`［${p.label}］打掃區域尚未分配`);
+                  Swal.fire({
+                    title: `［${p.label}］打掃區域尚未分配`,
+                    icon: "warning",
+                  });
                 }
               }}
             >

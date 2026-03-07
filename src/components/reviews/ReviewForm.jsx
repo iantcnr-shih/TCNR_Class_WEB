@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Swal from "sweetalert2";
 
 export default function ReviewForm({ onSubmit }) {
   const [rating, setRating] = useState(5);
@@ -9,7 +10,10 @@ export default function ReviewForm({ onSubmit }) {
 
     const r = Number(rating);
     if (!Number.isInteger(r) || r < 1 || r > 5) {
-      alert("請輸入 1-5 的整數評分");
+      Swal.fire({
+        title: "請輸入 1-5 的整數評分",
+        icon: "warning",
+      });
       return;
     }
 

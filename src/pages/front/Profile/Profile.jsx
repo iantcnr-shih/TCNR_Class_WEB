@@ -25,7 +25,7 @@ const badges = [
   { icon: "🎯", label: "結業認證", desc: "完成課程", earned: false },
 ];
 
-const avatarOptions = [ "🦊", "🐼", "🐸", "🦁", "🐙", "🚀", "🌸", "🧪", "🗄️", "🤖", "⚡", "✨", "🐳", "🎭", "🔧",
+const avatarOptions = ["🦊", "🐼", "🐸", "🦁", "🐙", "🚀", "🌸", "🧪", "🗄️", "🤖", "⚡", "✨", "🐳", "🎭", "🔧",
   "🧠", "📱", "🎯", "🛡️", "🌊", "☁️", "🖌️", "⚙️", "📊", "🌈", "🎮", "🔢", "🔐", "🏗️", "🎨", "🎪", "🤯", "❄️", "🌱"
 ];
 
@@ -70,8 +70,9 @@ const InputField = ({ label, value, onChange, type = "text", placeholder, disabl
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      readOnly={readOnly}       // 🔹 這裡
-      onClick={onClick}          // 🔹 這裡
+      readOnly={readOnly} 
+      onClick={onClick}  
+      disabled= {disabled}  
       className={`w-full border rounded-xl px-4 py-2.5 text-sm transition-all outline-none
         ${readOnly || disabled
           ? "bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed"
@@ -131,6 +132,7 @@ function Toast({ msg, onDone }) {
    PAGE: 個人資料
 ═══════════════════════════════════════════════════════════════════════ */
 export default function Profile() {
+  const showAvatarRef = useRef(null);
   const fetchedRef = useRef(false);
   const { user, setUser } = useUser();
   const navigate = useNavigate();
@@ -256,7 +258,7 @@ export default function Profile() {
         throw new Error(res.data?.message || "儲存失敗");
       }
 
-      setProfile({...profile, avatar: res.data.avatar || ""});
+      setProfile({ ...profile, avatar: res.data.avatar || "" });
 
       Swal.fire({
         title: "頭像儲存成功",
@@ -605,6 +607,7 @@ export default function Profile() {
     const { value } = await Swal.fire({
       title: "座號尚未設定",
       text: "請輸入您的個人座號",
+      icon: "warning",
       input: "text",
       inputAttributes: {
         inputmode: "numeric",
@@ -623,13 +626,15 @@ export default function Profile() {
       }
     });
 
-    if (!value) return; // 保險起見
+    const num = value ? parseInt(value, 10) : null;
+
+    if (!num) return; // 保險起見
 
     // Step 2：二次確認
     const confirmResult = await Swal.fire({
       title: "請確認座號",
       html: `您輸入的座號是 
-                  <span style="color:red; font-size:1.5rem; font-weight:bold;">${value}</span> 號，確定送出嗎?<br/><br/>
+                  <span style="color:red; font-size:1.5rem; font-weight:bold;">${num}</span> 號，確定送出嗎?<br/><br/>
                   <div style="color:red;">注意：資料送出後無法再做變更!</div>
                 `,
       icon: "question",
@@ -646,7 +651,7 @@ export default function Profile() {
 
     // Step 3：送出 API
     try {
-      const res = await api.post("/api/user/setSeatNumber", { seat_number: value });
+      const res = await api.post("/api/user/setSeatNumber", { seat_number: num });
       if (res.status === 200) {
         setProfile(res.data.profile);
         setDraft(res.data.profile);
@@ -706,40 +711,55 @@ export default function Profile() {
     return () => controller.abort();
   }, [isAuthorized])
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (showAvatarRef.current && !showAvatarRef.current.contains(event.target)) {
+        setShowAvatarPicker(false);
+      }
+    }
+
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen" style={{ fontFamily: "'Noto Sans TC', 'Microsoft JhengHei', sans-serif" }}>
       {toast && <Toast msg={toast} />}
 
-      <PageHeader title="個人資料" subtitle="管理你的帳號資訊、查看學習成就與偏好設定" />
+      <PageHeader title="會員資料" subtitle="管理你的帳號資訊、查看學習成就與偏好設定" />
       {isAuthorized && (
         <Card className="p-5 md:p-6 mb-5">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 md:gap-6">
             {/* Avatar */}
-            <div className="relative flex-shrink-0">
-              <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-red-50 ring-4 ring-red-100 flex items-center justify-center text-4xl md:text-5xl cursor-pointer select-none"
-                onClick={() => avatarEditing && setShowAvatarPicker(p => !p)}>
-                {profile.avatar || "👨‍💻"}
+            <div ref={showAvatarRef}>
+              <div className="relative flex-shrink-0">
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-red-50 ring-4 ring-red-100 flex items-center justify-center text-4xl md:text-5xl cursor-pointer select-none"
+                  onClick={() => avatarEditing && setShowAvatarPicker(p => !p)}>
+                  {profile.avatar || "👨‍💻"}
+                </div>
+                {/* {avatarEditing && ( */}
+                <div onClick={() => setShowAvatarPicker(p => !p)}
+                  className="absolute -bottom-1 -right-1 w-7 h-7 bg-red-800 rounded-full text-white text-xs flex items-center justify-center shadow-md cursor-pointer hover:bg-red-900 transition-colors">
+                  ✏️
+                </div>
+                {/* )} */}
               </div>
-              {/* {avatarEditing && ( */}
-              <div onClick={() => setShowAvatarPicker(p => !p)}
-                className="absolute -bottom-1 -right-1 w-7 h-7 bg-red-800 rounded-full text-white text-xs flex items-center justify-center shadow-md cursor-pointer hover:bg-red-900 transition-colors">
-                ✏️
-              </div>
-              {/* )} */}
+
+              {/* Avatar picker */}
+              {showAvatarPicker && (
+                <div className="absolute left-1/2 -translate-x-1/2 sm:left-12 sm:translate-x-0 z-20 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 grid grid-cols-8 gap-2 w-96">
+                  {avatarOptions.map(a => (
+                    <div key={a} onClick={() => { setDraft(d => ({ ...d, avatar: a })); handleUserAvatarSave(a); setShowAvatarPicker(false); }}
+                      className={`flex items-center justify-center text-2xl p-1.5 rounded-xl hover:bg-red-50 transition-colors cursor-pointer ${draft.avatar === a ? "bg-red-100 ring-2 ring-red-400" : ""}`}>
+                      {a}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-
-            {/* Avatar picker */}
-            {showAvatarPicker && (
-              <div className="absolute z-20 mt-26 ml-0 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 grid grid-cols-8 gap-2 w-96">
-                {avatarOptions.map(a => (
-                  <div key={a} onClick={() => { setDraft(d => ({ ...d, avatar: a })); handleUserAvatarSave(a); setShowAvatarPicker(false); }}
-                    className={`flex items-center justify-center text-2xl p-1.5 rounded-xl hover:bg-red-50 transition-colors cursor-pointer ${draft.avatar === a ? "bg-red-100 ring-2 ring-red-400" : ""}`}>
-                    {a}
-                  </div>
-                ))}
-              </div>
-            )}
-
             {/* Info */}
             <div className="flex-1 text-center sm:text-left min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap justify-center sm:justify-start">

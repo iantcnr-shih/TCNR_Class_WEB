@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, forwardRef } from "react";
+import Swal from "sweetalert2";
 
 /* ═══════════════════════════════════════════════════════════════════════
    DATA
@@ -126,9 +127,9 @@ function ChatInterface({ tool, onBack }) {
     {
       role: "assistant",
       content: `你好！我是【${tool.title}】。${tool.id === "chat" ? "有任何技術問題都可以問我！" :
-          tool.id === "review" ? "請把你想審查的程式碼貼給我，我來幫你找問題！" :
-            tool.id === "quiz" ? "告訴我你想練習的主題和難度，我來幫你出題！" :
-              "把你想整理的內容貼過來，我幫你生成摘要！"
+        tool.id === "review" ? "請把你想審查的程式碼貼給我，我來幫你找問題！" :
+          tool.id === "quiz" ? "告訴我你想練習的主題和難度，我來幫你出題！" :
+            "把你想整理的內容貼過來，我幫你生成摘要！"
         }`,
     },
   ]);
@@ -143,7 +144,12 @@ function ChatInterface({ tool, onBack }) {
 
   const send = async (text) => {
     const userText = text ?? input.trim();
-    if (!userText) alert("請輸入傳送訊息");
+    if (!userText) {
+      Swal.fire({
+        title: "請輸入傳送訊息",
+        icon: "warning",
+      });
+    }
     if (!userText || loading) return;
     setInput("");
 

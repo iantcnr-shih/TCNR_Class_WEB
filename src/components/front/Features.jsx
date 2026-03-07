@@ -1,5 +1,6 @@
 import { Users, Utensils, Calendar, Sparkles, MessageSquare, Briefcase, BarChart3, Brain } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 // Features Section
 const Features = () => {
   const navigate = useNavigate();
@@ -94,7 +95,10 @@ const Features = () => {
               className="group relative bg-white rounded-xl p-4 md:p-8 border-2 border-slate-200 hover:border-[#FC801C]/30 hover:shadow-xl transition-all duration-300"
               onClick={() => {
                 if (feature.url && feature.url.startsWith("#")) {
-                  alert("功能尚未實裝, 敬請期待");
+                  Swal.fire({
+                    title: "功能尚未實裝, 敬請期待",
+                    icon: "warning",
+                  });
                 } else {
                   navigate(feature.url);
                 }

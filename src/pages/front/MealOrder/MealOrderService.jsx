@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/components/auth/UserProvider";
 import { getOrderHistoryMock, getReviewsMock, addReviewMock } from "@/api/reviews.mock";
+import Swal from "sweetalert2";
 import api from "@/api/axios";
 
 /* ─── 訂餐管理 ──────────────────────────────────────────────────────── */
@@ -17,6 +18,7 @@ export default function MealOrderService() {
   const [shops, setShops] = useState([]);
   const [categories, setCategories] = useState([]);
   const [categoryId, setCategoryId] = useState("");
+  const [allfoods, setAllFoods] = useState([]);
   const [foods, setFoods] = useState([]);
   const [foodId, setFoodId] = useState("");
   const [selectedFood, setSelectedFood] = useState(null);
@@ -47,6 +49,8 @@ export default function MealOrderService() {
   const [orderHistory, setOrderHistory] = useState([]);
   const [reviewShopId, setReviewShopId] = useState("");
   const [orderroundlists, setOrderroundlists] = useState([]);
+
+  const [showMenu, setShowMenu] = useState(false);
 
   const checkIsOrderable = async () => {
     try {
@@ -103,14 +107,15 @@ export default function MealOrderService() {
   const handleSendOrder = async () => {
     const is_Orderable = await checkIsOrderable();
     const defaultshops = await checkdefaultshops();
-    if (!is_Orderable) return alert("今日已收單，如需訂餐請洽班代")
-    if (seatNumber == null || seatNumber === "") return alert("座號不可空白");
-    if (!shopId) return alert("請選擇店家");
-    if (!categoryId) return alert("請選擇餐點類別");
-    if (!foodId) return alert("請選擇餐點");
+    if (!is_Orderable) return Swal.fire({ title: "今日已收單，如需訂餐請洽班代", icon: "warning", });
+    if (seatNumber == null || seatNumber === "") return Swal.fire({ title: "座號不可空白", icon: "warning", });
+    if (!shopId) return Swal.fire({ title: "請選擇店家", icon: "warning", });
+    if (!categoryId) return Swal.fire({ title: "請選擇餐點類別", icon: "warning", });
+    if (!foodId) return Swal.fire({ title: "請選擇餐點", icon: "warning", });
     if (!defaultshops.some(shop => shop.shop_id == shopId)) {
-      alert("今日已更改菜單, 請重新訂購");
-      window.location.reload();
+      Swal.fire({ title: "今日已更改菜單, 請重新訂購", icon: "warning", }).then(() => {
+        window.location.reload();
+      });
       return
     }
 
@@ -125,27 +130,29 @@ export default function MealOrderService() {
         user_ip: userIP
       });
       if (res.data.success === true) {
-        alert("新增餐點成功");
+        Swal.fire({ title: "新增餐點成功", icon: "success", });
         location.reload();
       } else if (res.data.message === "order_round_error") {
-        alert(`系統變更點餐次數 [第${res.data.orderRound}輪點餐], 請重新點餐`);
-        window.location.reload();
+        Swal.fire({ title: `系統變更點餐次數 [第${res.data.orderRound}輪點餐], 請重新點餐`, icon: "warning", }).then(() => {
+          window.location.reload();
+        });
       } else {
-        alert("新增餐點失敗, 請重新點餐");
-        window.location.reload();
+        Swal.fire({ title: "新增餐點失敗, 請重新點餐", icon: "error", }).then(() => {
+          window.location.reload();
+        });
       }
     } catch (err) {
-      alert("系統忙碌中，新增餐點失敗");
+      Swal.fire({ title: "系統忙碌中，新增餐點失敗", icon: "error", });
       console.error(err);
     }
   }
 
   const handleSendBubbleTeaOrder = async () => {
     const is_BubbleTeaOrderable = await checkBubbleTeaIsOrderable();
-    if (!is_BubbleTeaOrderable) return alert("今日已收單，如需訂餐請洽班代")
-    if (!seatNumber) return alert("座號不可空白");
-    if (!selectBubbleTea) return alert("請輸入飲料品項");
-    if (!bubbleTeaPrice) return alert("請輸入飲料訂購金額");
+    if (!is_BubbleTeaOrderable) return Swal.fire({ title: "今日已收單，如需訂餐請洽班代", icon: "warning", });
+    if (!seatNumber) return Swal.fire({ title: "座號不可空白", icon: "warning", });
+    if (!selectBubbleTea) return Swal.fire({ title: "請輸入飲料品項", icon: "warning", });
+    if (!bubbleTeaPrice) return Swal.fire({ title: "請輸入飲料訂購金額", icon: "warning", });
     try {
       const res = await api.post('/api/addbubbleteaorder', {
         order_date: today.date,
@@ -154,13 +161,13 @@ export default function MealOrderService() {
         bubbletea_price: bubbleTeaPrice
       });
       if (res.status === 200) {
-        alert("新增餐點成功");
+        Swal.fire({ title: "新增餐點成功", icon: "success", });
         location.reload();
       } else {
-        alert("新增餐點失敗");
+        Swal.fire({ title: "新增餐點失敗", icon: "warning", });
       }
     } catch (err) {
-      alert("新增餐點失敗");
+      Swal.fire({ title: "新增餐點失敗", icon: "error", });
       console.error(err);
     }
   }
@@ -274,7 +281,17 @@ export default function MealOrderService() {
                 </table>
               </div>
             )}
-            <div className="mt-5 text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">新增訂單<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span></div>
+            <div className="mt-5 text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">新增訂單<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span>
+              <span className="text-md rounded-lg px-3 py-1 bg-[rgb(139,26,46)] text-[rgb(255,241,243)] shadow-md hover:bg-[rgb(89,12,26)] hover:scale-110"
+                onClick={() => {
+                  if (!shopId) return Swal.fire({ title: "請選擇店家", icon: "warning", });
+                  setShowMenu(true)
+                }}
+              >
+                顯示菜單
+              </span>
+              <span className="w-5 h-px bg-[rgb(240,213,207)]"></span>
+            </div>
             <div className="grid grid-cols-[repeat(auto-fit,_minmax(190px,_1fr))] gap-4">
               {isOrderable ? (
                 <>
@@ -284,7 +301,6 @@ export default function MealOrderService() {
                   text-[rgb(44,26,26)] text-sm font-bold outline-none transition-all duration-200 focus:border-orange-600
                   focus:shadow-[0_0_0_3px_rgba(224,92,42,0.12)] focus:bg-white appearance-none"
                       value={shopId}
-                      // onChange={e => setShopId(e.target.value)}
                       onChange={e => selectshop(e.target.value)}
                     >
                       <option value="">請選擇店家</option>
@@ -298,7 +314,6 @@ export default function MealOrderService() {
                     text-[rgb(44,26,26)] text-sm font-bold outline-none transition-all duration-200 focus:border-orange-600
                     focus:shadow-[0_0_0_3px_rgba(224,92,42,0.12)] focus:bg-white appearance-none"
                         value={categoryId}
-                        // onChange={e => setCategoryId(e.target.value)}
                         onChange={e => selectcategory(e.target.value)}
                       >
                         <option value="">請選擇類別</option>
@@ -313,7 +328,6 @@ export default function MealOrderService() {
                     text-[rgb(44,26,26)] text-sm font-bold outline-none transition-all duration-200 focus:border-orange-600
                     focus:shadow-[0_0_0_3px_rgba(224,92,42,0.12)] focus:bg-white appearance-none"
                         value={foodId}
-                        // onChange={e => setFoodId(e.target.value)}
                         onChange={e => selectfood(e.target.value)}
                       >
                         <option value="">請選擇餐點</option>
@@ -350,6 +364,96 @@ export default function MealOrderService() {
                 onClick={handleSendOrder}
               >確認送出訂單</div>
             }
+            {/* Food Menu */}
+            {showMenu && (() => {
+              const currentShop = shops?.find(s => s.shop_id === Number(shopId));
+              const shopInactive = currentShop?.is_active !== 1;
+              return (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowMenu(false)}>
+                  <div className={`relative bg-white rounded-3xl shadow-2xl w-[85vw] max-h-[85vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
+
+                    {/* 標題區 */}
+                    <div className="bg-gradient-to-r from-blue-400 to-green-400 px-6 py-5 flex items-center justify-between flex-shrink-0">
+                      <div>
+                        <p className="text-white/70 text-xs font-medium tracking-wide">MENU</p>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-white text-xl font-bold">{shops.find(s => s.shop_id === Number(shopId))?.shop_name ?? "未知店家"}</h2>
+                          {shopInactive && (
+                            <span className="filter-none text-xs font-bold bg-white text-red-500 px-2 py-0.5 rounded-full">今日停售</span>
+                          )}
+                        </div>
+                      </div>
+                      <div onClick={() => setShowMenu(false)} className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all cursor-pointer">✕</div>
+                    </div>
+
+                    {/* 內容區 */}
+                    <div className={`overflow-y-auto p-6 flex flex-col gap-5  ${shopInactive ? "grayscale opacity-90" : ""}`}>
+                      {categories
+                        .filter(c => c.shop_id === Number(shopId))
+                        .map((category, idx) => {
+                          const colors = [
+                            { bg: "bg-purple-50", border: "border-purple-200", title: "text-purple-600", tag: "bg-purple-100 text-purple-600" },
+                            { bg: "bg-pink-50", border: "border-pink-200", title: "text-pink-600", tag: "bg-pink-100 text-pink-600" },
+                            { bg: "bg-blue-50", border: "border-blue-200", title: "text-blue-600", tag: "bg-blue-100 text-blue-600" },
+                            { bg: "bg-green-50", border: "border-green-200", title: "text-green-600", tag: "bg-green-100 text-green-600" },
+                            { bg: "bg-orange-50", border: "border-orange-200", title: "text-orange-600", tag: "bg-orange-100 text-orange-600" },
+                          ];
+                          const c = colors[idx % colors.length];
+                          const categoryFoods = allfoods.filter(f => f.menu_category_id === category.menu_category_id && f.delete_flag === 0);
+                          const categoryInactive = category.is_active !== 1;
+
+                          return (
+                            <div key={category.menu_category_id} className={`rounded-2xl p-4 border transition-all ${categoryInactive ? "bg-gray-100 border-gray-200 grayscale opacity-60" : `${c.bg} ${c.border}`}`}>
+                              {/* 類別標題 */}
+                              <div className="flex items-center gap-2 mb-3">
+                                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${categoryInactive ? "bg-gray-200 text-gray-500" : c.tag}`}>
+                                  {categoryFoods.length} 項
+                                </span>
+                                <h3 className={`font-bold text-base ${categoryInactive ? "text-gray-400" : c.title}`}>{category.category_name}</h3>
+                                {categoryInactive && (
+                                  <span className="text-xs font-bold bg-gray-300 text-gray-500 px-2 py-0.5 rounded-full ml-auto">今日停售</span>
+                                )}
+                              </div>
+
+                              {/* 餐點列表 */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
+                                {categoryFoods.map(food => {
+                                  const foodInactive = !food.is_active;
+                                  return (
+                                    <div key={food.food_id} className={`flex justify-between items-center rounded-xl px-4 py-2.5 shadow-sm transition-all ${foodInactive ? "bg-gray-100 grayscale opacity-60" : "bg-white"} ${!(shopInactive || categoryInactive || foodInactive) ? "hover:bg-sky-300 text-gray-700 hover:text-[rgb(0,0,255)] hover:scale-103 hover:font-bold" : "text-gray-400"}`}
+                                      onClick={() => {
+                                        if (!(shopInactive || categoryInactive || foodInactive)) {
+                                         setCategoryId(food.menu_category_id);
+                                          setFoods(allfoods.filter(f=>f.menu_category_id === food.menu_category_id));
+                                          setFoodId(food.food_id.toString());
+                                          setShowMenu(false);
+                                        }
+                                      }}
+                                    >
+                                      <div className="flex items-center gap-1.5">
+                                        <span className={`text-sm font-medium`}>{food.food_name}</span>
+                                        {foodInactive && (
+                                          <span className="text-xs font-bold bg-gray-300 text-gray-500 px-1.5 py-0.5 rounded-full">今日停售</span>
+                                        )}
+                                      </div>
+                                      <span className={`text-sm font-bold ${shopInactive || categoryInactive || foodInactive ? "text-gray-400 line-through" : c.title}`}>NT$ {food.price}</span>
+                                    </div>
+                                  );
+                                })}
+                                {categoryFoods.length === 0 && (
+                                  <p className="text-xs text-gray-400 col-span-3 text-center py-2">尚無餐點</p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
+                      }
+                    </div>
+
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         </>
       )
@@ -360,7 +464,21 @@ export default function MealOrderService() {
       content: (
         <>
           <div className="bg-white border border-gray-200 rounded-xl px-8 py-7 mb-6 shadow-sm">
-            <div className="text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">今日訂單列表<span className="flex-1 h-px bg-[rgb(240,213,207)]"></span></div>
+            <div className="text-sm font-extrabold text-[rgb(139,26,46)] mb-3 flex items-center gap-2.5 tracking-wider">
+              今日訂單列表
+              <span className="flex-1 h-px bg-[rgb(240,213,207)]"></span>
+              {isBubbleTeaOrderable && userbubbleteaorders.length > 0 &&
+                <>
+                  <span className="text-md rounded-lg px-3 py-1 hover:bg-[rgb(139,26,46)] hover:text-[rgb(255,241,243)] hover:shadow-sm"
+                    onClick={() => gotobubleteaorder()}
+                  >
+                    前往加點
+                  </span>
+                  <span className="w-5 h-px bg-[rgb(240,213,207)]"></span>
+                </>
+              }
+            </div>
+
             {userbubbleteaorders.length === 0 ? (
               <>
                 <div className="text-center px-10 text-gray-400 text-sm">尚無訂單</div>
@@ -713,6 +831,18 @@ export default function MealOrderService() {
       }
     }
     fetchShops();
+    const fetchGetAllfoods = async () => {
+      try {
+        const res = await api.get('/api/GetAllfoods');
+        if (res.status === 200) {
+          const selectfoods = res.data.Allfoods.map(s => ({ ...s, is_active: s.is_active === 1 ? true : false }));
+          setAllFoods(selectfoods);
+        }
+      } catch (error) {
+        console.log("GetAllfoods error:", error);
+      }
+    }
+    fetchGetAllfoods();
     const fetchGetOrders = async () => {
       try {
         const res = await api.get('/api/getOrders', {
@@ -937,7 +1067,8 @@ export default function MealOrderService() {
     });
 
     // 或者將結果設置為 state 顯示在 UI 上
-    alert(`［座號 ${seat_number}號］,訂餐總金額［${totalAmount}元］`);
+
+    Swal.fire({ title: `［座號 ${seat_number}號］`, text: `訂餐總金額［${totalAmount}元］`, icon: "warning", });
   };
   const userbubbleteaorderssummery = (seat_number) => {
     // 根據 order_id 獲取該使用者所有訂單的數據
@@ -952,7 +1083,7 @@ export default function MealOrderService() {
     // 這裡可以設置顯示訂單摘要的邏輯，比如顯示總金額、訂單內容等
     console.log("總金額:", totalAmount);
     // 或者將結果設置為 state 顯示在 UI 上
-    alert(`［座號 ${seat_number}號］,訂餐總金額［${totalAmount}元］`);
+    Swal.fire({ title: `［座號 ${seat_number}號］`, text: `訂餐總金額［${totalAmount}元］`, icon: "warning", });
   };
 
   const togglePaid = async (order_id, is_paid) => {
@@ -993,9 +1124,9 @@ export default function MealOrderService() {
     if (is_Orderable && bubbleteaOrderURL !== "") {
       window.open(bubbleteaOrderURL, "_blank");
     } else if (!is_Orderable) {
-      alert("今日已收單，如需訂餐請洽班代")
+      Swal.fire({ title: "今日已收單，如需訂餐請洽班代", icon: "warning", });
     } else {
-      alert("飲料揪團尚未開啟，如需訂餐請洽班代")
+      Swal.fire({ title: "飲料揪團尚未開啟，如需訂餐請洽班代", icon: "warning", });
     }
   }
 
