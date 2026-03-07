@@ -16,7 +16,8 @@ export async function addReviewApi(payload) {
   const res = await api.post("/api/reviews", {
     shop_id: payload.shop_id,
     food_id: payload.food_id ?? null,
-    user_id: payload.user_id,
+    // user_id: payload.user_id, 
+    // 由後端控制 user_id
     rating: payload.rating,
     comment: payload.comment ?? null,
   });
