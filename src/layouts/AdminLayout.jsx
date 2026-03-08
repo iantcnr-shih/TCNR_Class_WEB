@@ -30,7 +30,7 @@ function AdminLayout() {
 
   if (loading) return <div className="w-screen text-center">Loading...</div>;
   if (!user || !user.user.roles.includes("admin")) return null;
-  
+
   return (
     <>
       <div className="w-screen ">

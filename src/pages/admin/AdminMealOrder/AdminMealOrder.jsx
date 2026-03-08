@@ -238,6 +238,25 @@ const AdminMealOrder = () => {
   const [allshops, setAllshops] = useState([]);
   const [thisdayshop, setThisdayshop] = useState();
 
+  /* ── 週間預設店家 ── */
+  const WEEKDAYS = [
+    { key: 1, label: "週一", en: "MON" },
+    { key: 2, label: "週二", en: "TUE" },
+    { key: 3, label: "週三", en: "WED" },
+    { key: 4, label: "週四", en: "THU" },
+    { key: 5, label: "週五", en: "FRI" },
+    { key: 6, label: "週六", en: "SAT" },
+    { key: 0, label: "週日", en: "SUN" },
+  ];
+
+  // 初始值 { mon: "", tue: "", ... }
+  const initMap = () => Object.fromEntries(WEEKDAYS.map(d => [d.key, ""]));
+  const [schedule, setSchedule] = useState(initMap);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false); // 儲存成功短暫提示
+
+
+
   /* ── 訂單管理 ── */
   const [allorders, setAllorders] = useState([]);
   const [allbubbleteaorders, setAllbubbleteaorders] = useState([]);
@@ -296,7 +315,7 @@ const AdminMealOrder = () => {
 
 
   useEffect(() => { setPage(1); }, [search, filterDate, filterShop, filterPaid, filterCancelled]);
-  
+
   useEffect(() => { setBubbleteaPage(1); }, [search, filterDate, filterPaid, filterCancelled]);
 
   /* ── 可選日期 / 店家 ── */
@@ -362,6 +381,18 @@ const AdminMealOrder = () => {
         }));
       }
     }).catch(() => { });
+
+    api.get('/api/GetWdayShops').then(res => {
+      if (res.status === 200) {
+        // 轉成 { 0: "3", 1: "1", 2: "5", ... } 方便直接對應 schedule state
+        const map = {};
+        res.data.schedules.forEach(item => {
+          map[item.wday] = String(item.shop_id);
+        });
+        setSchedule(prev => ({ ...prev, ...map }));
+      }
+    }).catch(() => { });
+
     fetchManagerControl();
   }, []);
 
@@ -371,7 +402,8 @@ const AdminMealOrder = () => {
 
   const subMenuItems = [
     { id: 'base', name: '主選單', icon: ClipboardList },
-    { id: 'today-order', name: '今日點餐管理', icon: ClipboardList },
+    { id: 'weekly-shop', name: '週間預設店家', icon: Store },
+    { id: 'today-order', name: '今日點餐管理', icon: Calendar },
     { id: 'meal-settings', name: '餐點設定管理', icon: SlidersHorizontal },
     { id: 'order-management', name: '訂單管理', icon: ShoppingCart },
   ];
@@ -945,6 +977,45 @@ const AdminMealOrder = () => {
     }
   };
 
+  // 週間預設店家
+
+  const handleChange = (day, shopId) => {
+    setSchedule(prev => ({ ...prev, [day]: shopId }));
+    setSaved(false);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload = WEEKDAYS.map(({ key }) => ({
+        wday: key,
+        shop_id: schedule[key] ? Number(schedule[key]) : null,
+      }));
+
+      await api.post("/api/updateWdayShops", { schedule: payload });
+      Swal.fire({ title: "儲存成功", icon: "success" });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (e) {
+      Swal.fire({ title: "儲存失敗，請稍後再試", icon: "error" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const shopOptions = allshops.map(s => ({ value: String(s.shop_id), label: s.shop_name }));
+
+  const DAY_COLORS = {
+    1: { ring: "ring-orange-300", dot: "bg-orange-400", badge: "bg-orange-50 text-orange-600 border-orange-200", accent: "text-orange-500" },
+    2: { ring: "ring-amber-300", dot: "bg-amber-400", badge: "bg-amber-50 text-amber-600 border-amber-200", accent: "text-amber-500" },
+    3: { ring: "ring-yellow-300", dot: "bg-yellow-400", badge: "bg-yellow-50 text-yellow-600 border-yellow-200", accent: "text-yellow-500" },
+    4: { ring: "ring-lime-300", dot: "bg-lime-500", badge: "bg-lime-50 text-lime-700 border-lime-200", accent: "text-lime-600" },
+    5: { ring: "ring-emerald-300", dot: "bg-emerald-400", badge: "bg-emerald-50 text-emerald-700 border-emerald-200", accent: "text-emerald-600" },
+    6: { ring: "ring-blue-300", dot: "bg-blue-400", badge: "bg-blue-50 text-blue-600 border-blue-200", accent: "text-blue-500" },
+    0: { ring: "ring-rose-300", dot: "bg-rose-400", badge: "bg-rose-50 text-rose-600 border-rose-200", accent: "text-rose-500" },
+  };
+
+
   return (
     <div className="d-block min-h-screen bg-slate-50">
       <div className="flex">
@@ -1086,6 +1157,95 @@ const AdminMealOrder = () => {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+          }
+
+          {systemMode === "weekly-shop" &&
+            <div className="px-4 lg:px-8 py-6">
+              <div className="mx-auto max-w-2xl">
+                {(user?.user && user.user.roles.includes("admin")) ? (
+                  <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-white rounded-2xl border border-orange-100 p-5 shadow-sm">
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-5">
+                      <div>
+                        <h3 className="text-base font-bold text-slate-800">週間店家排班</h3>
+                        <p className="text-xs text-slate-400 mt-0.5">設定每週一到週日的預設訂餐店家</p>
+                      </div>
+                      <div
+                        onClick={!saving ? handleSave : undefined}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all select-none
+      ${saving ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-orange-500 text-white hover:bg-orange-600 cursor-pointer shadow-sm"}`}
+                      >
+                        {saving && (
+                          <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                          </svg>
+                        )}
+                        {saving ? "儲存中…" : "儲存設定"}
+                      </div>
+                    </div>
+
+                    {/* Cards */}
+                    <div className="flex flex-col gap-3">
+                      {WEEKDAYS.map(({ key, label, en }) => {
+                        const c = DAY_COLORS[key];
+                        const selected = shopOptions.find(o => o.value === schedule[key]);
+                        return (
+                          <div key={key}
+                            className={`bg-white rounded-xl border border-slate-100 px-4 py-3.5 flex items-center gap-4 shadow-sm ring-1 ${c.ring} ring-opacity-40 hover:ring-opacity-80 transition-all`}>
+
+                            {/* Day badge */}
+                            <div className="shrink-0 flex flex-col items-center w-12">
+                              <span className={`text-[10px] font-bold tracking-widest ${c.accent}`}>{en}</span>
+                              <span className="text-lg font-black text-slate-800 leading-tight">{label}</span>
+                            </div>
+
+                            {/* Divider dot */}
+                            <div className={`w-2 h-2 rounded-full shrink-0 ${c.dot}`} />
+
+                            {/* Select */}
+                            <div className="flex-1 relative">
+                              <select
+                                value={schedule[key]}
+                                onChange={e => handleChange(key, e.target.value)}
+                                className="w-full appearance-none bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-300 transition-all pr-8"
+                              >
+                                <option value="">— 未設定 —</option>
+                                {shopOptions.map(o => (
+                                  <option key={o.value} value={o.value}>{o.label}</option>
+                                ))}
+                              </select>
+                              <ChevronRight className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 rotate-90 pointer-events-none" />
+                            </div>
+
+                            {/* Selected tag */}
+                            {selected ? (
+                              <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border ${c.badge}`}>
+                                {selected.label}
+                              </span>
+                            ) : (
+                              <span className="shrink-0 text-xs text-slate-300 font-medium w-16 text-right">未設定</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Footer hint */}
+                    <p className="mt-4 text-[11px] text-slate-400 text-center">
+                      此設定作為每日預設店家，可在「今日點餐管理」中個別覆蓋
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
+                    <div className='w-full text-center text-red-500 font-bold'>
+                      本功能需管理權限，請洽系統管理員
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           }
@@ -1269,9 +1429,13 @@ const AdminMealOrder = () => {
             (user?.user && user.user.roles.includes("admin") ? (
               <RestaurantManager />
             ) : (
-              <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
-                <div className='w-full text-center text-red-500 font-bold'>
-                  本功能需管理權限，請洽系統管理員
+              <div className="px-6 lg:px-8 py-6">
+                <div className="mx-auto mb-8 max-w-2xl">
+                  <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
+                    <div className='w-full text-center text-red-500 font-bold'>
+                      本功能需管理權限，請洽系統管理員
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -1280,266 +1444,276 @@ const AdminMealOrder = () => {
           {systemMode === "order-management" && (
             <div className="px-4 lg:px-8 py-6">
               <div className="mx-auto max-w-6xl">
-                <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-white rounded-2xl border border-orange-100 p-5 shadow-sm">
+                {(user?.user && user.user.roles.includes("admin")) ? (
+                  <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-white rounded-2xl border border-orange-100 p-5 shadow-sm">
 
-                  {/* 搜尋 + 篩選 */}
-                  <div className="flex flex-col gap-3 mb-4">
-                    <div className='flex items-center'>
-                      <div className="flex items-center space-x-2 mr-2">
-                        {/* 午餐按鈕 */}
-                        <div
-                          onClick={() => { setOrderMode("dish"); clearAll() }}
-                          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${orderMode === "dish"
-                            ? "bg-orange-500 text-white shadow-sm"
-                            : "bg-white border border-slate-200 text-slate-600 hover:bg-gray-100"
-                            }`}
-                        >
-                          午餐
+                    {/* 搜尋 + 篩選 */}
+                    <div className="flex flex-col gap-3 mb-4">
+                      <div className='flex items-center'>
+                        <div className="flex items-center space-x-2 mr-2">
+                          {/* 午餐按鈕 */}
+                          <div
+                            onClick={() => { setOrderMode("dish"); clearAll() }}
+                            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${orderMode === "dish"
+                              ? "bg-orange-500 text-white shadow-sm"
+                              : "bg-white border border-slate-200 text-slate-600 hover:bg-gray-100"
+                              }`}
+                          >
+                            午餐
+                          </div>
+
+                          {/* 手搖飲按鈕 */}
+                          <div
+                            onClick={() => { setOrderMode("bubbletea"); clearAll() }}
+                            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${orderMode === "bubbletea"
+                              ? "bg-green-600 text-white shadow-sm"
+                              : "bg-white border border-slate-200 text-slate-600 hover:bg-gray-100"
+                              }`}
+                          >
+                            手搖飲
+                          </div>
                         </div>
-
-                        {/* 手搖飲按鈕 */}
-                        <div
-                          onClick={() => { setOrderMode("bubbletea"); clearAll() }}
-                          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${orderMode === "bubbletea"
-                            ? "bg-green-600 text-white shadow-sm"
-                            : "bg-white border border-slate-200 text-slate-600 hover:bg-gray-100"
-                            }`}
-                        >
-                          手搖飲
+                        <div className="relative flex-1">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input type="text" placeholder={`${orderMode === "dish" ? "搜尋座號、日期、店家、餐點…" : "搜尋座號、日期、飲料名稱…"}`} value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="w-full pl-9 pr-9 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white shadow-sm" />
+                          {search && (
+                            <div onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                              <X className="w-3.5 h-3.5" />
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input type="text" placeholder={`${orderMode === "dish" ? "搜尋座號、日期、店家、餐點…" : "搜尋座號、日期、飲料名稱…"}`} value={search}
-                          onChange={e => setSearch(e.target.value)}
-                          className="w-full pl-9 pr-9 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white shadow-sm" />
-                        {search && (
-                          <div onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                            <X className="w-3.5 h-3.5" />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div onClick={clearAll}
+                          className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${!anyFilter && !search ? "bg-orange-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"}`}>
+                          全部
+                        </div>
+                        <CalendarPicker orderMode={orderMode} value={filterDate} onChange={setFilterDate} availableDates={dates} />
+                        {orderMode === "dish" && <ShopDropdown value={filterShop} onChange={setFilterShop} options={shops.map(s => ({ value: s, label: s }))} />}
+                        <div onClick={() => setFilterPaid(p => p === "1" ? "" : "1")}
+                          className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${filterPaid === "1" ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-slate-600 border-slate-200 hover:border-emerald-400 hover:text-emerald-700"}`}>
+                          ✓ 已付款
+                        </div>
+                        <div onClick={() => setFilterPaid(p => p === "0" ? "" : "0")}
+                          className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${filterPaid === "0" ? "bg-rose-500 text-white border-rose-500" : "bg-white text-slate-600 border-slate-200 hover:border-rose-400 hover:text-rose-600"}`}>
+                          ✕ 未付款
+                        </div>
+                        <div onClick={() => setFilterCancelled(p => p === "1" ? "" : "1")}
+                          className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${filterCancelled === "1" ? "bg-slate-500 text-white border-slate-500" : "bg-white text-slate-500 border-slate-200 hover:border-slate-400"}`}>
+                          ⊘ 已取消
+                        </div>
+                        {(anyFilter || search) && (
+                          <div onClick={clearAll} className="ml-auto flex items-center gap-1 px-2.5 py-2 text-xs text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+                            <X className="w-3 h-3" /> 清除篩選
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <div onClick={clearAll}
-                        className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${!anyFilter && !search ? "bg-orange-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"}`}>
-                        全部
-                      </div>
-                      <CalendarPicker orderMode={orderMode} value={filterDate} onChange={setFilterDate} availableDates={dates} />
-                      {orderMode === "dish" && <ShopDropdown value={filterShop} onChange={setFilterShop} options={shops.map(s => ({ value: s, label: s }))} />}
-                      <div onClick={() => setFilterPaid(p => p === "1" ? "" : "1")}
-                        className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${filterPaid === "1" ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-slate-600 border-slate-200 hover:border-emerald-400 hover:text-emerald-700"}`}>
-                        ✓ 已付款
-                      </div>
-                      <div onClick={() => setFilterPaid(p => p === "0" ? "" : "0")}
-                        className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${filterPaid === "0" ? "bg-rose-500 text-white border-rose-500" : "bg-white text-slate-600 border-slate-200 hover:border-rose-400 hover:text-rose-600"}`}>
-                        ✕ 未付款
-                      </div>
-                      <div onClick={() => setFilterCancelled(p => p === "1" ? "" : "1")}
-                        className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${filterCancelled === "1" ? "bg-slate-500 text-white border-slate-500" : "bg-white text-slate-500 border-slate-200 hover:border-slate-400"}`}>
-                        ⊘ 已取消
-                      </div>
-                      {(anyFilter || search) && (
-                        <div onClick={clearAll} className="ml-auto flex items-center gap-1 px-2.5 py-2 text-xs text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
-                          <X className="w-3 h-3" /> 清除篩選
+
+                    {/* 表格 */}
+                    {orderMode === "dish" &&
+                      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="h-12 border-b border-slate-100 bg-orange-400 text-xs text-gray-700">
+                                {["座號", "日期", "第幾輪", "店家", "餐點", "數量", "金額", "付款", "備註", "操作"].map(h => (
+                                  <th key={h} className="px-3 py-3 text-center font-semibold">{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                              {pageItems.length === 0 ? (
+                                <tr><td colSpan={10} className="py-16 text-center text-slate-400 text-sm">
+                                  <div className="text-3xl mb-2">🍽️</div>查無符合條件的訂單
+                                </td></tr>
+                              ) : pageItems.map(order => (
+                                <tr key={order.order_id}
+                                  className={`transition-colors duration-100 ${order.delete_flag === 1
+                                    ? "opacity-40 bg-slate-100 line-through"
+                                    : "odd:bg-[rgb(255,251,244)] even:bg-white hover:bg-gradient-to-t hover:from-orange-300 hover:via-amber-300 hover:to-orange-300 hover:shadow-sm cursor-pointer"}`}
+                                  onDoubleClick={() => { if (order.delete_flag !== 1) setModal({ type: "edit", entity: "orders", data: { ...order } }); }}>
+                                  <td className="px-3 py-3 text-center">
+                                    <div className="flex items-center justify-center gap-1.5">
+                                      <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+                                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 text-orange-700 text-xs font-bold">{order.seat_number}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-3 text-center text-slate-600">{order.order_date || "—"}</td>
+                                  <td className="px-3 py-3 text-center font-bold text-gray-800">{order.order_round}</td>
+                                  <td className="px-3 py-3 text-center font-medium text-slate-700">{order.shop_name || "—"}</td>
+                                  <td className="px-3 py-3 text-center text-slate-700">{order.food_name}</td>
+                                  <td className="px-3 py-3 text-center text-slate-600">{order.quantity}</td>
+                                  <td className="px-3 py-3 text-center font-semibold text-slate-800">${Number(order.price) * order.quantity}</td>
+                                  <td className="px-3 py-3 text-center">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${order.delete_flag === 1 ? "bg-rose-100 text-rose-600"
+                                      : order.is_paid === 1 ? "bg-emerald-100 text-emerald-700"
+                                        : order.order_date === today?.date ? "bg-orange-100 text-orange-700"
+                                          : "bg-gray-200 text-gray-600"}`}>
+                                      {order.delete_flag === 1 ? "已取消" : order.is_paid === 1 ? "已付款" : order.order_date === today?.date ? "未付款" : "未完成"}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-3 text-center text-slate-500 text-xs max-w-[80px] truncate">{order.remark || ""}</td>
+                                  <td className="px-3 py-3">
+                                    <div className="flex items-center justify-center gap-1">
+                                      <div className={`p-1.5 rounded-lg transition-all ${order.delete_flag === 1 ? "text-slate-300 cursor-not-allowed" : "text-blue-400 hover:text-white hover:bg-blue-400 cursor-pointer"}`}
+                                        onClick={() => { if (order.delete_flag !== 1) setModal({ type: "edit", entity: "orders", data: { ...order } }); }}>
+                                        <div className="relative">
+                                          <Pen className="w-3.5 h-3.5" />
+                                          {order.delete_flag === 1 && <div className="absolute inset-0 flex items-center justify-center"><div className="w-5 h-[1.5px] bg-slate-400 rotate-[-45deg]" /></div>}
+                                        </div>
+                                      </div>
+                                      <div className={`p-1.5 rounded-lg transition-all ${order.delete_flag === 1 ? "text-slate-300 cursor-not-allowed" : "text-red-400 hover:text-white hover:bg-red-400 cursor-pointer"}`}
+                                        onClick={() => { if (order.delete_flag !== 1) setModal({ type: "delete", entity: "orders", data: order }); }}>
+                                        <div className="relative">
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                          {order.delete_flag === 1 && <div className="absolute inset-0 flex items-center justify-center"><div className="w-5 h-[1.5px] bg-slate-400 rotate-[-45deg]" /></div>}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
-                      )}
+
+                        {/* 分頁 Footer */}
+                        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/60">
+                          <span className="text-xs text-slate-400">
+                            共 <span className="font-semibold text-slate-600">{filtered.length}</span> 筆 ／
+                            第 <span className="font-semibold text-slate-600">{safePage}</span> / <span className="font-semibold text-slate-600">{totalPages}</span> 頁
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <div disabled={safePage === 1} onClick={() => { if (page > 1) setPage(p => p - 1) }}
+                              className="p-1.5 rounded-lg border border-slate-200 hover:bg-amber-600 hover:border-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                              <ChevronLeft className="w-3.5 h-3.5" />
+                            </div>
+                            {pageNumbers().map((p, i) =>
+                              p === "…"
+                                ? <span key={`e${i}`} className="px-1.5 text-xs text-slate-400">…</span>
+                                : <div key={p} onClick={() => setPage(p)}
+                                  className={`min-w-[28px] h-7 px-1.5 rounded-lg text-xs font-semibold transition-all flex justify-center items-center ${p === safePage ? "bg-amber-500 text-white shadow-sm" : "border border-slate-200 text-slate-600 hover:bg-amber-600 hover:border-slate-300"}`}>
+                                  {p}
+                                </div>
+                            )}
+                            <div disabled={safePage === totalPages} onClick={() => { if (page < totalPages) setPage(p => p + 1) }}
+                              className="p-1.5 rounded-lg border border-slate-200 hover:bg-amber-600 hover:border-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                    {orderMode === "bubbletea" &&
+                      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="h-12 border-b border-slate-100 bg-green-400 text-xs text-gray-700">
+                                {["座號", "日期", "飲料名稱", "金額", "付款", "操作"].map(h => (
+                                  <th key={h} className="px-3 py-3 text-center font-semibold">{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                              {bubbleteaPageItems.length === 0 ? (
+                                <tr><td colSpan={10} className="py-16 text-center text-slate-400 text-sm">
+                                  <div className="text-3xl mb-2">🍽️</div>查無符合條件的訂單
+                                </td></tr>
+                              ) : bubbleteaPageItems.map(order => (
+                                <tr key={order.bubbletea_order_id}
+                                  className={`transition-colors duration-100 ${order.delete_flag === 1
+                                    ? "opacity-40 bg-slate-100 line-through"
+                                    : "odd:bg-[rgb(244,255,253)] even:bg-white hover:bg-gradient-to-t hover:from-green-300 hover:via-green-200 hover:to-green-300 hover:shadow-sm cursor-pointer"}`}
+                                  onDoubleClick={() => { if (order.delete_flag !== 1) setModal({ type: "edit", entity: "bubbleteaorders", data: { ...order } }); }}>
+                                  <td className="px-3 py-3 text-center">
+                                    <div className="flex items-center justify-center gap-1.5">
+                                      <span className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
+                                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-200 text-sky-700 text-xs font-bold">{order.seat_number}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-3 text-center text-slate-600">{order.order_date || ""}</td>
+                                  <td className="px-3 py-3 text-center text-slate-700">{order.bubbletea_name}</td>
+                                  <td className="px-3 py-3 text-center font-semibold text-slate-800">${Number(order.bubbletea_price)}</td>
+                                  <td className="px-3 py-3 text-center">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${order.delete_flag === 1 ? "bg-rose-100 text-rose-600"
+                                      : order.is_paid === 1 ? "bg-emerald-100 text-emerald-700"
+                                        : order.order_date === today?.date ? "bg-orange-100 text-orange-700"
+                                          : "bg-gray-200 text-gray-600"}`}>
+                                      {order.delete_flag === 1 ? "已取消" : order.is_paid === 1 ? "已付款" : order.order_date === today?.date ? "未付款" : "未完成"}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-3">
+                                    <div className="flex items-center justify-center gap-1">
+                                      <div className={`p-1.5 rounded-lg transition-all ${order.delete_flag === 1 ? "text-slate-300 cursor-not-allowed" : "text-blue-400 hover:text-white hover:bg-blue-400 cursor-pointer"}`}
+                                        onClick={() => { if (order.delete_flag !== 1) setModal({ type: "edit", entity: "bubbleteaorders", data: { ...order } }); }}>
+                                        <div className="relative">
+                                          <Pen className="w-3.5 h-3.5" />
+                                          {order.delete_flag === 1 && <div className="absolute inset-0 flex items-center justify-center"><div className="w-5 h-[1.5px] bg-slate-400 rotate-[-45deg]" /></div>}
+                                        </div>
+                                      </div>
+                                      <div className={`p-1.5 rounded-lg transition-all ${order.delete_flag === 1 ? "text-slate-300 cursor-not-allowed" : "text-red-400 hover:text-white hover:bg-red-400 cursor-pointer"}`}
+                                        onClick={() => { if (order.delete_flag !== 1) setModal({ type: "delete", entity: "bubbleteaorders", data: order }); }}>
+                                        <div className="relative">
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                          {order.delete_flag === 1 && <div className="absolute inset-0 flex items-center justify-center"><div className="w-5 h-[1.5px] bg-slate-400 rotate-[-45deg]" /></div>}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* 分頁 Footer */}
+                        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/60">
+                          <span className="text-xs text-slate-400">
+                            共 <span className="font-semibold text-slate-600">{bubbleteaFiltered.length}</span> 筆 ／
+                            第 <span className="font-semibold text-slate-600">{bubbleteaSafePage}</span> / <span className="font-semibold text-slate-600">{totalBubbleteaPages}</span> 頁
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <div disabled={bubbleteaSafePage === 1} onClick={() => { if (bubbleteaPage > 1) setBubbleteaPage(p => p - 1) }}
+                              className="p-1.5 rounded-lg border border-slate-200 hover:bg-green-600 hover:border-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                              <ChevronLeft className="w-3.5 h-3.5" />
+                            </div>
+                            {bubbleteaPageNumbers().map((p, i) =>
+                              p === "…"
+                                ? <span key={`e${i}`} className="px-1.5 text-xs text-slate-400">…</span>
+                                : <div key={p} onClick={() => setBubbleteaPage(p)}
+                                  className={`min-w-[28px] h-7 px-1.5 rounded-lg text-xs font-semibold transition-all flex justify-center items-center ${p === bubbleteaSafePage ? "bg-green-500 text-white shadow-sm" : "border border-slate-200 text-slate-600 hover:bg-green-600 hover:border-slate-300"}`}>
+                                  {p}
+                                </div>
+                            )}
+                            <div disabled={bubbleteaSafePage === totalBubbleteaPages} onClick={() => { if (bubbleteaPage < totalBubbleteaPages) setBubbleteaPage(p => p + 1) }}
+                              className="p-1.5 rounded-lg border border-slate-200 hover:bg-green-600 hover:border-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                ) : (
+                  <div className="mx-auto max-w-6xl">
+                    <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl border border-orange-100 p-5 hover:shadow-md transition-shadow">
+                      <div className='w-full text-center text-red-500 font-bold'>
+                        本功能需管理權限，請洽系統管理員
+                      </div>
                     </div>
                   </div>
-
-                  {/* 表格 */}
-                  {orderMode === "dish" &&
-                    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="h-12 border-b border-slate-100 bg-orange-400 text-xs text-gray-700">
-                              {["座號", "日期", "第幾輪", "店家", "餐點", "數量", "金額", "付款", "備註", "操作"].map(h => (
-                                <th key={h} className="px-3 py-3 text-center font-semibold">{h}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50">
-                            {pageItems.length === 0 ? (
-                              <tr><td colSpan={10} className="py-16 text-center text-slate-400 text-sm">
-                                <div className="text-3xl mb-2">🍽️</div>查無符合條件的訂單
-                              </td></tr>
-                            ) : pageItems.map(order => (
-                              <tr key={order.order_id}
-                                className={`transition-colors duration-100 ${order.delete_flag === 1
-                                  ? "opacity-40 bg-slate-100 line-through"
-                                  : "odd:bg-[rgb(255,251,244)] even:bg-white hover:bg-gradient-to-t hover:from-orange-300 hover:via-amber-300 hover:to-orange-300 hover:shadow-sm cursor-pointer"}`}
-                                onDoubleClick={() => { if (order.delete_flag !== 1) setModal({ type: "edit", entity: "orders", data: { ...order } }); }}>
-                                <td className="px-3 py-3 text-center">
-                                  <div className="flex items-center justify-center gap-1.5">
-                                    <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
-                                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 text-orange-700 text-xs font-bold">{order.seat_number}</span>
-                                  </div>
-                                </td>
-                                <td className="px-3 py-3 text-center text-slate-600">{order.order_date || "—"}</td>
-                                <td className="px-3 py-3 text-center font-bold text-gray-800">{order.order_round}</td>
-                                <td className="px-3 py-3 text-center font-medium text-slate-700">{order.shop_name || "—"}</td>
-                                <td className="px-3 py-3 text-center text-slate-700">{order.food_name}</td>
-                                <td className="px-3 py-3 text-center text-slate-600">{order.quantity}</td>
-                                <td className="px-3 py-3 text-center font-semibold text-slate-800">${Number(order.price) * order.quantity}</td>
-                                <td className="px-3 py-3 text-center">
-                                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${order.delete_flag === 1 ? "bg-rose-100 text-rose-600"
-                                    : order.is_paid === 1 ? "bg-emerald-100 text-emerald-700"
-                                      : order.order_date === today?.date ? "bg-orange-100 text-orange-700"
-                                        : "bg-gray-200 text-gray-600"}`}>
-                                    {order.delete_flag === 1 ? "已取消" : order.is_paid === 1 ? "已付款" : order.order_date === today?.date ? "未付款" : "未完成"}
-                                  </span>
-                                </td>
-                                <td className="px-3 py-3 text-center text-slate-500 text-xs max-w-[80px] truncate">{order.remark || ""}</td>
-                                <td className="px-3 py-3">
-                                  <div className="flex items-center justify-center gap-1">
-                                    <div className={`p-1.5 rounded-lg transition-all ${order.delete_flag === 1 ? "text-slate-300 cursor-not-allowed" : "text-blue-400 hover:text-white hover:bg-blue-400 cursor-pointer"}`}
-                                      onClick={() => { if (order.delete_flag !== 1) setModal({ type: "edit", entity: "orders", data: { ...order } }); }}>
-                                      <div className="relative">
-                                        <Pen className="w-3.5 h-3.5" />
-                                        {order.delete_flag === 1 && <div className="absolute inset-0 flex items-center justify-center"><div className="w-5 h-[1.5px] bg-slate-400 rotate-[-45deg]" /></div>}
-                                      </div>
-                                    </div>
-                                    <div className={`p-1.5 rounded-lg transition-all ${order.delete_flag === 1 ? "text-slate-300 cursor-not-allowed" : "text-red-400 hover:text-white hover:bg-red-400 cursor-pointer"}`}
-                                      onClick={() => { if (order.delete_flag !== 1) setModal({ type: "delete", entity: "orders", data: order }); }}>
-                                      <div className="relative">
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                        {order.delete_flag === 1 && <div className="absolute inset-0 flex items-center justify-center"><div className="w-5 h-[1.5px] bg-slate-400 rotate-[-45deg]" /></div>}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      {/* 分頁 Footer */}
-                      <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/60">
-                        <span className="text-xs text-slate-400">
-                          共 <span className="font-semibold text-slate-600">{filtered.length}</span> 筆 ／
-                          第 <span className="font-semibold text-slate-600">{safePage}</span> / <span className="font-semibold text-slate-600">{totalPages}</span> 頁
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <div disabled={safePage === 1} onClick={() => { if (page > 1) setPage(p => p - 1) }}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-amber-600 hover:border-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-                            <ChevronLeft className="w-3.5 h-3.5" />
-                          </div>
-                          {pageNumbers().map((p, i) =>
-                            p === "…"
-                              ? <span key={`e${i}`} className="px-1.5 text-xs text-slate-400">…</span>
-                              : <div key={p} onClick={() => setPage(p)}
-                                className={`min-w-[28px] h-7 px-1.5 rounded-lg text-xs font-semibold transition-all flex justify-center items-center ${p === safePage ? "bg-amber-500 text-white shadow-sm" : "border border-slate-200 text-slate-600 hover:bg-amber-600 hover:border-slate-300"}`}>
-                                {p}
-                              </div>
-                          )}
-                          <div disabled={safePage === totalPages} onClick={() => { if (page < totalPages) setPage(p => p + 1) }}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-amber-600 hover:border-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  }
-                  {orderMode === "bubbletea" &&
-                    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="h-12 border-b border-slate-100 bg-green-400 text-xs text-gray-700">
-                              {["座號", "日期", "飲料名稱", "金額", "付款", "操作"].map(h => (
-                                <th key={h} className="px-3 py-3 text-center font-semibold">{h}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50">
-                            {bubbleteaPageItems.length === 0 ? (
-                              <tr><td colSpan={10} className="py-16 text-center text-slate-400 text-sm">
-                                <div className="text-3xl mb-2">🍽️</div>查無符合條件的訂單
-                              </td></tr>
-                            ) : bubbleteaPageItems.map(order => (
-                              <tr key={order.bubbletea_order_id}
-                                className={`transition-colors duration-100 ${order.delete_flag === 1
-                                  ? "opacity-40 bg-slate-100 line-through"
-                                  : "odd:bg-[rgb(244,255,253)] even:bg-white hover:bg-gradient-to-t hover:from-green-300 hover:via-green-200 hover:to-green-300 hover:shadow-sm cursor-pointer"}`}
-                                onDoubleClick={() => { if (order.delete_flag !== 1) setModal({ type: "edit", entity: "bubbleteaorders", data: { ...order } }); }}>
-                                <td className="px-3 py-3 text-center">
-                                  <div className="flex items-center justify-center gap-1.5">
-                                    <span className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
-                                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-200 text-sky-700 text-xs font-bold">{order.seat_number}</span>
-                                  </div>
-                                </td>
-                                <td className="px-3 py-3 text-center text-slate-600">{order.order_date || ""}</td>
-                                <td className="px-3 py-3 text-center text-slate-700">{order.bubbletea_name}</td>
-                                <td className="px-3 py-3 text-center font-semibold text-slate-800">${Number(order.bubbletea_price)}</td>
-                                <td className="px-3 py-3 text-center">
-                                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${order.delete_flag === 1 ? "bg-rose-100 text-rose-600"
-                                    : order.is_paid === 1 ? "bg-emerald-100 text-emerald-700"
-                                      : order.order_date === today?.date ? "bg-orange-100 text-orange-700"
-                                        : "bg-gray-200 text-gray-600"}`}>
-                                    {order.delete_flag === 1 ? "已取消" : order.is_paid === 1 ? "已付款" : order.order_date === today?.date ? "未付款" : "未完成"}
-                                  </span>
-                                </td>
-                                <td className="px-3 py-3">
-                                  <div className="flex items-center justify-center gap-1">
-                                    <div className={`p-1.5 rounded-lg transition-all ${order.delete_flag === 1 ? "text-slate-300 cursor-not-allowed" : "text-blue-400 hover:text-white hover:bg-blue-400 cursor-pointer"}`}
-                                      onClick={() => { if (order.delete_flag !== 1) setModal({ type: "edit", entity: "bubbleteaorders", data: { ...order } }); }}>
-                                      <div className="relative">
-                                        <Pen className="w-3.5 h-3.5" />
-                                        {order.delete_flag === 1 && <div className="absolute inset-0 flex items-center justify-center"><div className="w-5 h-[1.5px] bg-slate-400 rotate-[-45deg]" /></div>}
-                                      </div>
-                                    </div>
-                                    <div className={`p-1.5 rounded-lg transition-all ${order.delete_flag === 1 ? "text-slate-300 cursor-not-allowed" : "text-red-400 hover:text-white hover:bg-red-400 cursor-pointer"}`}
-                                      onClick={() => { if (order.delete_flag !== 1) setModal({ type: "delete", entity: "bubbleteaorders", data: order }); }}>
-                                      <div className="relative">
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                        {order.delete_flag === 1 && <div className="absolute inset-0 flex items-center justify-center"><div className="w-5 h-[1.5px] bg-slate-400 rotate-[-45deg]" /></div>}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      {/* 分頁 Footer */}
-                      <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/60">
-                        <span className="text-xs text-slate-400">
-                          共 <span className="font-semibold text-slate-600">{bubbleteaFiltered.length}</span> 筆 ／
-                          第 <span className="font-semibold text-slate-600">{bubbleteaSafePage}</span> / <span className="font-semibold text-slate-600">{totalBubbleteaPages}</span> 頁
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <div disabled={bubbleteaSafePage === 1} onClick={() => { if (bubbleteaPage > 1) setBubbleteaPage(p => p - 1) }}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-green-600 hover:border-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-                            <ChevronLeft className="w-3.5 h-3.5" />
-                          </div>
-                          {bubbleteaPageNumbers().map((p, i) =>
-                            p === "…"
-                              ? <span key={`e${i}`} className="px-1.5 text-xs text-slate-400">…</span>
-                              : <div key={p} onClick={() => setBubbleteaPage(p)}
-                                className={`min-w-[28px] h-7 px-1.5 rounded-lg text-xs font-semibold transition-all flex justify-center items-center ${p === bubbleteaSafePage ? "bg-green-500 text-white shadow-sm" : "border border-slate-200 text-slate-600 hover:bg-green-600 hover:border-slate-300"}`}>
-                                {p}
-                              </div>
-                          )}
-                          <div disabled={bubbleteaSafePage === totalBubbleteaPages} onClick={() => { if (bubbleteaPage < totalBubbleteaPages) setBubbleteaPage(p => p + 1) }}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-green-600 hover:border-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  }
-                </div>
+                )}
               </div>
             </div>
           )}
         </main>
-      </div>
+      </div >
       {renderModal()}
-    </div>
+    </div >
   );
 };
 
