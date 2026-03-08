@@ -167,40 +167,7 @@ export default function ClassMembers() {
 
     const [skillLists, setSkillLists] = useState([]);
     /* ─── Member Card ──────────────────────────────────────────────────── */
-    // const MemberCard = ({ member, index }) => {
-    //     const colorKeys = Object.keys(colorMap);
-    //     const colorKey = colorKeys[index % colorKeys.length]; // 使用 map 提供的 index
-    //     const c = colorMap[colorKey] || colorMap.blue;
-
-    //     return (
-    //         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col items-center text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-200 group">
-    //             {/* Avatar */}
-    //             <div className={`w-16 h-16 rounded-full ${c.bg} ring-4 ${c.ring} flex items-center justify-center text-3xl mx-auto mb-3`}>
-    //                 {member.avatar}
-    //             </div>
-
-    //             {/* Name */}
-    //             <p className={`text-lg font-black ${c.text} leading-tight`}>{member.user_en_name || member.user_nick_name || "學員"}</p>
-    //             {/* <p className="text-xs text-gray-400 mb-2">{member.zhName}</p> */}
-
-    //             {/* Role badge */}
-    //             <span className={`text-xs mt-2 px-3 py-1 rounded-full font-semibold ${c.badge} mb-3 inline-block`}>
-    //                 {member.position_name}
-    //             </span>
-
-    //             {/* Bio */}
-    //             <p className="text-xs text-gray-500 mb-4 leading-relaxed flex-1">{member.user_title ? member.user_title : `座位${member.seat_number}號`}</p>
-
-    //             {/* GitHub link */}
-    //             <div className={`flex items-center gap-1.5 text-xs font-semibold ${member.github ? " bg-rose-100 text-rose-500 hover:text-rose-900 hover:bg-rose-200" : "bg-gray-100 text-gray-400"} px-3 py-1.5 rounded-lg transition-all duration-150 w-full justify-center`}
-    //                 onClick={() => { if (member.github) gotogithub(member.github) }}
-    //             >
-    //                 <GitHubIcon />
-    //                 GitHub 作品集
-    //             </div>
-    //         </div>
-    //     );
-    // };
+    
     const MemberCard = ({ member, index }) => {
         const colorKeys = Object.keys(colorMap);
         const colorKey = colorKeys[index % colorKeys.length];
