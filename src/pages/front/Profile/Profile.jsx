@@ -70,9 +70,9 @@ const InputField = ({ label, value, onChange, type = "text", placeholder, disabl
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      readOnly={readOnly} 
-      onClick={onClick}  
-      disabled= {disabled}  
+      readOnly={readOnly}
+      onClick={onClick}
+      disabled={disabled}
       className={`w-full border rounded-xl px-4 py-2.5 text-sm transition-all outline-none
         ${readOnly || disabled
           ? "bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed"
@@ -137,6 +137,8 @@ export default function Profile() {
   const { user, setUser } = useUser();
   const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [expireAt, setExpireAt] = useState(null);
+  const [remaining, setRemaining] = useState(null);
   const [gotoAuthorize, setGotoAuthorize] = useState(false);
   const [tab, setTab] = useState("baseinfo");
   const [profile, setProfile] = useState({ skills: [] });
@@ -581,6 +583,7 @@ export default function Profile() {
             if (!res.data?.success) {
               throw new Error(res.data?.message || "驗證失敗");
             }
+            setExpireAt(res?.data?.expireAt)
             return res.data;
           } catch (error) {
             Swal.showValidationMessage(
@@ -596,6 +599,8 @@ export default function Profile() {
           Swal.fire("驗證成功", "你已經通過密碼驗證", "success");
         } else {
           setGotoAuthorize(false);
+          setRemaining(null);
+          setExpireAt(null);
         }
       });
     }
@@ -725,11 +730,60 @@ export default function Profile() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!expireAt) return
+    let warned = false  // 標記是否已經提醒過
+    const timer = setInterval(() => {
+      const diff = Math.floor((expireAt - Date.now()) / 1000)
+      setRemaining(Math.max(diff, 0))
+      if (diff <= 0) {
+        setIsAuthorized(false)
+        setExpireAt(null)
+        clearInterval(timer)
+      }
+      // 倒數到30秒且還沒提醒過
+      if (diff < 30 && !warned) {
+        warned = true
+        Swal.fire({
+          title: '授權即將過期',
+          text: '你是否要延長授權 300 秒？',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: '延長授權',
+          cancelButtonText: '不延長'
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            // 呼叫 refresh API
+            const res = await api.post('/api/refresh')
+            setExpireAt(res.data.expireAt)
+            warned = false
+          }
+        })
+      }
+
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [expireAt])
+
+  const refreshAuth = async () => {
+
+    const res = await api.post("/api/refresh")
+    setExpireAt(res.data.expireAt)
+  }
+
   return (
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen" style={{ fontFamily: "'Noto Sans TC', 'Microsoft JhengHei', sans-serif" }}>
       {toast && <Toast msg={toast} />}
-
-      <PageHeader title="會員資料" subtitle="管理你的帳號資訊、查看學習成就與偏好設定" />
+      <div className="flex flex-col md:flex-row w-full ">
+        <PageHeader title="會員資料" subtitle="管理你的帳號資訊、查看學習成就與偏好設定" />
+        {remaining != null &&
+          <div className="mr-auto md:mr-0 md:ml-auto md:mb-auto mb-6 md:mb-8 px-4 py-2 text-white bg-[rgb(129,20,20)] rounded-xl hover:bg-[rgb(214,48,48)] transform hover:scale-105 transition"
+            onClick={() => refreshAuth()}
+          >
+            授權：{remaining} 秒
+          </div>
+        }
+      </div>
       {isAuthorized && (
         <Card className="p-5 md:p-6 mb-5">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 md:gap-6">
