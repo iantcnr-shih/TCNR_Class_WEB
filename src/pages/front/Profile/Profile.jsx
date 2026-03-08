@@ -564,7 +564,7 @@ export default function Profile() {
   }, [])
 
   useEffect(() => {
-    if (!isAuthorized || (!isAuthorized && gotoAuthorize)) {
+    if ((!isAuthorized && !gotoAuthorize) || gotoAuthorize) {
       Swal.fire({
         icon: "info",
         title: "請輸入密碼授權",
@@ -596,9 +596,9 @@ export default function Profile() {
         if (result.isConfirmed) {
           // 驗證成功
           setIsAuthorized(true); // 將 state 設為已授權
+          setGotoAuthorize(false);
           Swal.fire("驗證成功", "你已經通過密碼驗證", "success");
         } else {
-          setGotoAuthorize(false);
           setRemaining(null);
           setExpireAt(null);
         }
@@ -738,6 +738,7 @@ export default function Profile() {
       setRemaining(Math.max(diff, 0))
       if (diff <= 0) {
         setIsAuthorized(false)
+        setGotoAuthorize(false)
         setExpireAt(null)
         clearInterval(timer)
       }
@@ -1080,7 +1081,7 @@ export default function Profile() {
             <div
               className="mx-auto px-3 text-center text-blue-700 font-semibold cursor-pointer rounded-lg py-2 
               transition-all duration-200 hover:text-blue-900 hover:bg-blue-50 hover:shadow-sm active:scale-95"
-              onClick={() => setGotoAuthorize(true)}
+              onClick={() => setGotoAuthorize(!gotoAuthorize)}
             >
               前往授權
             </div>
@@ -1231,7 +1232,7 @@ export default function Profile() {
             <div
               className="mx-auto px-3 text-center text-blue-700 font-semibold cursor-pointer rounded-lg py-2 
               transition-all duration-200 hover:text-blue-900 hover:bg-blue-50 hover:shadow-sm active:scale-95"
-              onClick={() => setGotoAuthorize(true)}
+              onClick={() => setGotoAuthorize(!gotoAuthorize)}
             >
               前往授權
             </div>
