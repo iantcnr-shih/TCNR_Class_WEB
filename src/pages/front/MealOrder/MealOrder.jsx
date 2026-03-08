@@ -94,7 +94,11 @@ export default function MealOrder() {
         }
       });
       if (res.status === 200) {
-        setUserHistoryOrders(res.data.user_orders);
+        const sorted = res.data.user_orders.sort(
+          (a, b) => new Date(b.order_date) - new Date(a.order_date)
+        );
+
+        setUserHistoryOrders(sorted);
       }
     } catch (error) {
       console.log("getUserHistoryOrders error:", error);
@@ -109,7 +113,11 @@ export default function MealOrder() {
         }
       });
       if (res.status === 200) {
-        setUserHistoryBubbleteaOrders(res.data.user_orders);
+        const sorted = [...res.data.user_orders].sort(
+          (a, b) => new Date(b.order_date) - new Date(a.order_date)
+        );
+
+        setUserHistoryBubbleteaOrders(sorted);
       }
     } catch (error) {
       console.log("getUserHistoryBubbleteaOrders error:", error);
@@ -206,7 +214,7 @@ export default function MealOrder() {
                     </div>
                     <div
                       onClick={() => setOrderMode("bubbletea")}
-                      className={`px-3 py-1 rounded-full font-semibold ${orderMode === "bubbletea" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-500"}`}
+                      className={`px-3 py-1 rounded-full font-semibold ${orderMode === "bubbletea" ? "bg-green-200 text-green-800" : "bg-gray-100 text-gray-500"}`}
                     >
                       手搖飲
                     </div>
@@ -228,7 +236,6 @@ export default function MealOrder() {
                         {userHistoryOrders.map((row, i) => {
                           const todayStr = today.date;
                           let badgeText = "";
-
                           if (row.delete_flag === 1) {
                             badgeText = "已取消";
                           } else if (row.order_date?.slice(0, 10) === todayStr) {
@@ -236,9 +243,10 @@ export default function MealOrder() {
                           } else {
                             badgeText = row.is_paid === 1 ? "已完成" : "未完成";
                           }
-
                           return (
-                            <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                            <tr key={i} className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${row.delete_flag === 1
+                              ? "opacity-40 bg-slate-100 line-through" : ""}`}
+                            >
                               <td className="px-4 py-3 text-center text-gray-400">{row.order_date}</td>
                               <td className="px-4 py-3 text-center font-semibold text-gray-700">{row.shop_name}</td>
                               <td className="px-4 py-3 text-center font-semibold text-[rgb(184,79,79)]">{row.food_name}</td>
@@ -296,7 +304,7 @@ export default function MealOrder() {
                     {/* Desktop table view */}
                     <table className="hidden md:table w-full text-sm">
                       <thead>
-                        <tr className="bg-green-100">
+                        <tr className="bg-green-200">
                           {["日期", "餐點內容", "金額", "狀態"].map(h => (
                             <th key={h} className="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wide border-b border-gray-100">{h}</th>
                           ))}
@@ -316,7 +324,8 @@ export default function MealOrder() {
                           }
 
                           return (
-                            <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                            <tr key={i} className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${row.delete_flag === 1
+                              ? "opacity-40 bg-slate-100 line-through" : ""}`}>
                               <td className="px-4 py-3 text-center text-gray-400">{row.order_date}</td>
                               <td className="px-4 py-3 text-center font-semibold text-[rgb(184,79,79)]">{row.bubbletea_name}</td>
                               <td className="px-4 py-3 text-center text-orange-500 font-bold">

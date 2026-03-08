@@ -1089,7 +1089,7 @@ export default function RestaurantManager() {
         <div className="w-full flex p-3">
           <>
             <div className={`px-3 py-1 rounded-md cursor-pointer hover:font-bold hover:text-blue-700 hover:underline underline-offset-4 transition-all duration-300
-                ${tab === "shops" && selectShop?.shop_name ? "underline underline-offset-4 text-[rgb(42,42,255)] font-bold" : "text-gray-500"}
+                ${tab === "shops" && selectShop?.shop_name ? "underline underline-offset-4 text-[rgb(42,42,255)] font-bold" : "text-gray-500"} ${tab === "shops" ? "underline underline-offset-4" : "" }
               `}
               onClick={() => setTab("shops")}
             >
@@ -1099,7 +1099,7 @@ export default function RestaurantManager() {
               <>
                 <span className="flex items-center justify-center">{">"}</span>
                 <div className={`px-3 py-1 rounded-md cursor-pointer hover:font-bold hover:text-blue-700 hover:underline underline-offset-4 transition-all duration-300
-                  ${tab === "categories" && selectCategory?.category_name ? "underline underline-offset-4 text-[rgb(42,42,255)] font-bold" : "text-gray-500"}
+                  ${tab === "categories" && selectCategory?.category_name ? "underline underline-offset-4 text-[rgb(42,42,255)] font-bold" : "text-gray-500"} ${tab === "categories" ? "underline underline-offset-4" : ""}
                 `}
                   onClick={() => setTab("categories")}
                 >
@@ -1111,7 +1111,7 @@ export default function RestaurantManager() {
               <>
                 <span className="flex items-center justify-center">{">"}</span>
                 <div className={`px-3 py-1 rounded-md cursor-pointer hover:font-bold hover:text-blue-700 hover:underline underline-offset-4 transition-all duration-300
-                  ${tab === "foods" && selectFood?.food_name ? "underline underline-offset-4 text-[rgb(42,42,255)] font-bold" : "text-gray-500"}
+                  ${tab === "foods" && selectFood?.food_name ? "underline underline-offset-4 text-[rgb(42,42,255)] font-bold" : "text-gray-500"} ${tab === "foods" ? "underline underline-offset-4" : ""}
                 `}
                   onClick={() => { setTab("foods"); if (selectFood?.food_name) setModal({ type: selectFood?.type, entity: selectFood?.entity, data: selectFood?.data }) }}
                 >

@@ -258,22 +258,24 @@ export default function MealOrderService() {
                   </thead>
                   <tbody>
                     {userorders.map(o => (
-                      <tr key={o.order_id} className="border-b border-gray-200 hover:bg-[#FFF8F7] transition-colors duration-150">
+                      <tr key={o.order_id} className={`border-b border-gray-200 transition-colors duration-150 ${o.delete_flag === 1
+                        ? "opacity-40 bg-slate-100 line-through"
+                        : ""}
+                        `}
+                      >
                         <td className="px-4 py-2 text-[rgb(44,26,26)]"><span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-900/10 text-[rgb(139,26,46)] font-bold text-[13px]">{o.seat_number}</span></td>
                         <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.shop_name}</td>
-                        <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.food_name} {o.remark}</td>
+                        <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.food_name} <span className="text-red-500 font-bold">{o.remark}</span></td>
                         <td className="px-4 py-2 text-[rgb(44,26,26)]">{o.quantity}{o.food_id <= 13 ? "顆" : "份"}</td>
                         <td className="px-4 py-2 text-[rgb(44,26,26)]">${o.quantity * o.price}</td>
                         <td className="px-4 py-2 text-[rgb(44,26,26)]">
-                          {o.is_paid === 1 ? (
-                            <span className="inline-flex items-center gap-1.5 bg-[rgba(34,197,94,0.1)] text-[#16a34a] border border-[rgba(34,197,94,0.25)] px-2.5 py-1 rounded-[20px] text-[12px] font-medium">
-                              ✓ 已付款
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-600 border border-orange-200 py-1 px-2.5 rounded-full text-[12px] font-medium">
-                              ○ 未付款
-                            </span>
-                          )}
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${o.delete_flag === 1
+                            ? "bg-rose-100 text-rose-600"
+                            : o.is_paid === 1 ? "bg-emerald-100 text-emerald-700" : o.order_date === today.date ? "bg-orange-100 text-orange-700" : "bg-gray-200 text-gray-600"
+                            }`}
+                          >
+                            {o.delete_flag === 1 ? "已取消" : o.is_paid === 1 ? "已付款" : o.order_date === today.date ? "未付款" : "未完成"}
+                          </span>
                         </td>
                       </tr>
                     ))}
@@ -423,8 +425,8 @@ export default function MealOrderService() {
                                     <div key={food.food_id} className={`flex justify-between items-center rounded-xl px-4 py-2.5 shadow-sm transition-all ${foodInactive ? "bg-gray-100 grayscale opacity-60" : "bg-white"} ${!(shopInactive || categoryInactive || foodInactive) ? "hover:bg-sky-300 text-gray-700 hover:text-[rgb(0,0,255)] hover:scale-103 hover:font-bold" : "text-gray-400"}`}
                                       onClick={() => {
                                         if (!(shopInactive || categoryInactive || foodInactive)) {
-                                         setCategoryId(food.menu_category_id);
-                                          setFoods(allfoods.filter(f=>f.menu_category_id === food.menu_category_id));
+                                          setCategoryId(food.menu_category_id);
+                                          setFoods(allfoods.filter(f => f.menu_category_id === food.menu_category_id));
                                           setFoodId(food.food_id.toString());
                                           setShowMenu(false);
                                         }
@@ -622,7 +624,7 @@ export default function MealOrderService() {
                       >
                         <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]"><span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-900/10 text-[rgb(139,26,46)] text-[13px]">{o.seat_number}</span></td>
                         <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">{o.shop_name}</td>
-                        <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">{o.food_name} {o.remark}</td>
+                        <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">{o.food_name} <span className="text-red-500 font-bold">{o.remark}</span></td>
                         <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">{o.quantity}{o.food_id <= 13 ? "顆" : "份"}</td>
                         <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">${o.quantity * o.price}</td>
                         <td className="px-4 py-2 font-bold text-[rgb(44,26,26)]">
@@ -957,7 +959,7 @@ export default function MealOrderService() {
       }
       order_round_lists.sort((a, b) => a.value - b.value);
       const user_order = user_all_order.filter(order => order.order_round == orderRound);
-      const select_orders = orders.filter(order => order.order_round == orderRound);
+      const select_orders = orders.filter(order => order.order_round == orderRound && order.delete_flag === 0);
       setOrderroundlists(order_round_lists);
       setUserorders(user_order);
       setSelectorders(select_orders);
