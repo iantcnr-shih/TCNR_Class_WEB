@@ -369,6 +369,8 @@ export default function RestaurantManager() {
             // 加入 allcategories
             setAllcategories(prev => [...prev, formattedCategory]);
             setSelectCategory(formattedCategory);
+            const shop = allshops.find(s=>s.shop_id === Number(newCategory.shop_id));
+            if (shop) setSelectShop({ shop_id: shop.shop_id, shop_name: shop.shop_name })
           }
         } catch (err) {
           if (err.response?.status === 400) {
@@ -420,6 +422,11 @@ export default function RestaurantManager() {
             );
             if (selectCategory.menu_category_id === data.menu_category_id) {
               setSelectCategory(data)
+            }
+            
+            const shop = allshops.find(s => s.shop_id === data.shop_id)
+            if (shop) {
+              setSelectShop({ shop_id: shop.shop_id, shop_name: shop.shop_name })
             }
           }
         } catch (err) {
@@ -531,6 +538,8 @@ export default function RestaurantManager() {
             // 加入 allcategories
             setAllFoods(prev => [...prev, formattedFood]);
             setSelectFood(formattedFood);
+            const category = allcategories.find(c=>c.menu_category_id === Number(newFood.menu_category_id));
+            if (category) setSelectCategory({ menu_category_id: category.menu_category_id, category_name: category.category_name })
           }
         } catch (err) {
           if (err.response?.status === 400) {
@@ -552,6 +561,7 @@ export default function RestaurantManager() {
       fetchAddFood();
     } else {
       const fetchUpdateFood = async () => {
+        const menu_category_id = Number(data?.menu_category_id);
         if (!data?.menu_category_id) {
           Swal.fire({
             title: "請選擇餐點類別",
@@ -574,9 +584,13 @@ export default function RestaurantManager() {
           });
           return;
         }
+        const payload = {
+          ...data,
+          menu_category_id
+        };
         try {
           // 假設後端是 POST 更新狀態
-          const res = await api.post("/api/updateFood", data);
+          const res = await api.post("/api/updateFood", payload);
           if (res.status === 200) {
             Swal.fire({
               title: "餐點更新成功",
@@ -584,11 +598,15 @@ export default function RestaurantManager() {
             });
             setAllFoods(prev =>
               prev.map(food =>
-                food.food_id === data.food_id ? data : food
+                food.food_id === payload.food_id ? payload : food
               )
             );
-            if (selectFood.food_id === data.food_id) {
-              setSelectFood(data)
+            if (selectFood.food_id === payload.food_id) {
+              setSelectFood(payload)
+            }
+            const category = allcategories.find(c => c.menu_category_id === payload.menu_category_id)
+            if (category) {
+              setSelectCategory({ menu_category_id: category.menu_category_id, category_name: category.category_name })
             }
           }
         } catch (err) {
@@ -727,7 +745,7 @@ export default function RestaurantManager() {
       const [form, setForm] = [data, (patch) => setModal(m => ({ ...m, data: { ...m.data, ...patch } }))];
       return (
         <Modal title={type === "add" ? "新增餐點" : "編輯餐點"}
-          onClose={closeModal} onConfirm={() => saveFood({ ...form, styleId: Number(form.styleId), price: Number(form.price) })}
+          onClose={closeModal} onConfirm={() => saveFood({ ...form, price: Number(form.price) })}
           confirmColor="bg-orange-500 hover:bg-orange-600">
           <Field label="所屬餐點類別" required>
             <Select value={form.menu_category_id || ""} onChange={v => setForm({ menu_category_id: v })}
@@ -890,7 +908,8 @@ export default function RestaurantManager() {
       return (
         <tr key={row.food_id}
           className={`hover:bg-slate-100 transition-colors ${selectFood?.food_name === row.food_name ? "bg-slate-100" : ""}`}
-          onClick={() => setSelectFood({ food_id: row.food_id, food_name: row.food_name })}
+          onClick={() => setSelectFood({ food_id: row.food_id, food_name: row.food_name, type: "edit", entity: "foods", data: { ...row } })}
+          onDoubleClick={() => { setSelectFood({ food_id: row.food_id, food_name: row.food_name, type: "edit", entity: "foods", data: { ...row } }); setModal({ type: "edit", entity: "foods", data: { ...row } }) }}
         >
           <td className="px-6 py-4">
             <div className="flex items-center gap-3">
@@ -1094,7 +1113,7 @@ export default function RestaurantManager() {
                 <div className={`px-3 py-1 rounded-md cursor-pointer hover:font-bold hover:text-blue-700 hover:underline underline-offset-4 transition-all duration-300
                   ${tab === "foods" && selectFood?.food_name ? "underline underline-offset-4 text-[rgb(42,42,255)] font-bold" : "text-gray-500"}
                 `}
-                  onClick={() => setTab("foods")}
+                  onClick={() => { setTab("foods"); if (selectFood?.food_name) setModal({ type: selectFood?.type, entity: selectFood?.entity, data: selectFood?.data }) }}
                 >
                   {selectFood?.food_name ?? "餐點"}
                 </div>
