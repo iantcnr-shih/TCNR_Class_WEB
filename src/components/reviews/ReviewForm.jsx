@@ -35,13 +35,20 @@ export default function ReviewForm({ onSubmit }) {
       <div style={{ marginBottom: "8px" }}>
         <label>
           星等：
-          <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
-            <option value={5}>5</option>
-            <option value={4}>4</option>
-            <option value={3}>3</option>
-            <option value={2}>2</option>
-            <option value={1}>1</option>
-          </select>
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <div
+                key={star}
+                type="button"
+                onClick={() => setRating(star)}
+                className={`text-2xl transition ${star <= rating ? "text-yellow-400" : "text-gray-300"
+                  } hover:scale-110`}
+              >
+                ★
+              </div>
+            ))}
+            <span className="ml-2 text-sm text-gray-500">{rating} / 5</span>
+          </div>
         </label>
       </div>
 
@@ -55,6 +62,7 @@ export default function ReviewForm({ onSubmit }) {
             rows={3}
             style={{ width: "100%" }}
             placeholder="寫下你的評論（可留空）"
+            className="p-2 bg-white border border-gray-300"
           />
         </label>
       </div>
