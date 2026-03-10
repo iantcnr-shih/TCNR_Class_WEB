@@ -190,7 +190,7 @@ export default function ReviewTab({ seatNumber = null }) {
       <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm mb-4">
         <div className="font-bold text-gray-800 mb-2">餐點評價</div>
         <div className="text-xs text-gray-500 mb-1">選擇店家（全店）</div>
-        <div className="flex w-full gap-3">
+        <div className="flex flex-wrap w-full gap-3">
           {shopsSummary.map((s) => (
             <button
               key={s.shop_id}

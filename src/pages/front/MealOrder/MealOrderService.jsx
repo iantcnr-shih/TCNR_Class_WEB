@@ -184,7 +184,8 @@ export default function MealOrderService() {
     setSortConfig({ key, direction });
 
     // 根據 key 進行排序
-    const sorted = [...orders].sort((a, b) => {
+    const updateorders = orders.filter(order=> order.delete_flag === 0);
+    const sorted = [...updateorders].sort((a, b) => {
       let aValue;
       let bValue;
 
