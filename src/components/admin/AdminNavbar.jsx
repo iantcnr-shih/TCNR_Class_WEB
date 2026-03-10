@@ -189,7 +189,7 @@ const AdminNavbar = () => {
                             >
                                 {user ? (
                                     <>
-                                        <div onClick={() => setShowAdminMenu(prev => !prev)}>
+                                        {/* <div onClick={() => setShowAdminMenu(prev => !prev)}>
                                             <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
                                                 <User className="h-4 w-4 text-slate-700" />
                                             </div>
@@ -233,7 +233,68 @@ const AdminNavbar = () => {
                                                         </div>
                                                     ))}
                                             </div>
-                                        }
+                                        } */}
+                                        <div className="relative cursor-pointer"
+                                            ref={userdropdownRef}
+                                            onClick={() => setShowAdminMenu(prev => !prev)}
+                                        >
+                                            <div
+                                                className=""
+                                            >
+                                                {user?.user?.avatar ? (
+                                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[rgb(210,225,250)] to-[rgb(147,172,243)] text-white flex items-center justify-center font-bold border-2 border-blue-400">
+                                                        <span className='scale-[1.2]'>{user.user.avatar}</span>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
+                                                            <User className="h-4 w-4 text-slate-700" />
+                                                        </div>
+                                                        <span className="text-center text-sm font-medium text-gray-700 hidden lg:block">{user?.user?.user_name ? `${user.user.user_name.slice(-2)}` : "Admin"}</span>
+                                                    </>
+                                                )}
+                                            </div>
+
+                                            {showAdminMenu &&
+                                                <div className={`
+                                                    absolute right-0 mt-2 w-48 bg-gradient-to-br from-blue-100 to-blue-50 shadow-lg rounded-lg py-2 z-50
+                                                    transition-all duration-300 ease-out transform origin-top-right
+                                                    ${AdminMenuItems ? "opacity-100 scale-100 translate-y-0"
+                                                        : "opacity-0 scale-95 -translate-y-2 pointer-events-none"}
+                                                `}
+                                                >
+                                                    {AdminMenuItems
+                                                        .filter(item => item.roles.includes("") || item.roles.some(role => user?.user?.roles?.includes(role)))
+                                                        .map(item => (
+                                                            <div
+                                                                key={item.name}
+                                                                className="px-4 py-2 text-[rgb(42,30,173)] hover:bg-gray-200 hover:text-[rgb(1,6,53)] cursor-pointer transition-colors"
+                                                                onClick={() => {
+                                                                    if (item.action === "logout") {
+                                                                        logout();
+                                                                    } else {
+                                                                        if (item.path && item.path.startsWith("#")) {
+                                                                            Swal.fire({
+                                                                                title: "功能尚未實裝, 敬請期待",
+                                                                                icon: "warning",
+                                                                            });
+                                                                        } else {
+                                                                            navigate(item.path);
+                                                                            window.scrollTo({
+                                                                                top: 0,
+                                                                                behavior: "smooth"
+                                                                            });
+                                                                        }
+                                                                    }
+                                                                    setShowAdminMenu(false);
+                                                                }}
+                                                            >
+                                                                {item.name}
+                                                            </div>
+                                                        ))}
+                                                </div>
+                                            }
+                                        </div>
                                     </>
                                 ) : (
                                     <div className='text-sm'>
@@ -251,7 +312,7 @@ const AdminNavbar = () => {
                         </div>
                     </div>
                 </div>
-            </nav>
+            </nav >
         </ >
     )
 }

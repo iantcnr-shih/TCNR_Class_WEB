@@ -25,10 +25,6 @@ const badges = [
   { icon: "🎯", label: "結業認證", desc: "完成課程", earned: false },
 ];
 
-const avatarOptions = ["🦊", "🐼", "🐸", "🦁", "🐙", "🚀", "🌸", "🧪", "🗄️", "🤖", "⚡", "✨", "🐳", "🎭", "🔧",
-  "🧠", "📱", "🎯", "🛡️", "🌊", "☁️", "🖌️", "⚙️", "📊", "🌈", "🎮", "🔢", "🔐", "🏗️", "🎨", "🎪", "🤯", "❄️", "🌱"
-];
-
 // const skillOptions = ["React", "Vue", "Angular", "Node.js", "Express", "TypeScript", "JavaScript", "Python", "PostgreSQL", "MongoDB", "Docker", "AWS", "Git", "Figma", "GraphQL", "Redis"];
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -171,6 +167,77 @@ export default function Profile() {
     ["settings", "⚙️", "帳號設定"],
   ];
 
+  const avatarOptions = ["🦊", "🐼", "🐸", "🦁", "🐙", "🚀", "🌸", "🧪", "🗄️", "🤖", "⚡", "✨", "🐳", "🎭", "🔧",
+    "🧠", "📱", "🎯", "🛡️", "🌊", "☁️", "🖌️", "⚙️", "📊", "🌈", "🎮", "🔢", "🔐", "🏗️", "🎨", "🎪", "🤯", "❄️", "🌱"
+  ];
+
+  const addUserGuestRole = async () => {
+    const avatar = avatarOptions[Math.floor(Math.random() * avatarOptions.length)];
+    // 送出 API
+    try {
+      const res = await api.post("/api/user/addUserGuestRole", { avatar });
+      if (res.status === 200) {
+        const user_data = {
+          ...user,
+          user: res.data.user
+        }
+        setUser(user_data);
+        setProfile(res.data.profile);
+        setDraft(res.data.profile);
+        Swal.fire({
+          title: "座位訪客身份設定成功",
+          icon: 'success',
+        });
+      }
+    } catch (error) {
+      // Step 4：處理後端座號已設定的情況
+      if (error.response?.status === 409) {
+        // 後端回傳 409
+        await Swal.fire({
+          title: "設定失敗",
+          text: error.response.data.message, // 正確取錯誤訊息
+          icon: "error"
+        });
+      }
+      Swal.showValidationMessage(
+        `送出失敗: ${error.response?.data?.message || error.message}`
+      );
+    }
+  };
+
+  const showRoleSelect = () => {
+    Swal.fire({
+      icon: "warning",
+      html: `
+        <div class="text-xl">歡迎您的加入，請選擇您的身分</div><br/>
+        <div class="flex gap-6 justify-center">
+          <span id="guestBtn"
+            class="cursor-pointer text-blue-500 font-medium hover:underline">
+            訪客身份
+          </span>
+  
+          <span id="studentBtn"
+            class="cursor-pointer text-blue-500 font-medium hover:underline">
+            班級學生
+          </span>
+        </div>
+      `,
+      showConfirmButton: false,
+      allowOutsideClick: true,
+
+      didOpen: () => {
+        document.getElementById("guestBtn").onclick = () => {
+          addUserGuestRole();
+        };
+
+        document.getElementById("studentBtn").onclick = () => {
+          askSeatNumber();
+        };
+
+      }
+    });
+  };
+
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
@@ -274,7 +341,6 @@ export default function Profile() {
   const handleProfileSave = async () => {
     const requiredFields = [
       { key: "user_name", label: "姓名" },
-      { key: "seat_number", label: "座號" },
       { key: "email", label: "E-mail" },
     ];
 
@@ -289,14 +355,18 @@ export default function Profile() {
     }
 
     // 2️⃣ 檢查座號是否大於0的整數
-    const seatNumber = Number(draft.seat_number);
-    if (!Number.isInteger(seatNumber) || seatNumber <= 0) {
-      Swal.fire({
-        icon: "error",
-        title: "欄位錯誤",
-        text: "座號必須是大於 0 的整數"
-      });
-      return;
+    const seatNumber = draft.seat_number;
+    // 如果有輸入座號，就驗證是否為大於 0 的整數
+    if (seatNumber !== null && seatNumber !== "") {
+      const num = Number(seatNumber);
+      if (!Number.isInteger(num) || num <= 0) {
+        Swal.fire({
+          icon: "error",
+          title: "欄位錯誤",
+          text: "座號必須是大於 0 的整數"
+        });
+        return;
+      }
     }
 
     // Email 格式檢查（可選，readOnly 也安全）
@@ -661,7 +731,7 @@ export default function Profile() {
         setProfile(res.data.profile);
         setDraft(res.data.profile);
         const user_data = {
-          ...user,
+          auth: res.data.auth,
           user: res.data.user
         }
         setUser(user_data);
@@ -681,11 +751,9 @@ export default function Profile() {
         });
         return askSeatNumber(); // 重新輸入
       }
-
       Swal.showValidationMessage(
         `送出失敗: ${error.response?.data?.message || error.message}`
       );
-      // 可以選擇再呼叫 askSeatNumber() 讓使用者重試
     }
   };
 
@@ -700,6 +768,7 @@ export default function Profile() {
           if (res.data.hasProfile === false) {
             // 🔥 呼叫一次開始流程
             askSeatNumber();
+            showRoleSelect();
             return;
           } else {
             setProfile(res.data.profile);
@@ -767,7 +836,6 @@ export default function Profile() {
   }, [expireAt])
 
   const refreshAuth = async () => {
-
     const res = await api.post("/api/refresh")
     setExpireAt(res.data.expireAt)
   }
@@ -879,7 +947,7 @@ export default function Profile() {
               <SectionTitle icon="👤" title="個人資訊" />
               {/* Edit button */}
               <div className="flex-shrink-0 ml-auto">
-                {profile?.user_name && (!profileEditing
+                {user?.auth && user?.user?.roles && user.user.roles.length > 0 && (!profileEditing
                   ? <div onClick={() => { setDraft(profile); setProfileEditing(true); }}
                     className="bg-red-800 hover:bg-red-900 text-white text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors whitespace-nowrap">
                     ✏️ 編輯
@@ -897,98 +965,112 @@ export default function Profile() {
                 )}
               </div>
             </div>
-            {profile?.user_name ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <InputField label={
-                    <span>
-                      <span className="text-red-500">*</span> 姓名
-                    </span>
-                  } value={draft.user_name}
-                    onChange={e => setDraft(d => ({ ...d, user_name: e.target.value }))} disabled={!profileEditing} required />
-                  <InputField label="英文姓名" value={draft.user_en_name}
-                    onChange={e => setDraft(d => ({ ...d, user_en_name: e.target.value }))} disabled={!profileEditing} />
-                  <InputField
-                    label={
-                      <span>
-                        <span className="text-red-500">*</span> E-mail
-                      </span>
-                    }
-                    value={draft.email}
-                    type="email"
-                    readOnly // 🔒 不可改，但可以點擊
-                    required
-                    className="cursor-not-allowed" // 顯示不可修改手勢
-                    onClick={() => {
-                      if (profileEditing)
-                        Swal.fire({
-                          icon: "warning",
-                          title: "E-mail不可變更，如需變更請洽系統管理員",
-                        })
-                    }}
-                  />
-                  <InputField label={
-                    <span>
-                      <span className="text-red-500">*</span> 座號
-                    </span>
-                  } value={draft.seat_number} readOnly
-                    onClick={() => {
-                      if (profileEditing)
-                        Swal.fire({
-                          icon: "warning",
-                          title: "座號不可變更，如需變更請洽系統管理員",
-                        })
-                    }}
-                    disabled={!profileEditing} required />
-                  <InputField label="暱稱" value={draft.user_nick_name}
-                    onChange={e => setDraft(d => ({ ...d, nickname: e.target.value }))} disabled={!profileEditing} />
-                  <InputField label="個人簡介" value={draft.user_title}
-                    onChange={e => setDraft(d => ({ ...d, user_title: e.target.value }))} disabled={!profileEditing} />
-                  <SelectField label="開發主力" value={draft.position_id} options={positionList}
-                    onChange={e =>
-                      setDraft(d => ({
-                        ...d,
-                        position_id: Number(e.target.value)
-                      }))
-                    }
-                    disabled={!profileEditing}
-                  />
-                  <InputField label="電話" value={draft.phone}
-                    onChange={e => setDraft(d => ({ ...d, phone: e.target.value }))} disabled={!profileEditing} />
-
-
-                  <InputField label="GitHub" value={draft.github}
-                    onChange={e => setDraft(d => ({ ...d, github: e.target.value }))} disabled={!profileEditing} placeholder="github.com/your-username" />
-                  <InputField label="LinkedIn" value={draft.linkedin}
-                    onChange={e => setDraft(d => ({ ...d, linkedin: e.target.value }))} disabled={!profileEditing} placeholder="linkedin.com/in/your-name" />
-                </div>
-                <div className="mt-4">
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">自我介紹</label>
-                  <textarea
-                    value={draft.bio}
-                    onChange={e => setDraft(d => ({ ...d, bio: e.target.value }))}
-                    disabled={!profileEditing}
-                    rows={3}
-                    className={`w-full border rounded-xl px-4 py-2.5 text-sm resize-none transition-all outline-none
-                  ${!profileEditing ? "bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed" : "border-gray-200 focus:border-red-400 focus:ring-2 focus:ring-red-100 text-gray-800"}`}
-                  />
-                </div>
-              </>
-            ) : (
+            {(user?.auth && (!user?.user?.roles || user.user.roles.length === 0)) ? (
               <>
                 <div className="text-center text-md text-orange-700 font-medium">
-                  ⚠️ 尚未設定使用者座號
+                  ⚠️ 尚未設定使用者身份
                 </div>
                 <div
                   className="w-full mt-4 text-center text-orange-600
                          font-bold cursor-pointer transition-all duration-200 hover:text-orange-800 hover:underline"
-                  onClick={() => askSeatNumber()}
+                  onClick={() => showRoleSelect()}
                 >
-                  前往設定頁面
+                  前往設定
                 </div>
-
               </>
-            )}
+            ) : (
+              user?.auth && user?.user?.roles?.includes("student") && Number(user?.user?.seat_number) <= 0 ? (
+                <>
+                  <div className="text-center text-md text-orange-700 font-medium">
+                    ⚠️ 尚未設定學生座號
+                  </div>
+                  <div
+                    className="w-full mt-4 text-center text-orange-600
+                         font-bold cursor-pointer transition-all duration-200 hover:text-orange-800 hover:underline"
+                    onClick={() => askSeatNumber()}
+                  >
+                    前往設定
+                  </div>
+                </>
+              ) : (
+
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <InputField label={
+                      <span>
+                        <span className="text-red-500">*</span> 姓名
+                      </span>
+                    } value={draft.user_name}
+                      onChange={e => setDraft(d => ({ ...d, user_name: e.target.value }))} disabled={!profileEditing} required />
+                    <InputField label="英文姓名" value={draft.user_en_name}
+                      onChange={e => setDraft(d => ({ ...d, user_en_name: e.target.value }))} disabled={!profileEditing} />
+                    <InputField
+                      label={
+                        <span>
+                          <span className="text-red-500">*</span> E-mail
+                        </span>
+                      }
+                      value={draft.email}
+                      type="email"
+                      readOnly // 🔒 不可改，但可以點擊
+                      required
+                      className="cursor-not-allowed" // 顯示不可修改手勢
+                      onClick={() => {
+                        if (profileEditing)
+                          Swal.fire({
+                            icon: "warning",
+                            title: "E-mail不可變更，如需變更請洽系統管理員",
+                          })
+                      }}
+                    />
+                    <InputField label={
+                      <span>
+                        座號
+                      </span>
+                    } value={draft.seat_number} readOnly
+                      onClick={() => {
+                        if (profileEditing)
+                          Swal.fire({
+                            icon: "warning",
+                            title: "座號不可變更，如需變更請洽系統管理員",
+                          })
+                      }}
+                      disabled={!profileEditing} required />
+                    <InputField label="暱稱" value={draft.user_nick_name}
+                      onChange={e => setDraft(d => ({ ...d, user_nick_name: e.target.value }))} disabled={!profileEditing} />
+                    <InputField label="個人簡介" value={draft.user_title}
+                      onChange={e => setDraft(d => ({ ...d, user_title: e.target.value }))} disabled={!profileEditing} />
+                    <SelectField label="開發主力" value={draft.position_id} options={positionList}
+                      onChange={e =>
+                        setDraft(d => ({
+                          ...d,
+                          position_id: Number(e.target.value)
+                        }))
+                      }
+                      disabled={!profileEditing}
+                    />
+                    <InputField label="電話" value={draft.phone}
+                      onChange={e => setDraft(d => ({ ...d, phone: e.target.value }))} disabled={!profileEditing} />
+
+
+                    <InputField label="GitHub" value={draft.github}
+                      onChange={e => setDraft(d => ({ ...d, github: e.target.value }))} disabled={!profileEditing} placeholder="github.com/your-username" />
+                    <InputField label="LinkedIn" value={draft.linkedin}
+                      onChange={e => setDraft(d => ({ ...d, linkedin: e.target.value }))} disabled={!profileEditing} placeholder="linkedin.com/in/your-name" />
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">自我介紹</label>
+                    <textarea
+                      value={draft.bio}
+                      onChange={e => setDraft(d => ({ ...d, bio: e.target.value }))}
+                      disabled={!profileEditing}
+                      rows={3}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-sm resize-none transition-all outline-none
+                  ${!profileEditing ? "bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed" : "border-gray-200 focus:border-red-400 focus:ring-2 focus:ring-red-100 text-gray-800"}`}
+                    />
+                  </div>
+                </>
+              ))}
           </Card>
 
           <Card className="p-5 md:p-6">
@@ -996,7 +1078,7 @@ export default function Profile() {
               <SectionTitle icon="🛠️" title="技術技能" />
               {/* Edit button */}
               <div className="flex-shrink-0 ml-auto">
-                {profile?.user_name && (!skillEditing
+                {user?.auth && user?.user?.roles && user.user.roles.length > 0 && (!skillEditing
                   ? <div onClick={() => setSkillEditing(true)}
                     className="bg-red-800 hover:bg-red-900 text-white text-sm font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors whitespace-nowrap">
                     ✏️ 編輯

@@ -246,19 +246,28 @@ const Navbar = () => {
                                 >登入</span>
                             </>
                         ) : (
-                            <div className="relative">
+                            <div className="relative cursor-pointer"
+                                ref={userdropdownRef}
+                                onClick={() => setShowMenu(!showMenu)}
+                            >
                                 <div
-                                    ref={userdropdownRef}
-                                    onClick={() => setShowMenu(!showMenu)}
-                                    className="flex items-center gap-2 cursor-pointer"
+                                    className="flex items-center gap-2"
                                 >
-                                    <div className="w-15 h-9 rounded-full bg-gradient-to-br from-[rgb(206,21,104)] to-[rgb(187,86,36)] text-white flex items-center justify-center font-bold">
-                                        {user?.user?.user_name && user.user.user_name.trim() !== "" ? (
-                                            <span>{user.user.user_name.slice(-2)}</span> // ✅ 只取末兩字
+                                    {user?.user?.avatar ? (
+                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[rgb(250,210,228)] to-[rgb(231,190,169)] text-white flex items-center justify-center font-bold border-2 border-[rgb(170,81,121)]">
+                                            <span className='scale-[1.2]'>{user.user.avatar}</span>
+                                        </div>
+                                    ) : (
+                                        user?.user?.user_en_name && user?.user?.user_en_name?.trim() !== "" ? (
+                                            <div className="w-15 h-9 rounded-full bg-gradient-to-br from-[rgb(206,21,104)] to-[rgb(187,86,36)] text-white flex items-center justify-center font-bold">
+                                                <span>{user?.user?.user_en_name?.split(" ")[0]}</span>
+                                            </div>
                                         ) : (
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[rgb(250,210,228)] to-[rgb(231,190,169)] text-white flex items-center justify-center font-bold border-2 border-[rgb(170,81,121)]">
                                             <User className="h-6 w-8 text-white" />
-                                        )}
-                                    </div>
+                                        </div>
+                                        )
+                                    )}
                                 </div>
 
                                 {/* Dropdown with animation */}
@@ -299,6 +308,13 @@ const Navbar = () => {
                                             </div>
                                         ))}
                                 </div>
+                                {user?.user?.avatar && (user?.user?.user_en_name || user?.user?.user_nick_name) && (
+                                    <div className="absolute left-1/2 -translate-x-1/2">
+                                        <span>
+                                            {user?.user?.user_en_name?.split(" ")?.[0] || user?.user?.user_nick_name || ""}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -383,115 +399,117 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Menu */}
-            {isOpen && (
-                <div ref={IsOpendropdownRef} className="lg:hidden bg-white border-t border-slate-200">
+            {
+                isOpen && (
+                    <div ref={IsOpendropdownRef} className="lg:hidden bg-white border-t border-slate-200">
 
-                    <div className="h-1 mt-[-1px] bg-gradient-to-r from-[#FC801C] via-[#FFBDB0] to-[#FC801C]"></div>
-                    <div className="px-4 pt-2 pb-3 space-y-1">
+                        <div className="h-1 mt-[-1px] bg-gradient-to-r from-[#FC801C] via-[#FFBDB0] to-[#FC801C]"></div>
+                        <div className="px-4 pt-2 pb-3 space-y-1">
 
-                        {MobileMenuItems
-                            .filter((item) => {
-                                if (item.name === "登入" && user) return false;
-                                if (item.name === "登出" && !user) return false;
-                                if (item.name === "會員資料" && (!user || !user.auth)) return false;
-                                if (item.name === "前往管理專區" && (!user || !user.user?.roles?.includes("admin"))) return false;
-                                return true;
-                            }).map((item, index) => {
-                                const Icon = item.icon;
-                                const isOpen = openMenu === index;
+                            {MobileMenuItems
+                                .filter((item) => {
+                                    if (item.name === "登入" && user) return false;
+                                    if (item.name === "登出" && !user) return false;
+                                    if (item.name === "會員資料" && (!user || !user.auth)) return false;
+                                    if (item.name === "前往管理專區" && (!user || !user.user?.roles?.includes("admin"))) return false;
+                                    return true;
+                                }).map((item, index) => {
+                                    const Icon = item.icon;
+                                    const isOpen = openMenu === index;
 
-                                // 沒有 dropdown 的（例如登入 / 前往管理專區）
-                                if (!item.dropdown) {
+                                    // 沒有 dropdown 的（例如登入 / 前往管理專區）
+                                    if (!item.dropdown) {
+                                        return (
+                                            <div
+                                                key={index}
+                                                className={`flex items-center gap-3 px-4 py-3`}
+                                                onClick={() => {
+                                                    if (item.url === "logout") {
+                                                        logout();
+                                                    } else {
+                                                        navigate(item.url);
+                                                        window.scrollTo({
+                                                            top: 0,
+                                                            behavior: "smooth"
+                                                        });
+                                                        setIsOpen(false);
+                                                    }
+                                                }}
+                                            >
+                                                <Icon className={`w-5 h-5 ${item.color}`} />
+                                                <span>{item.name}</span>
+                                            </div>
+                                        );
+                                    }
+
+                                    // 有 dropdown 的（大標題）
                                     return (
-                                        <div
-                                            key={index}
-                                            className={`flex items-center gap-3 px-4 py-3`}
-                                            onClick={() => {
-                                                if (item.url === "logout") {
-                                                    logout();
-                                                } else {
-                                                    navigate(item.url);
-                                                    window.scrollTo({
-                                                        top: 0,
-                                                        behavior: "smooth"
-                                                    });
-                                                    setIsOpen(false);
+                                        <div key={index} className="">
+
+                                            {/* 大標題 */}
+                                            <div
+                                                onClick={() =>
+                                                    setOpenMenu(isOpen ? null : index)
                                                 }
-                                            }}
-                                        >
-                                            <Icon className={`w-5 h-5 ${item.color}`} />
-                                            <span>{item.name}</span>
+                                                className="w-full flex items-center justify-between px-4 py-3"
+                                            >
+                                                <div className="flex items-center gap-3">
+
+                                                    <Icon className={`w-5 h-5 text-[rgb(194,37,37)]`} />
+                                                    <span className="font-medium">{item.name}</span>
+                                                </div>
+
+                                                <ChevronDown
+                                                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+                                                        }`}
+                                                />
+                                            </div>
+
+                                            {/* 子選單 */}
+                                            {isOpen && (
+                                                <div className="bg-gray-50">
+                                                    {item.dropdown.map((subItem, subIndex) => {
+                                                        const SubIcon = subItem.icon;
+
+                                                        return (
+                                                            <div
+                                                                key={subIndex}
+                                                                className="flex items-center gap-3 px-8 py-2 text-sm hover:bg-gray-100"
+                                                                onClick={() => {
+                                                                    if (subItem.url && subItem.url.startsWith("#")) {
+                                                                        Swal.fire({
+                                                                            title: "功能尚未實裝, 敬請期待",
+                                                                            icon: "warning",
+                                                                        });
+                                                                    } else {
+                                                                        navigate(subItem.url);
+                                                                        window.scrollTo({
+                                                                            top: 0,
+                                                                            behavior: "smooth"
+                                                                        });
+                                                                        setTimeout(() => {
+                                                                            setIsOpen(false);
+                                                                        }, 100);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                {SubIcon && <SubIcon className={`w-4 h-4 text-yellow-500`} />}
+                                                                <span>{subItem.name}</span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
                                         </div>
                                     );
-                                }
-
-                                // 有 dropdown 的（大標題）
-                                return (
-                                    <div key={index} className="">
-
-                                        {/* 大標題 */}
-                                        <div
-                                            onClick={() =>
-                                                setOpenMenu(isOpen ? null : index)
-                                            }
-                                            className="w-full flex items-center justify-between px-4 py-3"
-                                        >
-                                            <div className="flex items-center gap-3">
-
-                                                <Icon className={`w-5 h-5 text-[rgb(194,37,37)]`} />
-                                                <span className="font-medium">{item.name}</span>
-                                            </div>
-
-                                            <ChevronDown
-                                                className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
-                                                    }`}
-                                            />
-                                        </div>
-
-                                        {/* 子選單 */}
-                                        {isOpen && (
-                                            <div className="bg-gray-50">
-                                                {item.dropdown.map((subItem, subIndex) => {
-                                                    const SubIcon = subItem.icon;
-
-                                                    return (
-                                                        <div
-                                                            key={subIndex}
-                                                            className="flex items-center gap-3 px-8 py-2 text-sm hover:bg-gray-100"
-                                                            onClick={() => {
-                                                                if (subItem.url && subItem.url.startsWith("#")) {
-                                                                    Swal.fire({
-                                                                        title: "功能尚未實裝, 敬請期待",
-                                                                        icon: "warning",
-                                                                    });
-                                                                } else {
-                                                                    navigate(subItem.url);
-                                                                    window.scrollTo({
-                                                                        top: 0,
-                                                                        behavior: "smooth"
-                                                                    });
-                                                                    setTimeout(() => {
-                                                                        setIsOpen(false);
-                                                                    }, 100);
-                                                                }
-                                                            }}
-                                                        >
-                                                            {SubIcon && <SubIcon className={`w-4 h-4 text-yellow-500`} />}
-                                                            <span>{subItem.name}</span>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
+                                })}
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
             {/* Accent Line */}
             <div className="h-1 bg-gradient-to-r from-[#FC801C] via-[#FFBDB0] to-[#FC801C]"></div>
-        </nav>
+        </nav >
     );
 };
 

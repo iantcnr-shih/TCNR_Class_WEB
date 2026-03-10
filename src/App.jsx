@@ -91,13 +91,12 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/reviews/shops" element={<FrontLayout />}>
-  <Route index element={<ShopReviewSummary />} />
-</Route>
+        <Route path="/reviews/shops" element={<FrontLayout />} />
+        <Route index element={<ShopReviewSummary />} />
 
-<Route path="/reviews/shops/:shopId" element={<FrontLayout />}>
-  <Route index element={<ShopReviewDetail />} />
-</Route>
+        <Route path="/reviews/shops/:shopId" element={<FrontLayout />}>
+          <Route index element={<ShopReviewDetail />} />
+        </Route>
 
         {/* 後台 */}
         <Route path="/admin" element={
@@ -105,15 +104,15 @@ function App() {
             <AdminLayout />
           </AdminUserProvider>
         }>
-          <Route index element={<AdminHome />} />
-          <Route path="news" element={<AdminNews />} />
-          <Route path="meal-order" element={<AdminMealOrder />} />
-          <Route path="environment" element={<AdminEnvironment />} />
-          <Route path="class-meeting" element={<AdminClassMeeting />} />
-          <Route path="tech-forum" element={<AdminTechForum />} />
-          <Route path="data-analysis" element={<AdminDataAnalysis />} />
-          <Route path="ai" element={<AdminAi />} />
-          <Route path="admin/dev-team" element={<AdminDevTeam />} />
+            <Route index element={<AdminHome />} />
+            <Route path="news" element={<AdminNews />} />
+            <Route path="meal-order" element={<AdminMealOrder />} />
+            <Route path="environment" element={<AdminEnvironment />} />
+            <Route path="class-meeting" element={<AdminClassMeeting />} />
+            <Route path="tech-forum" element={<AdminTechForum />} />
+            <Route path="data-analysis" element={<AdminDataAnalysis />} />
+            <Route path="ai" element={<AdminAi />} />
+            <Route path="admin/dev-team" element={<AdminDevTeam />} />
         </Route>
       </Routes>
     </>
