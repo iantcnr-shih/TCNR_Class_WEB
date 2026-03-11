@@ -1,6 +1,6 @@
 // export default Navbar;
 import React, { useState, useEffect } from 'react';
-import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, TrendingUp, Clock, CheckCircle, ArrowRightCircle, LogOut } from 'lucide-react';
+import { Newspaper, Utensils, Sparkles, Calendar, MessageSquare, BarChart3, Brain, Users, Menu, X, Bell, Search, User, Settings, ChevronRight, TrendingUp, Clock, CheckCircle, ArrowRightCircle, LogOut, UserCog } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import api from "@/api/axios";
 
@@ -14,8 +14,9 @@ function AaminLeftSode() {
         { id: 'environment', name: '環境管理', icon: Sparkles, url: '/admin/environment', color: 'emerald', bgColor: 'bg-emerald-500', lightBg: 'bg-emerald-50', textColor: 'text-emerald-600' },
         { id: 'class-meeting', name: '班務會議', icon: Calendar, url: '/admin/class-meeting', color: 'purple', bgColor: 'bg-purple-500', lightBg: 'bg-purple-50', textColor: 'text-purple-600' },
         { id: 'tech-forum', name: '知識論壇', icon: MessageSquare, url: '/admin/tech-forum', color: 'cyan', bgColor: 'bg-cyan-500', lightBg: 'bg-cyan-50', textColor: 'text-cyan-600' },
-        { id: 'data-analysis', name: '數據分析', icon: BarChart3, url: '/admin/data-analysis', color: 'indigo', bgColor: 'bg-indigo-500', lightBg: 'bg-indigo-50', textColor: 'text-indigo-600' },
-        { id: 'ai', name: 'AI 應用', icon: Brain, url: '/admin/ai', color: 'pink', bgColor: 'bg-pink-500', lightBg: 'bg-pink-50', textColor: 'text-pink-600' },
+        { id: 'data-analysis', name: '數據分析', icon: BarChart3, url: '/admin/data-analysis', color: 'pink', bgColor: 'bg-pink-500', lightBg: 'bg-pink-50', textColor: 'text-pink-600' },
+        { id: 'ai', name: 'AI 應用', icon: Brain, url: '/admin/ai', color: 'indigo', bgColor: 'bg-indigo-500', lightBg: 'bg-indigo-50', textColor: 'text-indigo-600' },
+        { id: 'member-management', name: '會員管理', icon: UserCog, url: '/admin/members', color: 'rose', bgColor: 'bg-rose-500', lightBg: 'bg-rose-50', textColor: 'text-rose-600' },
         { id: 'team', name: '開發團隊', icon: Users, url: '/dev-team', color: 'teal', bgColor: 'bg-teal-500', lightBg: 'bg-teal-50', textColor: 'text-teal-600' },
     ];
 

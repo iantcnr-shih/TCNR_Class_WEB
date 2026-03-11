@@ -10,6 +10,7 @@ import AdminTechForum from "@/pages/admin/AdminTechForum";
 import AdminDataAnalysis from "@/pages/admin/AdminDataAnalysis";
 import AdminAi from "@/pages/admin/AdminAi";
 import AdminDevTeam from "@/pages/admin/AdminDevTeam";
+import AdminMembers from "@/pages/admin/AdminMembers/AdminMembers";
 import { UserProvider } from "@/components/auth/UserProvider";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import FrontLayout from "@/layouts/FrontLayout";
@@ -113,6 +114,7 @@ function App() {
             <Route path="data-analysis" element={<AdminDataAnalysis />} />
             <Route path="ai" element={<AdminAi />} />
             <Route path="admin/dev-team" element={<AdminDevTeam />} />
+            <Route path="members" element={<AdminMembers />} />
         </Route>
       </Routes>
     </>
